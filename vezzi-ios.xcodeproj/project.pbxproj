@@ -6,17 +6,28 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D4AD4CBC30974B04002BDC87 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D4AD4CB830974B04002BDC87 /* Assets.xcassets */; };
+		D4AD4CBE30974B04002BDC87 /* vezzi_iosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CBA30974B04002BDC87 /* vezzi_iosApp.swift */; };
+		D4AD4CC230974C24002BDC87 /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CC130974C21002BDC87 /* ColorExtension.swift */; };
+		D4AD4CC430974C2D002BDC87 /* ImageExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CC330974C29002BDC87 /* ImageExtension.swift */; };
+		D4AD4CC630974C35002BDC87 /* Labels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CC530974C33002BDC87 /* Labels.swift */; };
+		D4AD4CCA30974C54002BDC87 /* ViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CC930974C51002BDC87 /* ViewExtension.swift */; };
+		D4AD4CCD30974C8C002BDC87 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D4AD4CCC30974C8C002BDC87 /* Localizable.xcstrings */; };
+		D4AD4CD130974FF8002BDC87 /* DemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CD030974FF8002BDC87 /* DemoView.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		D4921C0B307D51EC0071715F /* vezzi-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "vezzi-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D4AD4CB830974B04002BDC87 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D4AD4CBA30974B04002BDC87 /* vezzi_iosApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = vezzi_iosApp.swift; sourceTree = "<group>"; };
+		D4AD4CC130974C21002BDC87 /* ColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
+		D4AD4CC330974C29002BDC87 /* ImageExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageExtension.swift; sourceTree = "<group>"; };
+		D4AD4CC530974C33002BDC87 /* Labels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Labels.swift; sourceTree = "<group>"; };
+		D4AD4CC930974C51002BDC87 /* ViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewExtension.swift; sourceTree = "<group>"; };
+		D4AD4CCC30974C8C002BDC87 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		D4AD4CD030974FF8002BDC87 /* DemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		D4921C0D307D51EC0071715F /* vezzi-ios */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "vezzi-ios";
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		D4921C08307D51EC0071715F /* Frameworks */ = {
@@ -32,7 +43,7 @@
 		D4921C02307D51EC0071715F = {
 			isa = PBXGroup;
 			children = (
-				D4921C0D307D51EC0071715F /* vezzi-ios */,
+				D4AD4CBB30974B04002BDC87 /* vezzi-ios */,
 				D4921C0C307D51EC0071715F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -43,6 +54,61 @@
 				D4921C0B307D51EC0071715F /* vezzi-ios.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		D4AD4CBB30974B04002BDC87 /* vezzi-ios */ = {
+			isa = PBXGroup;
+			children = (
+				D4AD4CCB30974C69002BDC87 /* Application */,
+				D4AD4CCE30974D4D002BDC87 /* Modules */,
+				D4AD4CC030974C10002BDC87 /* Extensions */,
+				D4AD4CBF30974BFA002BDC87 /* SupportingFiles */,
+			);
+			path = "vezzi-ios";
+			sourceTree = "<group>";
+		};
+		D4AD4CBF30974BFA002BDC87 /* SupportingFiles */ = {
+			isa = PBXGroup;
+			children = (
+				D4AD4CB830974B04002BDC87 /* Assets.xcassets */,
+			);
+			path = SupportingFiles;
+			sourceTree = "<group>";
+		};
+		D4AD4CC030974C10002BDC87 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				D4AD4CC530974C33002BDC87 /* Labels.swift */,
+				D4AD4CC130974C21002BDC87 /* ColorExtension.swift */,
+				D4AD4CC330974C29002BDC87 /* ImageExtension.swift */,
+				D4AD4CC930974C51002BDC87 /* ViewExtension.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		D4AD4CCB30974C69002BDC87 /* Application */ = {
+			isa = PBXGroup;
+			children = (
+				D4AD4CBA30974B04002BDC87 /* vezzi_iosApp.swift */,
+				D4AD4CCC30974C8C002BDC87 /* Localizable.xcstrings */,
+			);
+			path = Application;
+			sourceTree = "<group>";
+		};
+		D4AD4CCE30974D4D002BDC87 /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+				D4AD4CCF30974FE0002BDC87 /* Demo */,
+			);
+			path = Modules;
+			sourceTree = "<group>";
+		};
+		D4AD4CCF30974FE0002BDC87 /* Demo */ = {
+			isa = PBXGroup;
+			children = (
+				D4AD4CD030974FF8002BDC87 /* DemoView.swift */,
+			);
+			path = Demo;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -59,9 +125,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				D4921C0D307D51EC0071715F /* vezzi-ios */,
 			);
 			name = "vezzi-ios";
 			packageProductDependencies = (
@@ -91,6 +154,7 @@
 			knownRegions = (
 				en,
 				Base,
+				ru,
 			);
 			mainGroup = D4921C02307D51EC0071715F;
 			minimizedProjectReferenceProxies = 1;
@@ -109,6 +173,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4AD4CCD30974C8C002BDC87 /* Localizable.xcstrings in Resources */,
+				D4AD4CBC30974B04002BDC87 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,6 +185,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4AD4CD130974FF8002BDC87 /* DemoView.swift in Sources */,
+				D4AD4CC230974C24002BDC87 /* ColorExtension.swift in Sources */,
+				D4AD4CC630974C35002BDC87 /* Labels.swift in Sources */,
+				D4AD4CCA30974C54002BDC87 /* ViewExtension.swift in Sources */,
+				D4AD4CBE30974B04002BDC87 /* vezzi_iosApp.swift in Sources */,
+				D4AD4CC430974C2D002BDC87 /* ImageExtension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -185,6 +257,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -242,6 +315,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -256,11 +330,14 @@
 				DEVELOPMENT_TEAM = GTBZ6M3J83;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Polka;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -269,6 +346,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "vezzi.vezzi-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -288,11 +369,14 @@
 				DEVELOPMENT_TEAM = GTBZ6M3J83;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Polka;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -301,6 +385,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "vezzi.vezzi-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;

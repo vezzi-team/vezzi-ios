@@ -1,24 +1,24 @@
 //
-//  ContentView.swift
+//  DemoView.swift
 //  vezzi-ios
 //
-//  Created by Roman Tverdohleb on 12.10.2026.
+//  Created by Roman Tverdohleb on 01.11.2026.
 //
 
 import SwiftUI
 
-struct ContentView: View {
+struct DemoView: View {
     var body: some View {
         VStack {
             Image(systemName: "globe")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Text(Texts.Demo.title)
         }
         .padding()
     }
 }
 
 #Preview {
-    ContentView()
+    DemoView()
 }

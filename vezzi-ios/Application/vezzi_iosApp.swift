@@ -11,7 +11,7 @@ import SwiftUI
 struct vezzi_iosApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            DemoView()
         }
     }
 }
