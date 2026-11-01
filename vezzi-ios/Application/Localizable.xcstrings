@@ -1,6 +1,23 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "DemoShowSubtitle" : {
+      "comment" : "Show subtitle",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show subtitle"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать подзаголовок"
+          }
+        }
+      }
+    },
     "DemoSubtitle" : {
       "comment" : "This is demo subtitle",
       "localizations" : {

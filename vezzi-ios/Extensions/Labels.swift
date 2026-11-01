@@ -20,5 +20,6 @@ final class Texts {
     enum Demo {
         static let title = NSLocalizedString("DemoTitle", comment: "Welcome")
         static let subtitle = NSLocalizedString("DemoSubtitle", comment: "This is demo subtitle")
+        static let showSubtitle = NSLocalizedString("DemoShowSubtitle", comment: "Show subtitle")
     }
 }

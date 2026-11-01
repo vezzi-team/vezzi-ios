@@ -8,25 +8,33 @@
 
 /* Begin PBXBuildFile section */
 		D4AD4CBC30974B04002BDC87 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D4AD4CB830974B04002BDC87 /* Assets.xcassets */; };
-		D4AD4CBE30974B04002BDC87 /* vezzi_iosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CBA30974B04002BDC87 /* vezzi_iosApp.swift */; };
+		D4AD4CBE30974B04002BDC87 /* vezziApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CBA30974B04002BDC87 /* vezziApp.swift */; };
 		D4AD4CC230974C24002BDC87 /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CC130974C21002BDC87 /* ColorExtension.swift */; };
 		D4AD4CC430974C2D002BDC87 /* ImageExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CC330974C29002BDC87 /* ImageExtension.swift */; };
 		D4AD4CC630974C35002BDC87 /* Labels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CC530974C33002BDC87 /* Labels.swift */; };
 		D4AD4CCA30974C54002BDC87 /* ViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CC930974C51002BDC87 /* ViewExtension.swift */; };
 		D4AD4CCD30974C8C002BDC87 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D4AD4CCC30974C8C002BDC87 /* Localizable.xcstrings */; };
 		D4AD4CD130974FF8002BDC87 /* DemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CD030974FF8002BDC87 /* DemoView.swift */; };
+		D4AD4CD63097578F002BDC87 /* DemoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CD53097578C002BDC87 /* DemoModel.swift */; };
+		D4AD4CD830975797002BDC87 /* DemoViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CD730975793002BDC87 /* DemoViewModel.swift */; };
+		D4AD4CDA30975D03002BDC87 /* DemoSubtitleToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CD930975D02002BDC87 /* DemoSubtitleToggle.swift */; };
+		D4AD4CDC30975F22002BDC87 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D4AD4CDB30975F22002BDC87 /* InfoPlist.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		D4921C0B307D51EC0071715F /* vezzi-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "vezzi-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4AD4CB830974B04002BDC87 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		D4AD4CBA30974B04002BDC87 /* vezzi_iosApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = vezzi_iosApp.swift; sourceTree = "<group>"; };
+		D4AD4CBA30974B04002BDC87 /* vezziApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = vezziApp.swift; sourceTree = "<group>"; };
 		D4AD4CC130974C21002BDC87 /* ColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
 		D4AD4CC330974C29002BDC87 /* ImageExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageExtension.swift; sourceTree = "<group>"; };
 		D4AD4CC530974C33002BDC87 /* Labels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Labels.swift; sourceTree = "<group>"; };
 		D4AD4CC930974C51002BDC87 /* ViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewExtension.swift; sourceTree = "<group>"; };
 		D4AD4CCC30974C8C002BDC87 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		D4AD4CD030974FF8002BDC87 /* DemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoView.swift; sourceTree = "<group>"; };
+		D4AD4CD53097578C002BDC87 /* DemoModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoModel.swift; sourceTree = "<group>"; };
+		D4AD4CD730975793002BDC87 /* DemoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoViewModel.swift; sourceTree = "<group>"; };
+		D4AD4CD930975D02002BDC87 /* DemoSubtitleToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSubtitleToggle.swift; sourceTree = "<group>"; };
+		D4AD4CDB30975F22002BDC87 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = InfoPlist.xcstrings; path = "vezzi-ios/Application/InfoPlist.xcstrings"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,8 +97,9 @@
 		D4AD4CCB30974C69002BDC87 /* Application */ = {
 			isa = PBXGroup;
 			children = (
-				D4AD4CBA30974B04002BDC87 /* vezzi_iosApp.swift */,
+				D4AD4CBA30974B04002BDC87 /* vezziApp.swift */,
 				D4AD4CCC30974C8C002BDC87 /* Localizable.xcstrings */,
+				D4AD4CDB30975F22002BDC87 /* InfoPlist.xcstrings */,
 			);
 			path = Application;
 			sourceTree = "<group>";
@@ -106,9 +115,36 @@
 		D4AD4CCF30974FE0002BDC87 /* Demo */ = {
 			isa = PBXGroup;
 			children = (
-				D4AD4CD030974FF8002BDC87 /* DemoView.swift */,
+				D4AD4CD330975772002BDC87 /* Model */,
+				D4AD4CD23097576C002BDC87 /* View */,
+				D4AD4CD430975776002BDC87 /* ViewModel */,
 			);
 			path = Demo;
+			sourceTree = "<group>";
+		};
+		D4AD4CD23097576C002BDC87 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				D4AD4CD030974FF8002BDC87 /* DemoView.swift */,
+				D4AD4CD930975D02002BDC87 /* DemoSubtitleToggle.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		D4AD4CD330975772002BDC87 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				D4AD4CD53097578C002BDC87 /* DemoModel.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		D4AD4CD430975776002BDC87 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				D4AD4CD730975793002BDC87 /* DemoViewModel.swift */,
+			);
+			path = ViewModel;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -173,6 +209,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4AD4CDC30975F22002BDC87 /* InfoPlist.xcstrings in Resources */,
 				D4AD4CCD30974C8C002BDC87 /* Localizable.xcstrings in Resources */,
 				D4AD4CBC30974B04002BDC87 /* Assets.xcassets in Resources */,
 			);
@@ -185,12 +222,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4AD4CDA30975D03002BDC87 /* DemoSubtitleToggle.swift in Sources */,
 				D4AD4CD130974FF8002BDC87 /* DemoView.swift in Sources */,
 				D4AD4CC230974C24002BDC87 /* ColorExtension.swift in Sources */,
+				D4AD4CD63097578F002BDC87 /* DemoModel.swift in Sources */,
 				D4AD4CC630974C35002BDC87 /* Labels.swift in Sources */,
 				D4AD4CCA30974C54002BDC87 /* ViewExtension.swift in Sources */,
-				D4AD4CBE30974B04002BDC87 /* vezzi_iosApp.swift in Sources */,
+				D4AD4CBE30974B04002BDC87 /* vezziApp.swift in Sources */,
 				D4AD4CC430974C2D002BDC87 /* ImageExtension.swift in Sources */,
+				D4AD4CD830975797002BDC87 /* DemoViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -342,7 +382,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "vezzi.vezzi-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -381,7 +421,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "vezzi.vezzi-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;

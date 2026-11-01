@@ -1,5 +1,5 @@
 //
-//  vezzi_iosApp.swift
+//  vezziApp.swift
 //  vezzi-ios
 //
 //  Created by Roman Tverdohleb on 12.10.2026.
@@ -8,10 +8,10 @@
 import SwiftUI
 
 @main
-struct vezzi_iosApp: App {
+struct vezziApp: App {
     var body: some Scene {
         WindowGroup {
-            DemoView()
+            DemoView(viewModel: DemoViewModel())
         }
     }
 }
