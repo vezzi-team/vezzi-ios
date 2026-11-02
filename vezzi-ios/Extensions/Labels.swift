@@ -18,9 +18,9 @@ final class Texts {
     // MARK: - Tab Bar
 
     enum Tabbar {
-        static let shelf = NSLocalizedString("TabShelf", comment: "Shelf")
-        static let map = NSLocalizedString("TabMap", comment: "Map")
-        static let settings = NSLocalizedString("TabSettings", comment: "Settings")
+        static let home = NSLocalizedString("TabHome", comment: "Home")
+        static let shoppingList = NSLocalizedString("TabShoppingList", comment: "List")
+        static let stores = NSLocalizedString("TabStores", comment: "Stores")
         static let search = NSLocalizedString("TabSearch", comment: "Search")
     }
 

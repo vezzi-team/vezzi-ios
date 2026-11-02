@@ -10,8 +10,8 @@
 		C0DE00000000000000000011 /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000000001 /* AppRouter.swift */; };
 		C0DE00000000000000000012 /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000000002 /* AppRootView.swift */; };
 		C0DE00000000000000000013 /* DestinationFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000000003 /* DestinationFactory.swift */; };
-		C0DE00000000000000000014 /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000000004 /* MapView.swift */; };
-		C0DE00000000000000000015 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000000005 /* SettingsView.swift */; };
+		C0DE00000000000000000014 /* ShoppingListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000000004 /* ShoppingListView.swift */; };
+		C0DE00000000000000000015 /* StoresView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000000005 /* StoresView.swift */; };
 		C0DE00000000000000000016 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000000006 /* SearchView.swift */; };
 		D4AD4CBC30974B04002BDC87 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D4AD4CB830974B04002BDC87 /* Assets.xcassets */; };
 		D4AD4CBE30974B04002BDC87 /* vezziApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CBA30974B04002BDC87 /* vezziApp.swift */; };
@@ -25,14 +25,15 @@
 		D4AD4CD830975797002BDC87 /* DemoViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CD730975793002BDC87 /* DemoViewModel.swift */; };
 		D4AD4CDA30975D03002BDC87 /* DemoSubtitleToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CD930975D02002BDC87 /* DemoSubtitleToggle.swift */; };
 		D4AD4CDC30975F22002BDC87 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D4AD4CDB30975F22002BDC87 /* InfoPlist.xcstrings */; };
+		C0DE00000000000000000017 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000000007 /* HomeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		C0DE00000000000000000001 /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
 		C0DE00000000000000000002 /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
 		C0DE00000000000000000003 /* DestinationFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestinationFactory.swift; sourceTree = "<group>"; };
-		C0DE00000000000000000004 /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
-		C0DE00000000000000000005 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		C0DE00000000000000000004 /* ShoppingListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingListView.swift; sourceTree = "<group>"; };
+		C0DE00000000000000000005 /* StoresView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoresView.swift; sourceTree = "<group>"; };
 		C0DE00000000000000000006 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		D4921C0B307D51EC0071715F /* vezzi-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "vezzi-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4AD4CB830974B04002BDC87 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -47,6 +48,7 @@
 		D4AD4CD730975793002BDC87 /* DemoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoViewModel.swift; sourceTree = "<group>"; };
 		D4AD4CD930975D02002BDC87 /* DemoSubtitleToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSubtitleToggle.swift; sourceTree = "<group>"; };
 		D4AD4CDB30975F22002BDC87 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = InfoPlist.xcstrings; path = "vezzi-ios/Application/InfoPlist.xcstrings"; sourceTree = SOURCE_ROOT; };
+		C0DE00000000000000000007 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,34 +72,34 @@
 			path = Router;
 			sourceTree = "<group>";
 		};
-		C0DE00000000000000000022 /* Map */ = {
+		C0DE00000000000000000022 /* ShoppingList */ = {
 			isa = PBXGroup;
 			children = (
 				C0DE00000000000000000023 /* View */,
 			);
-			path = Map;
+			path = ShoppingList;
 			sourceTree = "<group>";
 		};
 		C0DE00000000000000000023 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				C0DE00000000000000000004 /* MapView.swift */,
+				C0DE00000000000000000004 /* ShoppingListView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
 		};
-		C0DE00000000000000000024 /* Settings */ = {
+		C0DE00000000000000000024 /* Stores */ = {
 			isa = PBXGroup;
 			children = (
 				C0DE00000000000000000025 /* View */,
 			);
-			path = Settings;
+			path = Stores;
 			sourceTree = "<group>";
 		};
 		C0DE00000000000000000025 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				C0DE00000000000000000005 /* SettingsView.swift */,
+				C0DE00000000000000000005 /* StoresView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -179,8 +181,9 @@
 			isa = PBXGroup;
 			children = (
 				D4AD4CCF30974FE0002BDC87 /* Demo */,
-				C0DE00000000000000000022 /* Map */,
-				C0DE00000000000000000024 /* Settings */,
+				C0DE00000000000000000028 /* Home */,
+				C0DE00000000000000000022 /* ShoppingList */,
+				C0DE00000000000000000024 /* Stores */,
 				C0DE00000000000000000026 /* Search */,
 			);
 			path = Modules;
@@ -219,6 +222,22 @@
 				D4AD4CD730975793002BDC87 /* DemoViewModel.swift */,
 			);
 			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		C0DE00000000000000000028 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				C0DE00000000000000000029 /* View */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		C0DE00000000000000000029 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				C0DE00000000000000000007 /* HomeView.swift */,
+			);
+			path = View;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -300,8 +319,9 @@
 				C0DE00000000000000000011 /* AppRouter.swift in Sources */,
 				C0DE00000000000000000012 /* AppRootView.swift in Sources */,
 				C0DE00000000000000000013 /* DestinationFactory.swift in Sources */,
-				C0DE00000000000000000014 /* MapView.swift in Sources */,
-				C0DE00000000000000000015 /* SettingsView.swift in Sources */,
+				C0DE00000000000000000017 /* HomeView.swift in Sources */,
+				C0DE00000000000000000014 /* ShoppingListView.swift in Sources */,
+				C0DE00000000000000000015 /* StoresView.swift in Sources */,
 				C0DE00000000000000000016 /* SearchView.swift in Sources */,
 				D4AD4CD130974FF8002BDC87 /* DemoView.swift in Sources */,
 				D4AD4CC230974C24002BDC87 /* ColorExtension.swift in Sources */,

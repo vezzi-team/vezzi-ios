@@ -6,10 +6,14 @@ final class AppRouter: ObservableObject {
     @Published private(set) var selectedTab: Tab
     @Published private(set) var navigationPaths: [Tab: [Route]]
 
-    init(selectedTab: Tab = .shelf) {
+    init(selectedTab: Tab = .home) {
         self.selectedTab = selectedTab
         navigationPaths = Dictionary(uniqueKeysWithValues: Tab.allCases.map { ($0, []) })
     }
+
+    // Avoids an isolated-deinit runtime crash on older iOS 26 releases.
+    // https://github.com/swiftlang/swift/issues/88036
+    nonisolated deinit {}
 
     func selectTab(_ tab: Tab) {
         if selectedTab == tab {
@@ -45,9 +49,9 @@ final class AppRouter: ObservableObject {
 
 extension AppRouter {
     enum Tab: CaseIterable, Hashable {
-        case shelf
-        case map
-        case settings
+        case home
+        case shoppingList
+        case stores
         case search
 
         var title: String {
@@ -56,18 +60,18 @@ extension AppRouter {
 
         var systemImage: String {
             switch self {
-            case .shelf: return "square.stack.3d.up"
-            case .map: return "map"
-            case .settings: return "gearshape"
+            case .home: return "house"
+            case .shoppingList: return "checklist"
+            case .stores: return "storefront"
             case .search: return "magnifyingglass"
             }
         }
 
         var rootRoute: Route {
             switch self {
-            case .shelf: return .shelf
-            case .map: return .map
-            case .settings: return .settings
+            case .home: return .home
+            case .shoppingList: return .shoppingList
+            case .stores: return .stores
             case .search: return .search
             }
         }
@@ -79,16 +83,16 @@ extension AppRouter {
 extension AppRouter {
     /// Routes store navigation data without holding views or view models.
     enum Route: Hashable {
-        case shelf
-        case map
-        case settings
+        case home
+        case shoppingList
+        case stores
         case search
 
         var title: String {
             switch self {
-            case .shelf: return Texts.Tabbar.shelf
-            case .map: return Texts.Tabbar.map
-            case .settings: return Texts.Tabbar.settings
+            case .home: return Texts.Tabbar.home
+            case .shoppingList: return Texts.Tabbar.shoppingList
+            case .stores: return Texts.Tabbar.stores
             case .search: return Texts.Tabbar.search
             }
         }

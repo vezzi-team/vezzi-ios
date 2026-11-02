@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct MapView: View {
+struct ShoppingListView: View {
     var body: some View {
         Color.Background.primary
             .ignoresSafeArea()
@@ -9,7 +9,7 @@ struct MapView: View {
 
 #Preview {
     NavigationStack {
-        MapView()
-            .navigationTitle(Texts.Tabbar.map)
+        ShoppingListView()
+            .navigationTitle(Texts.Tabbar.shoppingList)
     }
 }

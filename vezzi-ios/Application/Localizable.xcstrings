@@ -1,19 +1,19 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "TabMap" : {
-      "comment" : "Map",
+    "TabShoppingList" : {
+      "comment" : "List",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Map"
+            "value" : "List"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Карта"
+            "value" : "Список"
           }
         }
       }
@@ -35,36 +35,36 @@
         }
       }
     },
-    "TabSettings" : {
-      "comment" : "Settings",
+    "TabStores" : {
+      "comment" : "Stores",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Settings"
+            "value" : "Stores"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Настройки"
+            "value" : "Магазины"
           }
         }
       }
     },
-    "TabShelf" : {
-      "comment" : "Shelf",
+    "TabHome" : {
+      "comment" : "Home",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shelf"
+            "value" : "Home"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Полка"
+            "value" : "Главная"
           }
         }
       }

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct SettingsView: View {
+struct StoresView: View {
     var body: some View {
         Color.Background.primary
             .ignoresSafeArea()
@@ -9,7 +9,7 @@ struct SettingsView: View {
 
 #Preview {
     NavigationStack {
-        SettingsView()
-            .navigationTitle(Texts.Tabbar.settings)
+        StoresView()
+            .navigationTitle(Texts.Tabbar.stores)
     }
 }

@@ -3,43 +3,49 @@ import SwiftUI
 /// Composes the app's modules and owns state shared across tabs.
 struct AppRootView: View {
     @StateObject private var appRouter: AppRouter
-    // Keeps the same view model when switching tabs.
-    @StateObject private var demoViewModel = DemoViewModel()
 
-    init(initialTab: AppRouter.Tab = .shelf) {
+    init(initialTab: AppRouter.Tab = .home) {
         _appRouter = StateObject(wrappedValue: AppRouter(selectedTab: initialTab))
     }
 
     var body: some View {
         TabView(selection: selectedTab) {
-            Tab(AppRouter.Tab.shelf.title,
-                systemImage: AppRouter.Tab.shelf.systemImage,
-                value: AppRouter.Tab.shelf) {
-                navigationStack(for: .shelf)
+            Tab(AppRouter.Tab.home.title,
+                systemImage: AppRouter.Tab.home.systemImage,
+                value: AppRouter.Tab.home) {
+                navigationStack(for: .home)
             }
 
-            Tab(AppRouter.Tab.map.title,
-                systemImage: AppRouter.Tab.map.systemImage,
-                value: AppRouter.Tab.map) {
-                navigationStack(for: .map)
+            Tab(AppRouter.Tab.shoppingList.title,
+                systemImage: AppRouter.Tab.shoppingList.systemImage,
+                value: AppRouter.Tab.shoppingList) {
+                navigationStack(for: .shoppingList)
             }
 
-            Tab(AppRouter.Tab.settings.title,
-                systemImage: AppRouter.Tab.settings.systemImage,
-                value: AppRouter.Tab.settings) {
-                navigationStack(for: .settings)
+            Tab(AppRouter.Tab.stores.title,
+                systemImage: AppRouter.Tab.stores.systemImage,
+                value: AppRouter.Tab.stores) {
+                navigationStack(for: .stores)
             }
 
-            // On iPhone, the search role presents search as a separate button.
+            // Keeps search separate from the other tabs on iPhone.
             Tab(AppRouter.Tab.search.title,
                 systemImage: AppRouter.Tab.search.systemImage,
                 value: AppRouter.Tab.search,
-                role: .search) {
+                role: searchTabRole) {
                 navigationStack(for: .search)
             }
         }
         .tint(.accentColor)
         .environmentObject(appRouter)
+    }
+
+    private var searchTabRole: TabRole {
+        if #available(iOS 27.0, *) {
+            return .prominent
+        } else {
+            return .search
+        }
     }
 
     private var selectedTab: Binding<AppRouter.Tab> {
@@ -51,9 +57,9 @@ struct AppRootView: View {
 
     private func navigationStack(for tab: AppRouter.Tab) -> some View {
         NavigationStack(path: pathBinding(for: tab)) {
-            DestinationFactory.view(for: tab.rootRoute, demoViewModel: demoViewModel)
+            DestinationFactory.view(for: tab.rootRoute)
                 .navigationDestination(for: AppRouter.Route.self) { route in
-                    DestinationFactory.view(for: route, demoViewModel: demoViewModel)
+                    DestinationFactory.view(for: route)
                 }
         }
     }

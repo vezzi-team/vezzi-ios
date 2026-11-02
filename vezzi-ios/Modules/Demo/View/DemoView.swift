@@ -11,8 +11,8 @@ import SwiftUI
 /// Данные приходят через ViewModel; напрямую к Model экран не обращается.
 struct DemoView: View {
     
-    // Моделью владеет AppRootView. @ObservedObject подписывает этот экран
-    // на её изменения, сохраняя состояние при переходах между разделами.
+    // Модель передаётся извне. @ObservedObject подписывает этот экран
+    // на её изменения, но не создаёт модель и не управляет её временем жизни.
     @ObservedObject private var viewModel: DemoViewModel
 
     init(viewModel: DemoViewModel) {
