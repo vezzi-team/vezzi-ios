@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="27000" systemVersion="25A" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="2">
+    <entity name="ProductEntity" representedClassName="ProductEntity" syncable="YES">
+        <attribute name="id" attributeType="String" optional="NO" usesScalarValueType="NO" />
+        <attribute name="name" attributeType="String" optional="NO" usesScalarValueType="NO" />
+        <attribute name="brand" attributeType="String" optional="YES" usesScalarValueType="NO" />
+        <attribute name="category" attributeType="String" optional="YES" usesScalarValueType="NO" />
+        <attribute name="productType" attributeType="String" optional="YES" usesScalarValueType="NO" />
+        <attribute name="packageQuantity" attributeType="Decimal" optional="YES" usesScalarValueType="NO" />
+        <attribute name="packageQuantityText" attributeType="String" optional="YES" usesScalarValueType="NO" />
+        <attribute name="packageUnit" attributeType="String" optional="YES" usesScalarValueType="NO" />
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id" />
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+        <relationship name="offers" optional="YES" deletionRule="Deny" destinationEntity="OfferEntity" inverseName="product" inverseEntity="OfferEntity" toMany="YES" />
+    </entity>
+    <entity name="StoreEntity" representedClassName="StoreEntity" syncable="YES">
+        <attribute name="id" attributeType="String" optional="NO" usesScalarValueType="NO" />
+        <attribute name="name" attributeType="String" optional="NO" usesScalarValueType="NO" />
+        <attribute name="chainName" attributeType="String" optional="YES" usesScalarValueType="NO" />
+        <attribute name="address" attributeType="String" optional="YES" usesScalarValueType="NO" />
+        <attribute name="latitude" attributeType="Double" optional="YES" usesScalarValueType="NO" />
+        <attribute name="longitude" attributeType="Double" optional="YES" usesScalarValueType="NO" />
+        <attribute name="isActive" attributeType="Boolean" optional="NO" usesScalarValueType="NO" />
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id" />
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+        <relationship name="offers" optional="YES" deletionRule="Deny" destinationEntity="OfferEntity" inverseName="store" inverseEntity="OfferEntity" toMany="YES" />
+    </entity>
+    <entity name="OfferEntity" representedClassName="OfferEntity" syncable="YES">
+        <attribute name="id" attributeType="String" optional="NO" usesScalarValueType="NO" />
+        <attribute name="price" attributeType="Decimal" optional="NO" usesScalarValueType="NO" />
+        <attribute name="priceText" attributeType="String" optional="YES" usesScalarValueType="NO" />
+        <attribute name="currency" attributeType="String" optional="NO" usesScalarValueType="NO" />
+        <attribute name="inStock" attributeType="Boolean" optional="YES" usesScalarValueType="NO" />
+        <attribute name="sourceUpdatedAt" attributeType="Date" optional="YES" usesScalarValueType="NO" />
+        <attribute name="cachedAt" attributeType="Date" optional="NO" usesScalarValueType="NO" />
+        <attribute name="sourceID" attributeType="String" optional="YES" usesScalarValueType="NO" />
+        <attribute name="sourceProductID" attributeType="String" optional="YES" usesScalarValueType="NO" />
+        <attribute name="sourceURL" attributeType="String" optional="YES" usesScalarValueType="NO" />
+        <attribute name="matchStatus" attributeType="String" optional="YES" usesScalarValueType="NO" />
+        <attribute name="dataOrigin" attributeType="String" optional="YES" usesScalarValueType="NO" />
+        <attribute name="priceType" attributeType="String" optional="YES" usesScalarValueType="NO" />
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id" />
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+        <relationship name="product" optional="YES" deletionRule="Nullify" destinationEntity="ProductEntity" inverseName="offers" inverseEntity="ProductEntity" maxCount="1" />
+        <relationship name="store" optional="YES" deletionRule="Nullify" destinationEntity="StoreEntity" inverseName="offers" inverseEntity="StoreEntity" maxCount="1" />
+    </entity>
+</model>

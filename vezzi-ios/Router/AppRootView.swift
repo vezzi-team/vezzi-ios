@@ -3,8 +3,10 @@ import SwiftUI
 /// Composes the app's modules and owns state shared across tabs.
 struct AppRootView: View {
     @StateObject private var appRouter: AppRouter
+    private let catalog: any CatalogRepository
 
-    init(initialTab: AppRouter.Tab = .home) {
+    init(catalog: any CatalogRepository, initialTab: AppRouter.Tab = .home) {
+        self.catalog = catalog
         _appRouter = StateObject(wrappedValue: AppRouter(selectedTab: initialTab))
     }
 
@@ -57,9 +59,9 @@ struct AppRootView: View {
 
     private func navigationStack(for tab: AppRouter.Tab) -> some View {
         NavigationStack(path: pathBinding(for: tab)) {
-            DestinationFactory.view(for: tab.rootRoute)
+            DestinationFactory.view(for: tab.rootRoute, catalog: catalog)
                 .navigationDestination(for: AppRouter.Route.self) { route in
-                    DestinationFactory.view(for: route)
+                    DestinationFactory.view(for: route, catalog: catalog)
                 }
         }
     }
@@ -75,11 +77,11 @@ struct AppRootView: View {
 // MARK: - Preview
 
 #Preview("Light") {
-    AppRootView()
+    AppRootView(catalog: PreviewCatalogRepository())
         .preferredColorScheme(.light)
 }
 
 #Preview("Dark") {
-    AppRootView()
+    AppRootView(catalog: PreviewCatalogRepository())
         .preferredColorScheme(.dark)
 }

@@ -119,6 +119,227 @@
           }
         }
       }
+    },
+    "StorageRetry" : {
+      "comment" : "Try again",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повторить"
+          }
+        }
+      }
+    },
+    "SearchPrompt" : {
+      "comment" : "Find products",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Find products"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Найти товары"
+          }
+        }
+      }
+    },
+    "SearchEmptyTitle" : {
+      "comment" : "No products yet",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No products yet"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Товаров пока нет"
+          }
+        }
+      }
+    },
+    "SearchEmptyDescription" : {
+      "comment" : "Products will appear here when the catalog is available.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Products will appear here when the catalog is available."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Товары появятся здесь, когда каталог будет доступен."
+          }
+        }
+      }
+    },
+    "SearchNoResultsTitle" : {
+      "comment" : "No products found",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No products found"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Товары не найдены"
+          }
+        }
+      }
+    },
+    "SearchNoResultsDescription" : {
+      "comment" : "Try another name, brand or category.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try another name, brand or category."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Попробуйте другое название, бренд или категорию."
+          }
+        }
+      }
+    },
+    "SearchNoOffers" : {
+      "comment" : "No store offers available",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No store offers available"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет предложений магазинов"
+          }
+        }
+      }
+    },
+    "SearchInStock" : {
+      "comment" : "In stock",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In stock"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В наличии"
+          }
+        }
+      }
+    },
+    "SearchOutOfStock" : {
+      "comment" : "Out of stock",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Out of stock"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет в наличии"
+          }
+        }
+      }
+    },
+    "SearchUnknownPriceDate" : {
+      "comment" : "Price update date unknown",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Price update date unknown"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дата обновления цены неизвестна"
+          }
+        }
+      }
+    },
+    "SearchRefreshError" : {
+      "comment" : "Unable to update prices. Saved data is still available.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to update prices. Saved data is still available."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось обновить цены. Сохранённые данные остаются доступны."
+          }
+        }
+      }
+    },
+    "SearchResultLimit" : {
+      "comment" : "Up to 50 products are shown. Refine your search to find more.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up to 50 products are shown. Refine your search to find more."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показано до 50 товаров. Уточните запрос, чтобы найти нужный."
+          }
+        }
+      }
+    },
+    "StorageCacheUnavailable" : {
+      "comment" : "Non-blocking cache failure",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On-device saving is unavailable. Current data remains available until you close the app."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранение на устройстве недоступно. Текущие данные доступны до закрытия приложения."
+          }
+        }
+      }
     }
   },
   "version" : "1.3"
