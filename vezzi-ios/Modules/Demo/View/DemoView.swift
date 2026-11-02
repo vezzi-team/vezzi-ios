@@ -11,11 +11,12 @@ import SwiftUI
 /// Данные приходят через ViewModel; напрямую к Model экран не обращается.
 struct DemoView: View {
     
-    // @StateObject сохраняет один экземпляр ViewModel между обновлениями View и подписывает экран на изменения её @Published-свойств.
-    @StateObject private var viewModel: DemoViewModel
+    // Модель передаётся извне. @ObservedObject подписывает этот экран
+    // на её изменения, но не создаёт модель и не управляет её временем жизни.
+    @ObservedObject private var viewModel: DemoViewModel
 
     init(viewModel: DemoViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel)
+        self.viewModel = viewModel
     }
 
     var body: some View {
@@ -28,7 +29,7 @@ struct DemoView: View {
             
             textStack
 
-            // @StateObject даёт доступ к binding через знак $.
+            // @ObservedObject даёт доступ к binding через знак $.
             // Без $ передали бы только Bool. С $ передаём связь для чтения и записи: переключатель меняет isSubtitleVisible во ViewModel.
             DemoSubtitleToggle(
                 title: viewModel.subtitleToggleTitle,

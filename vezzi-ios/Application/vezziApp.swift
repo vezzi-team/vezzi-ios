@@ -11,7 +11,7 @@ import SwiftUI
 struct vezziApp: App {
     var body: some Scene {
         WindowGroup {
-            DemoView(viewModel: DemoViewModel())
+            AppRootView()
         }
     }
 }

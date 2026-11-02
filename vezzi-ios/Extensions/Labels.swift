@@ -15,6 +15,15 @@ final class Texts {
         static let title = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Planzo"
     }
     
+    // MARK: - Tab Bar
+
+    enum Tabbar {
+        static let home = NSLocalizedString("TabHome", comment: "Home")
+        static let shoppingList = NSLocalizedString("TabShoppingList", comment: "List")
+        static let stores = NSLocalizedString("TabStores", comment: "Stores")
+        static let search = NSLocalizedString("TabSearch", comment: "Search")
+    }
+
     // MARK: - Demo Module
     
     enum Demo {
