@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Maps each route to the corresponding module's screen.
 enum DestinationFactory {
-    static func view(for route: AppRouter.Route) -> some View {
+    static func view(for route: AppRouter.Route, catalog: any CatalogRepository) -> some View {
         Group {
             switch route {
             case .home:
@@ -12,7 +12,7 @@ enum DestinationFactory {
             case .stores:
                 StoresView()
             case .search:
-                SearchView()
+                SearchView(repository: catalog)
             }
         }
         .navigationTitle(route.title)

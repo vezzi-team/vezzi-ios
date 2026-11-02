@@ -3,8 +3,8 @@
 ## Project overview
 
 - Polka / Полка is a native iPhone and iPad app. The repository, Xcode project, target, and scheme are named `vezzi-ios`.
-- The app is currently a foundation with four placeholder tabs. An educational MVVM demo is kept in the source files without an in-app entry point.
-- Stack: SwiftUI, Foundation, and Combine. There are currently no third-party dependencies.
+- The app has Home, List, Stores, and Search tabs. Search observes the repository's catalog; the other screens are placeholders. An educational MVVM demo is kept in the source files without an in-app entry point.
+- Stack: SwiftUI, Foundation, Combine, and Core Data. There are no third-party dependencies.
 - The project was created with Xcode 26.2. The app target supports iOS 26.0+, uses Swift 5 language mode, and enables default MainActor isolation. Project-level deployment settings currently specify 26.2; the target overrides them.
 - This is a Git repository
 
@@ -14,7 +14,8 @@ Paths below are relative to the repository root.
 
 | Path | Responsibility |
 | --- | --- |
-| `vezzi-ios/Application/vezziApp.swift` | App entry point; presents `AppRootView`. |
+| `vezzi-ios/Application/VezziApp.swift` | App entry point; presents `AppRootView`. |
+| `vezzi-ios/Application/AppDependencies.swift` | Constructs shared repositories immediately and prepares optional caching. |
 | `vezzi-ios/Application/Localizable.xcstrings` | English and Russian interface strings. |
 | `vezzi-ios/Application/InfoPlist.xcstrings` | Localized bundle metadata, including the display name. |
 | `vezzi-ios/Router/` | Tab selection, navigation paths, root composition, and destination construction. |
@@ -22,7 +23,10 @@ Paths below are relative to the repository root.
 | `vezzi-ios/Modules/Home/View/` | Home placeholder. |
 | `vezzi-ios/Modules/ShoppingList/View/` | Shopping list placeholder. |
 | `vezzi-ios/Modules/Stores/View/` | Stores placeholder. |
-| `vezzi-ios/Modules/Search/View/` | Search placeholder. |
+| `vezzi-ios/Modules/Search/` | Search UI and observable presentation state. |
+| `vezzi-ios/CoreData/Catalog/` | Catalog models, session actor, indexed queries, repository, and optional cache adapter. |
+| `vezzi-ios/CoreData/Persistence/` | Persistent container and versioned `Polka.xcdatamodeld`. |
+| `vezzi-iosTests/` | App-hosted repository integration tests. |
 | `vezzi-ios/Extensions/` | Shared text, color, image, and view helpers. |
 | `vezzi-ios/SupportingFiles/Assets.xcassets` | App icons, semantic colors, and images with appearance variants. |
 | `vezzi-ios.xcodeproj/project.pbxproj` | Explicit source/resource membership and build configuration. |
@@ -33,10 +37,29 @@ Paths below are relative to the repository root.
 - Models hold data without depending on SwiftUI. ViewModels own presentation state and behavior. Views handle layout and forward user actions.
 - Use `@StateObject` where an observable object is owned, `@ObservedObject` where it is injected, and `@Binding` for a child control that reads and writes a parent's value. Use `@State` for local value state.
 - `AppRootView` owns `AppRouter` with `@StateObject`. `DemoView` receives a `DemoViewModel` through its initializer and observes it; the demo is currently disconnected from app navigation.
+- Repositories are injected through `AppDependencies` and `DestinationFactory`. `SearchView` owns its `SearchViewModel` with `@StateObject`; feature views and view models do not access Core Data.
 - Keep mutable UI state on the main actor. `AppRouter` is explicitly `@MainActor`.
 - Keep the explicit `nonisolated deinit` in `AppRouter` and `DemoViewModel` while supporting early iOS 26 runtimes; they avoid [Swift runtime issue #88036](https://github.com/swiftlang/swift/issues/88036).
 - Follow `Modules/<Feature>/Model`, `ViewModel`, and `View` as a feature grows. Add only the layers that have actual responsibilities; empty screens do not need empty models or view models.
 - Prefer straightforward, readable code. The demo is also used to explain architecture to a beginner.
+
+## Persistence and catalog
+
+- `Polka.xcdatamodeld` currently contains Product, Store, and Offer entities. Shopping lists and plans are a later stage; do not infer their status or import semantics before reviewing actual data.
+- `CatalogRepository` exposes independent, non-failing search publishers through Combine and delivers results on the main queue. Subscribe and cancel on the main actor. Search returns at most `CatalogSearch.resultLimit` products; refresh errors are independent of query changes.
+- `DefaultCatalogRepository` coordinates `CatalogSource`, a `CatalogSession` actor, and an optional `CatalogCache`. The actor serializes atomic session changes off MainActor; immutable snapshots maintain product ordering and an offer index. Search uses a background queue and the same query implementation in previews.
+- `CoreDataCatalogCache` only loads snapshots and saves `CatalogCacheBatch` changes. There is no separate Core Data/FRC query implementation. The repository accepts session imports without waiting for disk writes; this is not a durability guarantee for future user edits.
+- Keep one active cache writer and coalesce pending record IDs. Read the latest values when writing; include referenced parents without resaving unrelated offers. Retain dirty IDs on failure. Cache failures must not block source results or subscriptions; report them separately and allow retry.
+- Merge a late cache load without rolling back session changes. Keep the same repository instance during cache recovery so UI state and subscriptions survive.
+- Core Data entities stay inside storage code and their context's queue. Value models and import logic are explicitly `nonisolated`; disk reads/writes use the container's background API. The app UI observes session snapshots, not managed objects.
+- Read SQLite snapshots through `PersistenceController.performSnapshotRead`, which pins one query generation across all fetches. Each new read gets a fresh context; in-memory stores skip unsupported query generation pinning.
+- Route app catalog updates through `DefaultCatalogRepository` so session data and optional persistence stay consistent. Future source and synchronization code must not write to the cache behind the app repository.
+- Existing queries must reflect changes to products, offers, and stores, including offer reassignment and store deactivation.
+- Import batches upsert stable string IDs and save atomically. Missing records are retained. Reject duplicate IDs, invalid quantities/prices, and missing offer references. Preserve Decimal prices, currency, source timestamps, and provenance.
+- An older or undated offer must not overwrite an existing dated, newer offer; use the shared replacement rule. `StoredCatalogOffer.cachedAt` is receipt time, preserved across queueing, recovery, and disk writes. Unrelated changes must not refresh it; it is not evidence that the source price is current.
+- `PolkaV2` stores exact prices and package quantities as locale-independent decimal strings. Legacy numeric attributes remain for lightweight migration from version 1; read them only when the text field is absent. Malformed text is a cache error, not grounds to silently use a rounded number. Migration cannot reconstruct digits already lost by version 1.
+- The app starts with an empty session and restores cached catalog data when available. `CatalogSource` is the adapter boundary for a future file or API; no production source is configured yet. Sample records belong only in previews/tests. Authentication, account-specific data, and synchronization are future layers, not responsibilities of the Core Data adapter.
+- Never delete/recreate the store to recover from an opening or migration error. Continue with session data, surface cache failure without blocking the app, and allow retry. Add model versions as persistent schema changes.
 
 ## Navigation
 
@@ -60,6 +83,7 @@ Paths below are relative to the repository root.
 - `InfoPlist.xcstrings` is for bundle metadata. The base display name comes from the target's `INFOPLIST_KEY_CFBundleDisplayName`. Xcode generates `Info.plist`; avoid introducing a duplicate file for routine localization changes.
 - Keep identifiers and router comments in English. The demo contains intentional Russian teaching comments; preserve their purpose and language when editing it.
 - Provide useful `#Preview` configurations for changed views. For an interactive binding preview, use `@Previewable @State` and pass `$value` to the control.
+- Do not wrap `#Preview` declarations or their supporting preview types in `#if DEBUG`.
 
 ## Xcode project maintenance
 
@@ -91,7 +115,8 @@ git diff --check
 plutil -lint vezzi-ios.xcodeproj/project.pbxproj
 ```
 
-- There are currently no checked-in test targets, test schemes, or formatter configuration. Do not report a successful build as a successful test run.
+- The shared `vezzi-ios` scheme includes the `vezzi-iosTests` target. Run `xcodebuild -project vezzi-ios.xcodeproj -scheme vezzi-ios -destination 'platform=iOS Simulator,id=<discovered UUID>' -derivedDataPath /tmp/vezzi-ios-derived-data CODE_SIGNING_ALLOWED=NO test` with Xcode 27+. There is no formatter configuration.
+- Keep tests for atomic import, duplicate prevention, indexed queries and linked-data updates, independent errors, coalesced writes/recovery, exact Decimal round trips through SQLite, migration from version 1, and operation with an absent, slow, or failing cache. A build is not a test run.
 - For navigation changes, check all four tabs, separate search presentation, and independent histories.
 - For UI changes, inspect relevant light/dark and English/Russian states. Check large text and compact layouts when the change affects sizing.
 - Discover available simulators with `xcrun simctl list devices available`; do not hard-code a device UUID from a previous session. Restore simulator appearance settings changed during verification.
