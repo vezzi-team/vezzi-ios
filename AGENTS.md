@@ -46,7 +46,7 @@ Paths below are relative to the repository root.
 - Keep the explicit `nonisolated deinit` in `AppRouter` and `DemoViewModel` while supporting early iOS 26 runtimes; they avoid [Swift runtime issue #88036](https://github.com/swiftlang/swift/issues/88036).
 - Follow `Modules/<Feature>/Model`, `ViewModel`, and `View` as a feature grows. Add only the layers that have actual responsibilities; empty screens do not need empty models or view models.
 - Prefer straightforward, readable code. The demo is also used to explain architecture to a beginner.
-- The splash plays once per scene creation for 1.1 seconds, then fades out. Never gate dismissal on cache/network readiness. Skip it for Reduce Motion, dismiss on backgrounding, and retain the 1.6-second fallback if Lottie does not complete. Keep the system launch wordmark size/inset in sync with `SplashView`.
+- The splash plays once per scene creation for 1.1 seconds, then reveals the interface with a short scale-down transition. Scale tab content only; keep the native tab bar stationary. Never gate dismissal on cache/network readiness. Skip the splash and transition for Reduce Motion, dismiss without motion on backgrounding, and retain the 1.6-second fallback if Lottie does not complete. Keep the system launch wordmark size/inset in sync with `SplashView`.
 
 ## Persistence and catalog
 

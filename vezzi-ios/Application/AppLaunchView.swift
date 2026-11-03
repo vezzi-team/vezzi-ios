@@ -10,19 +10,34 @@ struct AppLaunchView: View {
 
     private var showsSplash: Bool { splash.isPresented && !reduceMotion }
 
+    private var animatesReveal: Bool { !reduceMotion && scenePhase == .active }
+
     var body: some View {
         ZStack {
-            AppRootView(catalog: catalog)
+            AppRootView(
+                catalog: catalog,
+                contentScale: showsSplash ? Const.initialContentScale : Const.restingContentScale
+            )
                 .allowsHitTesting(!showsSplash)
                 .accessibilityHidden(showsSplash)
 
             if showsSplash {
                 SplashView(onFinished: splash.finish)
-                    .transition(.opacity)
+                    .transition(.opacity.animation(
+                        animatesReveal ? .easeOut(duration: Const.dismissDuration) : nil
+                    ))
                     .zIndex(Const.splashZIndex)
             }
         }
-        .animation(reduceMotion ? nil : .easeOut(duration: Const.dismissDuration), value: showsSplash)
+        .animation(
+            animatesReveal ? .spring(duration: Const.contentRevealDuration) : nil,
+            value: showsSplash
+        )
+        .transaction(value: showsSplash) { transaction in
+            if !animatesReveal {
+                transaction.disablesAnimations = true
+            }
+        }
         .task(id: showsSplash) {
             if showsSplash { await splash.finishAfterTimeout() }
         }
@@ -37,7 +52,10 @@ struct AppLaunchView: View {
 
     private enum Const {
         static let splashZIndex: Double = 1
-        static let dismissDuration: TimeInterval = 0.16
+        static let initialContentScale: CGFloat = 1.35
+        static let restingContentScale: CGFloat = 1
+        static let contentRevealDuration: TimeInterval = 0.4
+        static let dismissDuration: TimeInterval = 0.12
     }
 }
 

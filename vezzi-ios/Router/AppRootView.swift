@@ -4,9 +4,15 @@ import SwiftUI
 struct AppRootView: View {
     @StateObject private var appRouter: AppRouter
     private let catalog: any CatalogRepository
+    private let contentScale: CGFloat
 
-    init(catalog: any CatalogRepository, initialTab: AppRouter.Tab = .home) {
+    init(
+        catalog: any CatalogRepository,
+        initialTab: AppRouter.Tab = .home,
+        contentScale: CGFloat = Const.defaultContentScale
+    ) {
         self.catalog = catalog
+        self.contentScale = contentScale
         _appRouter = StateObject(wrappedValue: AppRouter(selectedTab: initialTab))
     }
 
@@ -64,6 +70,7 @@ struct AppRootView: View {
                     DestinationFactory.view(for: route, catalog: catalog)
                 }
         }
+        .scaleEffect(contentScale, anchor: .top)
     }
 
     private func pathBinding(for tab: AppRouter.Tab) -> Binding<[AppRouter.Route]> {
@@ -71,6 +78,10 @@ struct AppRootView: View {
             get: { appRouter.path(in: tab) },
             set: { appRouter.setPath($0, in: tab) }
         )
+    }
+
+    private enum Const {
+        static let defaultContentScale: CGFloat = 1
     }
 }
 
