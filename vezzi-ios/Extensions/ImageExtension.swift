@@ -8,6 +8,11 @@
 import SwiftUI
 
 extension Image {
+    // MARK: - Branding
+
+    enum Brand {
+        static let wordmark = Image("BrandWordmark")
+    }
     
     // MARK: - Placeholder Images
     

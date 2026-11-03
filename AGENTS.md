@@ -4,7 +4,7 @@
 
 - Polka / Полка is a native iPhone and iPad app. The repository, Xcode project, target, and scheme are named `vezzi-ios`.
 - The app has Home, List, Stores, and Search tabs. Search observes the repository's catalog; the other screens are placeholders. An educational MVVM demo is kept in the source files without an in-app entry point.
-- Stack: SwiftUI, Foundation, Combine, and Core Data. There are no third-party dependencies.
+- Stack: SwiftUI, Foundation, Combine, and Core Data. Lottie 4.6.1 is resolved through the official `lottie-spm` package; keep `Package.resolved` in version control.
 - The project was created with Xcode 26.2. The app target supports iOS 26.0+, uses Swift 5 language mode, and enables default MainActor isolation. Project-level deployment settings currently specify 26.2; the target overrides them.
 - This is a Git repository
 
@@ -14,7 +14,8 @@ Paths below are relative to the repository root.
 
 | Path | Responsibility |
 | --- | --- |
-| `vezzi-ios/Application/VezziApp.swift` | App entry point; presents `AppRootView`. |
+| `vezzi-ios/Application/VezziApp.swift` | App entry point; presents `AppLaunchView` and prepares caching independently. |
+| `vezzi-ios/Application/AppLaunchView.swift` | Keeps `AppRootView` alive beneath a temporary splash overlay. |
 | `vezzi-ios/Application/AppDependencies.swift` | Constructs shared repositories immediately and prepares optional caching. |
 | `vezzi-ios/Application/Localizable.xcstrings` | English and Russian interface strings. |
 | `vezzi-ios/Application/InfoPlist.xcstrings` | Localized bundle metadata, including the display name. |
@@ -24,11 +25,14 @@ Paths below are relative to the repository root.
 | `vezzi-ios/Modules/ShoppingList/View/` | Shopping list placeholder. |
 | `vezzi-ios/Modules/Stores/View/` | Stores placeholder. |
 | `vezzi-ios/Modules/Search/` | Search UI and observable presentation state. |
+| `vezzi-ios/Modules/Splash/` | Moti animation, bottom wordmark, and bounded splash presentation state. |
 | `vezzi-ios/CoreData/Catalog/` | Catalog models, session actor, indexed queries, repository, and optional cache adapter. |
 | `vezzi-ios/CoreData/Persistence/` | Persistent container and versioned `Polka.xcdatamodeld`. |
 | `vezzi-iosTests/` | App-hosted repository integration tests. |
 | `vezzi-ios/Extensions/` | Shared text, color, image, and view helpers. |
 | `vezzi-ios/SupportingFiles/Assets.xcassets` | App icons, semantic colors, and images with appearance variants. |
+| `vezzi-ios/SupportingFiles/LaunchScreen.storyboard` | Static system launch screen; shares the splash background and wordmark layout. |
+| `vezzi-ios/SupportingFiles/Animations/` | Bundled Lottie JSON; Moti includes all image data and needs no network. |
 | `vezzi-ios.xcodeproj/project.pbxproj` | Explicit source/resource membership and build configuration. |
 
 ## Architecture and state ownership
@@ -42,6 +46,7 @@ Paths below are relative to the repository root.
 - Keep the explicit `nonisolated deinit` in `AppRouter` and `DemoViewModel` while supporting early iOS 26 runtimes; they avoid [Swift runtime issue #88036](https://github.com/swiftlang/swift/issues/88036).
 - Follow `Modules/<Feature>/Model`, `ViewModel`, and `View` as a feature grows. Add only the layers that have actual responsibilities; empty screens do not need empty models or view models.
 - Prefer straightforward, readable code. The demo is also used to explain architecture to a beginner.
+- The splash plays once per scene creation for 1.1 seconds, then reveals the interface with a short scale-down transition. Scale tab content only; keep the native tab bar stationary. Never gate dismissal on cache/network readiness. Skip the splash and transition for Reduce Motion, dismiss without motion on backgrounding, and retain the 1.6-second fallback if Lottie does not complete. Keep the system launch wordmark size/inset in sync with `SplashView`.
 
 ## Persistence and catalog
 
