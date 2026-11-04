@@ -72,9 +72,10 @@ struct HomeProductDetailView: View {
 
     private var artworkPlaceholder: some View {
         RoundedRectangle(cornerRadius: Const.artworkCornerRadius)
-            .fill(Color(.systemGray5))
+            .fill(Color.Background.placeholder)
             .frame(height: dynamicTypeSize.isAccessibilitySize || verticalSizeClass == .compact
                    ? Const.compactArtworkHeight : Const.artworkHeight)
+            .shimmer()
             .accessibilityHidden(true)
     }
 
@@ -142,8 +143,9 @@ struct HomeProductDetailView: View {
 
     private var storeIcon: some View {
         Image.Home.storeIcon
-            .foregroundStyle(Color(.systemGray5))
+            .foregroundStyle(Color.Background.placeholder)
             .frame(width: Const.storeSize, height: Const.storeSize)
+            .shimmer()
             .accessibilityHidden(true)
     }
 

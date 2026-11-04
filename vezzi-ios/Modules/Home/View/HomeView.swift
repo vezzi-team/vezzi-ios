@@ -6,12 +6,9 @@ struct HomeView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        ScrollView {
-            content
-                .padding(.horizontal, Const.contentInset)
-                .padding(.bottom, Const.contentInset)
-                .frame(maxWidth: Const.maximumWidth)
-                .frame(maxWidth: .infinity)
+        ScrollView { content }
+        .safeAreaBar(edge: .top, spacing: .zero) {
+            if !dynamicTypeSize.isAccessibilitySize { header }
         }
         .background(Color.Background.primary.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
@@ -23,10 +20,16 @@ struct HomeView: View {
     // MARK: - Content
 
     private var content: some View {
-        VStack(alignment: .leading, spacing: Const.sectionSpacing) {
-            header
+        VStack(spacing: .zero) {
+            // Let a large accessibility header scroll so the catalog remains reachable.
+            if dynamicTypeSize.isAccessibilitySize { header }
             recommendations
+                .padding(.horizontal, Const.contentInset)
+                .padding(.bottom, Const.contentInset)
+                .frame(maxWidth: Const.maximumWidth)
+                .frame(maxWidth: .infinity)
         }
+        .environment(\.isShimmerEnabled, selectedProduct == nil)
     }
 
     private var header: some View {
@@ -34,6 +37,11 @@ struct HomeView: View {
             addressPicker
             dinnerCard
         }
+        .padding(.horizontal, Const.contentInset)
+        .padding(.top, Const.headerTopInset)
+        .padding(.bottom, Const.sectionSpacing)
+        .frame(maxWidth: Const.maximumWidth)
+        .frame(maxWidth: .infinity)
     }
 
     private var recommendations: some View {
@@ -114,8 +122,8 @@ struct HomeView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.Background.elevated, in: .rect(cornerRadius: Const.dinnerCornerRadius))
                 .overlay(RoundedRectangle(cornerRadius: Const.dinnerCornerRadius)
-                    .strokeBorder(Color(.opaqueSeparator), lineWidth: Const.borderWidth))
-                .shadow(color: .black.opacity(Const.shadowOpacity), radius: Const.shadowRadius, y: Const.shadowOffset)
+                    .strokeBorder(Color.Border.primary, lineWidth: Const.borderWidth))
+                .shadow(color: Color.Shadow.primary.opacity(Const.shadowOpacity), radius: Const.shadowRadius, y: Const.shadowOffset)
         }
         .buttonStyle(.plain)
         .disabled(viewModel.hasDinnerProducts)
@@ -160,6 +168,7 @@ struct HomeView: View {
         static let maximumWidth: CGFloat = 760
         static let sectionSpacing: CGFloat = 11
         static let headerSpacing: CGFloat = 3
+        static let headerTopInset: CGFloat = 8
         static let gridHeaderSpacing: CGFloat = 12
         static let gridSpacing: CGFloat = 16
         static let minimumCardWidth: CGFloat = 150

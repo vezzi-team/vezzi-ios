@@ -14,8 +14,8 @@ struct HomeProductCard: View {
         .background(Color.Background.elevated)
         .clipShape(.rect(cornerRadius: Const.cornerRadius))
         .overlay(RoundedRectangle(cornerRadius: Const.cornerRadius)
-            .strokeBorder(Color(.opaqueSeparator), lineWidth: Const.borderWidth))
-        .shadow(color: .black.opacity(Const.shadowOpacity), radius: Const.shadowRadius, y: Const.shadowOffset)
+            .strokeBorder(Color.Border.primary, lineWidth: Const.borderWidth))
+        .shadow(color: Color.Shadow.primary.opacity(Const.shadowOpacity), radius: Const.shadowRadius, y: Const.shadowOffset)
     }
 
     // MARK: - Product
@@ -35,8 +35,9 @@ struct HomeProductCard: View {
 
     private var artwork: some View {
         RoundedRectangle(cornerRadius: Const.artworkCornerRadius)
-            .fill(Color(.systemGray5))
+            .fill(Color.Background.placeholder)
             .aspectRatio(Const.artworkAspectRatio, contentMode: .fit)
+            .shimmer()
             .accessibilityHidden(true)
     }
 
@@ -86,9 +87,10 @@ struct HomeProductCard: View {
         HStack(spacing: Const.storeOverlap) {
             ForEach(Array(product.offers.enumerated()), id: \.element.id) { index, _ in
                 Image.Home.storeAvatar
-                    .foregroundStyle(Color.Background.elevated)
+                    .foregroundStyle(Color.Background.placeholder)
                     .frame(width: Const.storeSize, height: Const.storeSize)
-                    .overlay(Circle().strokeBorder(Color(.opaqueSeparator), lineWidth: Const.borderWidth))
+                    .shimmer()
+                    .overlay(Circle().strokeBorder(Color.Border.primary, lineWidth: Const.borderWidth))
                     .zIndex(-Double(index))
             }
         }
