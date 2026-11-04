@@ -19,6 +19,7 @@ extension Color {
         static let defaultColor = Color("BackgroundDefault")
         static let sheet = Color("BackgroundSheet")
         static let placeholder = Color("BackgroundPlaceholder")
+        static let placeholderLighter = Color("BackgroundPlaceholderLighter")
     }
     
     // MARK: - Label Colors

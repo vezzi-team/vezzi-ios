@@ -15,6 +15,7 @@ struct HomeView: View {
         .sheet(item: $selectedProduct) { product in
             HomeProductDetailView(product: product, quantity: quantityBinding(for: product.id))
         }
+        .sensoryFeedback(.selection, trigger: viewModel.quantities)
     }
 
     // MARK: - Content

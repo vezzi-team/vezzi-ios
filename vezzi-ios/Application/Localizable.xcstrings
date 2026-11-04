@@ -217,7 +217,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "380 г"
+            "value" : "380 гр."
           }
         }
       }
@@ -565,35 +565,35 @@
       }
     },
     "HomeMilk" : {
-      "comment" : "Milk 3.5%",
+      "comment" : "Prostokvashino 3.5% UHT milk",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Milk 3.5%"
+            "value" : "Prostokvashino 3.5% UHT milk"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Молоко 3,5%"
+            "value" : "Молоко Простоквашино 3,5% Ультрапастеризованное"
           }
         }
       }
     },
     "HomeMilkBrand" : {
-      "comment" : "Kubanskaya Buryonka",
+      "comment" : "Prostokvashino",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kubanskaya Buryonka"
+            "value" : "Prostokvashino"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Кубанская Бурёнка"
+            "value" : "Простоквашино"
           }
         }
       }

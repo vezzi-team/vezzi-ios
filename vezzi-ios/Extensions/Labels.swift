@@ -73,8 +73,8 @@ final class Texts {
         enum Mock {
             static let homeAddress = NSLocalizedString("HomeAddressHome", comment: "6 Leninsky Prospekt")
             static let workAddress = NSLocalizedString("HomeAddressWork", comment: "28 Nevsky Prospekt")
-            static let milk = NSLocalizedString("HomeMilk", comment: "Milk 3.5%")
-            static let milkBrand = NSLocalizedString("HomeMilkBrand", comment: "Kubanskaya Buryonka")
+            static let milk = NSLocalizedString("HomeMilk", comment: "Prostokvashino 3.5% UHT milk")
+            static let milkBrand = NSLocalizedString("HomeMilkBrand", comment: "Prostokvashino")
             static let oneLiter = NSLocalizedString("HomeOneLiter", comment: "1 L")
             static let bread = NSLocalizedString("HomeBread", comment: "White bread")
             static let breadBrand = NSLocalizedString("HomeBreadBrand", comment: "Family bakery")
