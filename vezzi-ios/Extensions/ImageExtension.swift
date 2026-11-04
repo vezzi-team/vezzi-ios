@@ -8,10 +8,32 @@
 import SwiftUI
 
 extension Image {
+    // MARK: - SF Symbols
+
+    enum System {
+        static let chevronDown = Image(systemName: "chevron.down")
+        static let xmark = Image(systemName: "xmark")
+        static let arrowRight = Image(systemName: "arrow.right")
+        static let checkmark = Image(systemName: "checkmark")
+        static let plus = Image(systemName: "plus")
+        static let minus = Image(systemName: "minus")
+        static let house = Image(systemName: "house")
+        static let checklist = Image(systemName: "checklist")
+        static let storefront = Image(systemName: "storefront")
+        static let magnifyingGlass = Image(systemName: "magnifyingglass")
+    }
+
     // MARK: - Branding
 
     enum Brand {
         static let wordmark = Image("BrandWordmark")
+    }
+
+    // MARK: - Home
+
+    enum Home {
+        static let storeAvatar = Image("HomeStoreAvatar")
+        static let storeIcon = Image("HomeStoreIcon")
     }
     
     // MARK: - Placeholder Images

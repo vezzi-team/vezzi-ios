@@ -18,6 +18,8 @@ extension Color {
         static let secondary = Color("BackgroundSecondary")
         static let defaultColor = Color("BackgroundDefault")
         static let sheet = Color("BackgroundSheet")
+        static let placeholder = Color("BackgroundPlaceholder")
+        static let placeholderLighter = Color("BackgroundPlaceholderLighter")
     }
     
     // MARK: - Label Colors
@@ -33,5 +35,17 @@ extension Color {
         static let greyLight = Color("LabelGreyLight")
         static let greyDark = Color("LabelGreyDark")
         static let placeholder = Color("LabelPlaceholder")
+    }
+
+    // MARK: - Border Colors
+
+    enum Border {
+        static let primary = Color("BorderPrimary")
+    }
+
+    // MARK: - Shadow Colors
+
+    enum Shadow {
+        static let primary = Color("ShadowPrimary")
     }
 }
