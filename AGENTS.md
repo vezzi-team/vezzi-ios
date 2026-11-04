@@ -3,7 +3,7 @@
 ## Project overview
 
 - Polka / Полка is a native iPhone and iPad app. The repository, Xcode project, target, and scheme are named `vezzi-ios`.
-- The app has Home, List, Stores, and Search tabs. Search observes the repository's catalog; the other screens are placeholders. An educational MVVM demo is kept in the source files without an in-app entry point.
+- The app has Home, List, Stores, and Search tabs. Home is a temporary mock storefront; Search observes the repository's catalog. List and Stores remain placeholders. An educational MVVM demo is kept in the source files without an in-app entry point.
 - Stack: SwiftUI, Foundation, Combine, and Core Data. Lottie 4.6.1 is resolved through the official `lottie-spm` package; keep `Package.resolved` in version control.
 - The project was created with Xcode 26.2. The app target supports iOS 26.0+, uses Swift 5 language mode, and enables default MainActor isolation. Project-level deployment settings currently specify 26.2; the target overrides them.
 - This is a Git repository
@@ -22,7 +22,7 @@ Paths below are relative to the repository root.
 | `vezzi-ios/Application/Info.plist` | Additional plist keys merged with generated metadata; registers bundled fonts. |
 | `vezzi-ios/Router/` | Tab selection, navigation paths, root composition, and destination construction. |
 | `vezzi-ios/Modules/Demo/` | Standalone MVVM / binding example, available through previews. |
-| `vezzi-ios/Modules/Home/View/` | Home placeholder. |
+| `vezzi-ios/Modules/Home/` | Draft product grid and detail sheet, with feature-local mock data and quantities. |
 | `vezzi-ios/Modules/ShoppingList/View/` | Shopping list placeholder. |
 | `vezzi-ios/Modules/Stores/View/` | Stores placeholder. |
 | `vezzi-ios/Modules/Search/` | Search UI and observable presentation state. |
@@ -48,6 +48,7 @@ Paths below are relative to the repository root.
 - Keep the explicit `nonisolated deinit` in `AppRouter` and `DemoViewModel` while supporting early iOS 26 runtimes; they avoid [Swift runtime issue #88036](https://github.com/swiftlang/swift/issues/88036).
 - Follow `Modules/<Feature>/Model`, `ViewModel`, and `View` as a feature grows. Add only the layers that have actual responsibilities; empty screens do not need empty models or view models.
 - Prefer straightforward, readable code. The demo is also used to explain architecture to a beginner.
+- Home currently uses `HomeMockData` and an owned `HomeViewModel` for layout prototyping. Its quantities are shared with the product sheet through bindings, reset on scene recreation, and are not imported into the catalog or persisted as shopping lists.
 - The splash plays once per scene creation for 1.1 seconds, then reveals the interface with a short scale-down transition. Scale tab content only; keep the native tab bar stationary. Never gate dismissal on cache/network readiness. Skip the splash and transition for Reduce Motion, dismiss without motion on backgrounding, and retain the 1.6-second fallback if Lottie does not complete. Keep the system launch wordmark size/inset in sync with `SplashView`.
 
 ## Persistence and catalog
@@ -83,11 +84,15 @@ Paths below are relative to the repository root.
 ## UI, localization, and code style
 
 - Use four-space indentation, Swift naming conventions, and the surrounding file's `// MARK:` structure.
+- Keep SwiftUI `body` focused on composition. Extract meaningful nested sections into `private var ...: some View` or `private func ... -> some View` instead of building a deeply nested, monolithic view hierarchy.
 - Extract layout and animation numeric literals into a private `enum Const` near the relevant view, with descriptive names and appropriate types such as `CGFloat`.
 - Reuse semantic colors from `Color.Background`, `Color.Label`, and `.accentColor`. Reuse image helpers such as `Image.Demo.main`; add shared assets to the existing asset catalog.
+- Centralize SF Symbols in `Image.System` in `Extensions/ImageExtension.swift`. Pass these images through native label closures for buttons, tabs, and empty states instead of keeping symbol-name strings in views or the router.
 - Support light and dark appearances using asset variants and semantic colors.
-- Prefer `.onestTextStyle(_:weight:)` for brand text: it applies the sizes (48, 32, 20, 16, 14 pt), line heights, Dynamic Type, and system Bold Text adjustment. `Font.onest(_:weight:)` is the font-only factory; it scales with Dynamic Type but does not read Bold Text from the environment. Pass weights through these helpers to select exact named Onest instances. The variable font comes from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/onest); keep its license bundled.
+- Prefer `.onestTextStyle(_:weight:)` for brand text: it applies the sizes (48, 32, 20, 16, 14 pt), line heights, Dynamic Type, and system Bold Text adjustment. For explicit design metrics, use `.onestTextStyle(size:lineHeight:weight:relativeTo:)` without changing the shared named styles. `Font.onest` is the font-only factory; it scales with Dynamic Type but does not read Bold Text from the environment. Pass weights through these helpers to select exact named Onest instances. The variable font comes from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/onest); keep its license bundled.
 - Add user-facing text to `Application/Localizable.xcstrings` in both English and Russian, and expose it through the relevant namespace in `Texts` in `Extensions/Labels.swift`. English is the source language.
+- Split growing `Texts` feature namespaces into nested enums by screen or reusable component, and keep mock content in a separate group. For Home, use `Main`, `Product`, `Quantity`, and `Mock`; share declarations across consumers instead of duplicating them.
+- Keep accessibility identifiers in `Extensions/AccessibilityID.swift`, grouped by feature. Use constants for fixed controls and functions with stable model IDs for repeated elements. Do not localize identifiers; VoiceOver labels still use `Texts`.
 - `InfoPlist.xcstrings` is for bundle metadata. The base display name comes from the target's `INFOPLIST_KEY_CFBundleDisplayName`. Xcode merges `Application/Info.plist` (currently `UIAppFonts`) with generated metadata; keep display names, launch screen, and scene settings in the existing build settings.
 - Keep identifiers and router comments in English. The demo contains intentional Russian teaching comments; preserve their purpose and language when editing it.
 - Provide useful `#Preview` configurations for changed views. For an interactive binding preview, use `@Previewable @State` and pass `$value` to the control.

@@ -18,34 +18,46 @@ struct AppRootView: View {
 
     var body: some View {
         TabView(selection: selectedTab) {
-            Tab(AppRouter.Tab.home.title,
-                systemImage: AppRouter.Tab.home.systemImage,
-                value: AppRouter.Tab.home) {
+            Tab(value: AppRouter.Tab.home) {
                 navigationStack(for: .home)
+            } label: {
+                tabLabel(for: .home)
             }
 
-            Tab(AppRouter.Tab.shoppingList.title,
-                systemImage: AppRouter.Tab.shoppingList.systemImage,
-                value: AppRouter.Tab.shoppingList) {
+            Tab(value: AppRouter.Tab.shoppingList) {
                 navigationStack(for: .shoppingList)
+            } label: {
+                tabLabel(for: .shoppingList)
             }
 
-            Tab(AppRouter.Tab.stores.title,
-                systemImage: AppRouter.Tab.stores.systemImage,
-                value: AppRouter.Tab.stores) {
+            Tab(value: AppRouter.Tab.stores) {
                 navigationStack(for: .stores)
+            } label: {
+                tabLabel(for: .stores)
             }
 
             // Keeps search separate from the other tabs on iPhone.
-            Tab(AppRouter.Tab.search.title,
-                systemImage: AppRouter.Tab.search.systemImage,
-                value: AppRouter.Tab.search,
-                role: searchTabRole) {
+            Tab(value: AppRouter.Tab.search, role: searchTabRole) {
                 navigationStack(for: .search)
+            } label: {
+                tabLabel(for: .search)
             }
         }
         .tint(.accentColor)
         .environmentObject(appRouter)
+    }
+
+    private func tabLabel(for tab: AppRouter.Tab) -> some View {
+        Label {
+            Text(tab.title)
+        } icon: {
+            switch tab {
+            case .home: Image.System.house
+            case .shoppingList: Image.System.checklist
+            case .stores: Image.System.storefront
+            case .search: Image.System.magnifyingGlass
+            }
+        }
     }
 
     private var searchTabRole: TabRole {

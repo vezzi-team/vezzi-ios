@@ -58,15 +58,6 @@ extension AppRouter {
             rootRoute.title
         }
 
-        var systemImage: String {
-            switch self {
-            case .home: return "house"
-            case .shoppingList: return "checklist"
-            case .stores: return "storefront"
-            case .search: return "magnifyingglass"
-            }
-        }
-
         var rootRoute: Route {
             switch self {
             case .home: return .home

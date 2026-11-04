@@ -6,10 +6,15 @@ extension Font {
     /// Uses the brand style's default weight unless an explicit weight is supplied.
     /// Sizes scale with the corresponding Dynamic Type text style.
     static func onest(_ style: OnestStyle, weight: Font.Weight? = nil) -> Font {
+        onest(size: style.size, weight: weight ?? style.defaultWeight, relativeTo: style.textStyle)
+    }
+
+    /// Supports layout-specific metrics while retaining named weights and Dynamic Type.
+    static func onest(size: CGFloat, weight: Font.Weight = .regular, relativeTo textStyle: Font.TextStyle) -> Font {
         .custom(
-            onestName(for: weight ?? style.defaultWeight),
-            size: style.size,
-            relativeTo: style.textStyle
+            onestName(for: weight),
+            size: size,
+            relativeTo: textStyle
         )
     }
 
@@ -80,24 +85,36 @@ extension Font {
 extension View {
     /// Applies the brand font and line height, adapting to Dynamic Type and Bold Text.
     func onestTextStyle(_ style: Font.OnestStyle, weight: Font.Weight? = nil) -> some View {
-        modifier(OnestTextStyleModifier(style: style, weight: weight))
+        onestTextStyle(size: style.size, lineHeight: style.lineHeight,
+                       weight: weight ?? style.defaultWeight, relativeTo: style.textStyle)
+    }
+
+    func onestTextStyle(
+        size: CGFloat,
+        lineHeight: CGFloat,
+        weight: Font.Weight = .regular,
+        relativeTo textStyle: Font.TextStyle
+    ) -> some View {
+        modifier(OnestTextStyleModifier(size: size, lineHeight: lineHeight, weight: weight, textStyle: textStyle))
     }
 }
 
 private struct OnestTextStyleModifier: ViewModifier {
     @Environment(\.legibilityWeight) private var legibilityWeight
 
-    let style: Font.OnestStyle
-    let weight: Font.Weight?
+    let size: CGFloat
+    let lineHeight: CGFloat
+    let weight: Font.Weight
+    let textStyle: Font.TextStyle
 
     func body(content: Content) -> some View {
         content
-            .font(.onest(style, weight: resolvedWeight))
-            .lineHeight(.multiple(factor: style.lineHeight / style.size))
+            .font(.onest(size: size, weight: resolvedWeight, relativeTo: textStyle))
+            .lineHeight(.multiple(factor: lineHeight / size))
     }
 
     private var resolvedWeight: Font.Weight {
-        let baseWeight = weight ?? style.defaultWeight
+        let baseWeight = weight
         guard legibilityWeight == .bold else { return baseWeight }
 
         switch baseWeight {

@@ -55,6 +55,13 @@
 		D4CE185430994DB300F347F8 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = D4CE185330994DB300F347F8 /* Lottie */; };
 		DB45F1B38612429BB2E87587 /* CatalogSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814931BEE56B4C259A7087F1 /* CatalogSession.swift */; };
 		E22C697E9C25DCB6E4A3EC5B /* CatalogRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 753C6740DC2BEA99B0799055 /* CatalogRepository.swift */; };
+		A572598AA874414899F5CD48 /* HomeProduct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06230B146B154DE68133123D /* HomeProduct.swift */; };
+		E213B653F2B04CFB9C6FD4B6 /* HomeMockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 373A8419DF674800ABADE81E /* HomeMockData.swift */; };
+		A812D324791641149E3D7831 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 289EDAD8F9F049BF9DF8A210 /* HomeViewModel.swift */; };
+		EB65944FDCDF499E89BD5C26 /* HomeProductCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E8B8AA9B5924DEDB3AF7C50 /* HomeProductCard.swift */; };
+		2324930A444D4FB5880C3CE7 /* HomeProductDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB5FA6C65BD496DB652EDAB /* HomeProductDetailView.swift */; };
+		2E8DEAA5A2024160A646AB80 /* HomeQuantityControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E2C26D836804633B4D34470 /* HomeQuantityControl.swift */; };
+		CF847703A28A4E68878B7B62 /* AccessibilityID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE68479BCC94680A82BFC2A /* AccessibilityID.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -119,6 +126,13 @@
 		F54815A5C5B546409607CE9F /* CoreDataCatalogCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataCatalogCacheTests.swift; sourceTree = "<group>"; };
 		F9FDA70B3C1339B425500472 /* DefaultCatalogRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultCatalogRepository.swift; sourceTree = "<group>"; };
 		FABAF4F2DDB74814862FBEA5 /* SearchViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModelTests.swift; sourceTree = "<group>"; };
+		06230B146B154DE68133123D /* HomeProduct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeProduct.swift; sourceTree = "<group>"; };
+		373A8419DF674800ABADE81E /* HomeMockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeMockData.swift; sourceTree = "<group>"; };
+		289EDAD8F9F049BF9DF8A210 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
+		8E8B8AA9B5924DEDB3AF7C50 /* HomeProductCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeProductCard.swift; sourceTree = "<group>"; };
+		6EB5FA6C65BD496DB652EDAB /* HomeProductDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeProductDetailView.swift; sourceTree = "<group>"; };
+		3E2C26D836804633B4D34470 /* HomeQuantityControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeQuantityControl.swift; sourceTree = "<group>"; };
+		8DE68479BCC94680A82BFC2A /* AccessibilityID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityID.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -307,6 +321,8 @@
 		C0DE00000000000000000028 /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				84500E8AD4674148AB10175E /* Model */,
+				1A99A8D762A64B70BFDB629D /* ViewModel */,
 				C0DE00000000000000000029 /* View */,
 			);
 			path = Home;
@@ -315,6 +331,9 @@
 		C0DE00000000000000000029 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				8E8B8AA9B5924DEDB3AF7C50 /* HomeProductCard.swift */,
+				6EB5FA6C65BD496DB652EDAB /* HomeProductDetailView.swift */,
+				3E2C26D836804633B4D34470 /* HomeQuantityControl.swift */,
 				C0DE00000000000000000007 /* HomeView.swift */,
 			);
 			path = View;
@@ -383,6 +402,7 @@
 			isa = PBXGroup;
 			children = (
 				D4AD4CC530974C33002BDC87 /* Labels.swift */,
+				8DE68479BCC94680A82BFC2A /* AccessibilityID.swift */,
 				D79E30AC8B3940E5A64F935B /* FontExtension.swift */,
 				D4AD4CC130974C21002BDC87 /* ColorExtension.swift */,
 				D4AD4CC330974C29002BDC87 /* ImageExtension.swift */,
@@ -448,6 +468,23 @@
 			isa = PBXGroup;
 			children = (
 				D4AD4CD730975793002BDC87 /* DemoViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		84500E8AD4674148AB10175E /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				06230B146B154DE68133123D /* HomeProduct.swift */,
+				373A8419DF674800ABADE81E /* HomeMockData.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		1A99A8D762A64B70BFDB629D /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				289EDAD8F9F049BF9DF8A210 /* HomeViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -595,6 +632,12 @@
 				C0DE00000000000000000011 /* AppRouter.swift in Sources */,
 				C0DE00000000000000000012 /* AppRootView.swift in Sources */,
 				C0DE00000000000000000013 /* DestinationFactory.swift in Sources */,
+				A572598AA874414899F5CD48 /* HomeProduct.swift in Sources */,
+				E213B653F2B04CFB9C6FD4B6 /* HomeMockData.swift in Sources */,
+				A812D324791641149E3D7831 /* HomeViewModel.swift in Sources */,
+				EB65944FDCDF499E89BD5C26 /* HomeProductCard.swift in Sources */,
+				2324930A444D4FB5880C3CE7 /* HomeProductDetailView.swift in Sources */,
+				2E8DEAA5A2024160A646AB80 /* HomeQuantityControl.swift in Sources */,
 				C0DE00000000000000000017 /* HomeView.swift in Sources */,
 				C0DE00000000000000000014 /* ShoppingListView.swift in Sources */,
 				C0DE00000000000000000015 /* StoresView.swift in Sources */,
@@ -604,6 +647,7 @@
 				D4AD4CC230974C24002BDC87 /* ColorExtension.swift in Sources */,
 				D4AD4CD63097578F002BDC87 /* DemoModel.swift in Sources */,
 				D4AD4CC630974C35002BDC87 /* Labels.swift in Sources */,
+				CF847703A28A4E68878B7B62 /* AccessibilityID.swift in Sources */,
 				D4AD4CCA30974C54002BDC87 /* ViewExtension.swift in Sources */,
 				D4AD4CBE30974B04002BDC87 /* VezziApp.swift in Sources */,
 				D4AD4CC430974C2D002BDC87 /* ImageExtension.swift in Sources */,

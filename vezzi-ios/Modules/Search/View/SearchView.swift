@@ -83,12 +83,20 @@ struct SearchView: View {
         .overlay {
             if viewModel.items.isEmpty && viewModel.refreshErrorMessage == nil
                 && !(dynamicTypeSize.isAccessibilitySize && statusMessage != nil) {
-                ContentUnavailableView(
-                    viewModel.query.isEmpty ? Texts.Search.emptyTitle : Texts.Search.noResultsTitle,
-                    systemImage: "magnifyingglass",
-                    description: Text(viewModel.query.isEmpty ? Texts.Search.emptyDescription : Texts.Search.noResultsDescription)
-                )
+                emptyState
             }
+        }
+    }
+
+    private var emptyState: some View {
+        ContentUnavailableView {
+            Label {
+                Text(viewModel.query.isEmpty ? Texts.Search.emptyTitle : Texts.Search.noResultsTitle)
+            } icon: {
+                Image.System.magnifyingGlass
+            }
+        } description: {
+            Text(viewModel.query.isEmpty ? Texts.Search.emptyDescription : Texts.Search.noResultsDescription)
         }
     }
 

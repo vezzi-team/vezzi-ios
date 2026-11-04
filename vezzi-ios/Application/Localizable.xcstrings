@@ -1,74 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "TabShoppingList" : {
-      "comment" : "List",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "List"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Список"
-          }
-        }
-      }
-    },
-    "TabSearch" : {
-      "comment" : "Search",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Search"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Поиск"
-          }
-        }
-      }
-    },
-    "TabStores" : {
-      "comment" : "Stores",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stores"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Магазины"
-          }
-        }
-      }
-    },
-    "TabHome" : {
-      "comment" : "Home",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Home"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Главная"
-          }
-        }
-      }
-    },
     "DemoShowSubtitle" : {
       "comment" : "Show subtitle",
       "localizations" : {
@@ -120,53 +52,735 @@
         }
       }
     },
-    "StorageRetry" : {
-      "comment" : "Try again",
+    "HomeAdd" : {
+      "comment" : "Add",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try again"
+            "value" : "Add"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Повторить"
+            "value" : "Добавить"
           }
         }
       }
     },
-    "SearchPrompt" : {
-      "comment" : "Find products",
+    "HomeAddProduct" : {
+      "comment" : "Add a product",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Find products"
+            "value" : "Add %@"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Найти товары"
+            "value" : "Добавить: %@"
           }
         }
       }
     },
-    "SearchEmptyTitle" : {
-      "comment" : "No products yet",
+    "HomeAddress" : {
+      "comment" : "Address",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No products yet"
+            "value" : "Address"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Товаров пока нет"
+            "value" : "Адрес"
+          }
+        }
+      }
+    },
+    "HomeAddressHome" : {
+      "comment" : "6 Leninsky Prospekt",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "6 Leninsky Prospekt"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Улица Ленинский проспект, 6"
+          }
+        }
+      }
+    },
+    "HomeAddressWork" : {
+      "comment" : "28 Nevsky Prospekt",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "28 Nevsky Prospekt"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Невский проспект, 28"
+          }
+        }
+      }
+    },
+    "HomeApples" : {
+      "comment" : "Gala apples",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gala apples"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Яблоки Гала"
+          }
+        }
+      }
+    },
+    "HomeAvailableNearby" : {
+      "comment" : "Available nearby",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Available nearby"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Есть поблизости"
+          }
+        }
+      }
+    },
+    "HomeBread" : {
+      "comment" : "White bread",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "White bread"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Батон"
+          }
+        }
+      }
+    },
+    "HomeBreadBrand" : {
+      "comment" : "Family bakery",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Family bakery"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Семейная пекарня"
+          }
+        }
+      }
+    },
+    "HomeBreadPackage" : {
+      "comment" : "380 g",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "380 g"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "380 г"
+          }
+        }
+      }
+    },
+    "HomeClose" : {
+      "comment" : "Close",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрыть"
+          }
+        }
+      }
+    },
+    "HomeCollectProducts" : {
+      "comment" : "Add ingredients",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add ingredients"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Собрать продукты"
+          }
+        }
+      }
+    },
+    "HomeCompareHint" : {
+      "comment" : "Add to your list to compare",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to your list to compare"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавьте в список для сравнения"
+          }
+        }
+      }
+    },
+    "HomeDecreaseQuantity" : {
+      "comment" : "Decrease product quantity",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decrease quantity of %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Уменьшить количество: %@"
+          }
+        }
+      }
+    },
+    "HomeDinnerAdded" : {
+      "comment" : "Ingredients added",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingredients added"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продукты добавлены"
+          }
+        }
+      }
+    },
+    "HomeDinnerSubtitle" : {
+      "comment" : "Simple, delicious, ready in 20 minutes",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simple, delicious, ready in 20 minutes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вкусно, просто, за 20 минут"
+          }
+        }
+      }
+    },
+    "HomeDinnerTitle" : {
+      "comment" : "Dinner ideas",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dinner ideas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Идеи для ужина"
+          }
+        }
+      }
+    },
+    "HomeEggs" : {
+      "comment" : "Eggs",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eggs"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Яйца С1"
+          }
+        }
+      }
+    },
+    "HomeEggsBrand" : {
+      "comment" : "Farm eggs",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farm eggs"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Деревенские"
+          }
+        }
+      }
+    },
+    "HomeEggsPackage" : {
+      "comment" : "10 pcs",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 pcs"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 шт."
+          }
+        }
+      }
+    },
+    "HomeForYou" : {
+      "comment" : "For you",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For you"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для вас"
+          }
+        }
+      }
+    },
+    "HomeFreshFruit" : {
+      "comment" : "Fresh fruit",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fresh fruit"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Свежие фрукты"
+          }
+        }
+      }
+    },
+    "HomeFreshVegetables" : {
+      "comment" : "Fresh vegetables",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fresh vegetables"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Свежие овощи"
+          }
+        }
+      }
+    },
+    "HomeIncreaseQuantity" : {
+      "comment" : "Increase product quantity",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Increase quantity of %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увеличить количество: %@"
+          }
+        }
+      }
+    },
+    "HomeInList" : {
+      "comment" : "In your list",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In your list"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В вашем списке"
+          }
+        }
+      }
+    },
+    "HomeInStores" : {
+      "comment" : "Number of stores with an offer",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "in %lld store"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "in %lld stores"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "в %lld магазинах"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "в %lld магазинах"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "в %lld магазине"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "в %lld магазинах"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "HomeLenta" : {
+      "comment" : "Lenta",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lenta"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Лента"
+          }
+        }
+      }
+    },
+    "HomeMagnit" : {
+      "comment" : "Magnit",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Magnit"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Магнит"
+          }
+        }
+      }
+    },
+    "HomeMilk" : {
+      "comment" : "Milk 3.5%",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Milk 3.5%"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Молоко 3,5%"
+          }
+        }
+      }
+    },
+    "HomeMilkBrand" : {
+      "comment" : "Kubanskaya Buryonka",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kubanskaya Buryonka"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кубанская Бурёнка"
+          }
+        }
+      }
+    },
+    "HomeNearbyStores" : {
+      "comment" : "5 stores nearby",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 stores nearby"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 магазинов поблизости"
+          }
+        }
+      }
+    },
+    "HomeOfferedAtStores" : {
+      "comment" : "Stores",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stores"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Магазины"
+          }
+        }
+      }
+    },
+    "HomeOneKilogram" : {
+      "comment" : "1 kg",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 kg"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 кг"
+          }
+        }
+      }
+    },
+    "HomeOneLiter" : {
+      "comment" : "1 L",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 L"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 л"
+          }
+        }
+      }
+    },
+    "HomePasta" : {
+      "comment" : "Spaghetti",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spaghetti"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Спагетти"
+          }
+        }
+      }
+    },
+    "HomePastaBrand" : {
+      "comment" : "Makfa",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Makfa"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Макфа"
+          }
+        }
+      }
+    },
+    "HomePastaPackage" : {
+      "comment" : "450 g",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "450 g"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "450 г"
+          }
+        }
+      }
+    },
+    "HomePriceFrom" : {
+      "comment" : "from",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "from"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "от"
+          }
+        }
+      }
+    },
+    "HomePyaterochka" : {
+      "comment" : "Pyaterochka",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pyaterochka"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пятёрочка"
+          }
+        }
+      }
+    },
+    "HomeQuantityOf" : {
+      "comment" : "Product quantity",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quantity of %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Количество: %@"
+          }
+        }
+      }
+    },
+    "HomeTomatoes" : {
+      "comment" : "Tomatoes",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tomatoes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Томаты"
           }
         }
       }
@@ -188,53 +802,19 @@
         }
       }
     },
-    "SearchNoResultsTitle" : {
-      "comment" : "No products found",
+    "SearchEmptyTitle" : {
+      "comment" : "No products yet",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No products found"
+            "value" : "No products yet"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Товары не найдены"
-          }
-        }
-      }
-    },
-    "SearchNoResultsDescription" : {
-      "comment" : "Try another name, brand or category.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Try another name, brand or category."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Попробуйте другое название, бренд или категорию."
-          }
-        }
-      }
-    },
-    "SearchNoOffers" : {
-      "comment" : "No store offers available",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No store offers available"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Нет предложений магазинов"
+            "value" : "Товаров пока нет"
           }
         }
       }
@@ -256,6 +836,57 @@
         }
       }
     },
+    "SearchNoOffers" : {
+      "comment" : "No store offers available",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No store offers available"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет предложений магазинов"
+          }
+        }
+      }
+    },
+    "SearchNoResultsDescription" : {
+      "comment" : "Try another name, brand or category.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try another name, brand or category."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Попробуйте другое название, бренд или категорию."
+          }
+        }
+      }
+    },
+    "SearchNoResultsTitle" : {
+      "comment" : "No products found",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No products found"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Товары не найдены"
+          }
+        }
+      }
+    },
     "SearchOutOfStock" : {
       "comment" : "Out of stock",
       "localizations" : {
@@ -273,19 +904,19 @@
         }
       }
     },
-    "SearchUnknownPriceDate" : {
-      "comment" : "Price update date unknown",
+    "SearchPrompt" : {
+      "comment" : "Find products",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Price update date unknown"
+            "value" : "Find products"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Дата обновления цены неизвестна"
+            "value" : "Найти товары"
           }
         }
       }
@@ -324,6 +955,23 @@
         }
       }
     },
+    "SearchUnknownPriceDate" : {
+      "comment" : "Price update date unknown",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Price update date unknown"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дата обновления цены неизвестна"
+          }
+        }
+      }
+    },
     "StorageCacheUnavailable" : {
       "comment" : "Non-blocking cache failure",
       "localizations" : {
@@ -337,6 +985,91 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Сохранение на устройстве недоступно. Текущие данные доступны до закрытия приложения."
+          }
+        }
+      }
+    },
+    "StorageRetry" : {
+      "comment" : "Try again",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повторить"
+          }
+        }
+      }
+    },
+    "TabHome" : {
+      "comment" : "Home",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Главная"
+          }
+        }
+      }
+    },
+    "TabSearch" : {
+      "comment" : "Search",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поиск"
+          }
+        }
+      }
+    },
+    "TabShoppingList" : {
+      "comment" : "List",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "List"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Список"
+          }
+        }
+      }
+    },
+    "TabStores" : {
+      "comment" : "Stores",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stores"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Магазины"
           }
         }
       }
