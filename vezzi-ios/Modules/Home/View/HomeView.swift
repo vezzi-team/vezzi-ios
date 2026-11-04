@@ -126,7 +126,7 @@ struct HomeView: View {
                     .strokeBorder(Color.Border.primary, lineWidth: Const.borderWidth))
                 .shadow(color: Color.Shadow.primary.opacity(Const.shadowOpacity), radius: Const.shadowRadius, y: Const.shadowOffset)
         }
-        .buttonStyle(.plain)
+        .pressScaleEffect()
         .disabled(viewModel.hasDinnerProducts)
         .accessibilityIdentifier(AccessibilityID.Home.addDinner)
     }

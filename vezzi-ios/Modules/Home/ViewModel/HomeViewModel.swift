@@ -4,7 +4,7 @@ import Combine
 final class HomeViewModel: ObservableObject {
     let products = HomeMockData.products
     @Published var selectedAddress = HomeAddress.home
-    @Published private(set) var quantities = ["milk": 1]
+    @Published private(set) var quantities: [String: Int] = [:]
 
     nonisolated deinit {}
 

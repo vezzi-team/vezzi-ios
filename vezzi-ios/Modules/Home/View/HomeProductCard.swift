@@ -20,6 +20,7 @@ struct HomeProductCard: View {
         .overlay(RoundedRectangle(cornerRadius: Const.cornerRadius)
             .strokeBorder(Color.Border.primary, lineWidth: Const.borderWidth))
         .shadow(color: Color.Shadow.primary.opacity(Const.shadowOpacity), radius: Const.shadowRadius, y: Const.shadowOffset)
+        .pressScaleEffect()
     }
 
     // MARK: - Product
@@ -33,7 +34,6 @@ struct HomeProductCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(.rect)
         }
-        .buttonStyle(.plain)
         .accessibilityIdentifier(AccessibilityID.Home.product(product.id))
     }
 
@@ -141,6 +141,7 @@ struct HomeProductCard: View {
 
     private var quantityControl: some View {
         HomeQuantityControl(productID: product.id, productName: product.name, quantity: $quantity)
+            .buttonStyle(.plain)
     }
 
     private enum Const {
