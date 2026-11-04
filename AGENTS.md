@@ -19,6 +19,7 @@ Paths below are relative to the repository root.
 | `vezzi-ios/Application/AppDependencies.swift` | Constructs shared repositories immediately and prepares optional caching. |
 | `vezzi-ios/Application/Localizable.xcstrings` | English and Russian interface strings. |
 | `vezzi-ios/Application/InfoPlist.xcstrings` | Localized bundle metadata, including the display name. |
+| `vezzi-ios/Application/Info.plist` | Additional plist keys merged with generated metadata; registers bundled fonts. |
 | `vezzi-ios/Router/` | Tab selection, navigation paths, root composition, and destination construction. |
 | `vezzi-ios/Modules/Demo/` | Standalone MVVM / binding example, available through previews. |
 | `vezzi-ios/Modules/Home/View/` | Home placeholder. |
@@ -33,6 +34,7 @@ Paths below are relative to the repository root.
 | `vezzi-ios/SupportingFiles/Assets.xcassets` | App icons, semantic colors, and images with appearance variants. |
 | `vezzi-ios/SupportingFiles/LaunchScreen.storyboard` | Static system launch screen; shares the splash background and wordmark layout. |
 | `vezzi-ios/SupportingFiles/Animations/` | Bundled Lottie JSON; Moti includes all image data and needs no network. |
+| `vezzi-ios/SupportingFiles/Fonts/` | Onest variable font and its SIL Open Font License. |
 | `vezzi-ios.xcodeproj/project.pbxproj` | Explicit source/resource membership and build configuration. |
 
 ## Architecture and state ownership
@@ -84,8 +86,9 @@ Paths below are relative to the repository root.
 - Extract layout and animation numeric literals into a private `enum Const` near the relevant view, with descriptive names and appropriate types such as `CGFloat`.
 - Reuse semantic colors from `Color.Background`, `Color.Label`, and `.accentColor`. Reuse image helpers such as `Image.Demo.main`; add shared assets to the existing asset catalog.
 - Support light and dark appearances using asset variants and semantic colors.
+- Prefer `.onestTextStyle(_:weight:)` for brand text: it applies the sizes (48, 32, 20, 16, 14 pt), line heights, Dynamic Type, and system Bold Text adjustment. `Font.onest(_:weight:)` is the font-only factory; it scales with Dynamic Type but does not read Bold Text from the environment. Pass weights through these helpers to select exact named Onest instances. The variable font comes from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/onest); keep its license bundled.
 - Add user-facing text to `Application/Localizable.xcstrings` in both English and Russian, and expose it through the relevant namespace in `Texts` in `Extensions/Labels.swift`. English is the source language.
-- `InfoPlist.xcstrings` is for bundle metadata. The base display name comes from the target's `INFOPLIST_KEY_CFBundleDisplayName`. Xcode generates `Info.plist`; avoid introducing a duplicate file for routine localization changes.
+- `InfoPlist.xcstrings` is for bundle metadata. The base display name comes from the target's `INFOPLIST_KEY_CFBundleDisplayName`. Xcode merges `Application/Info.plist` (currently `UIAppFonts`) with generated metadata; keep display names, launch screen, and scene settings in the existing build settings.
 - Keep identifiers and router comments in English. The demo contains intentional Russian teaching comments; preserve their purpose and language when editing it.
 - Provide useful `#Preview` configurations for changed views. For an interactive binding preview, use `@Previewable @State` and pass `$value` to the control.
 - Do not wrap `#Preview` declarations or their supporting preview types in `#if DEBUG`.
