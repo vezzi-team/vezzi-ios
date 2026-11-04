@@ -17,6 +17,10 @@ enum AccessibilityID {
         enum ProductDetail {
             static let close = "home.product.close"
             static let add = "home.product.add"
+            static let decrease = "home.product.decrease"
+            static let increase = "home.product.increase"
+            static let quantity = "home.product.quantity"
+            static let hint = "home.product.hint"
         }
 
         enum Quantity {

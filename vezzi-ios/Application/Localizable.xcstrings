@@ -171,6 +171,24 @@
         }
       }
     },
+    "HomeBaguette" : {
+      "comment" : "Baguette",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baguette"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Багет"
+          }
+        }
+      }
+    },
     "HomeBread" : {
       "comment" : "White bread",
       "localizations" : {
@@ -218,6 +236,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "380 гр."
+          }
+        }
+      }
+    },
+    "HomeCherryTomatoes" : {
+      "comment" : "Cherry tomatoes",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cherry tomatoes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Томаты черри"
           }
         }
       }
@@ -341,6 +377,60 @@
         }
       }
     },
+    "HomeDomikBrand" : {
+      "comment" : "Domik v Derevne",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Domik v Derevne"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Домик в деревне"
+          }
+        }
+      }
+    },
+    "HomeDomikMilk" : {
+      "comment" : "Domik v Derevne 3.5% UHT milk",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Domik v Derevne 3.5% UHT milk"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Молоко Домик в деревне 3,5% Ультрапастеризованное"
+          }
+        }
+      }
+    },
+    "HomeDomikPackage" : {
+      "comment" : "980 ml",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "980 ml"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "980 мл"
+          }
+        }
+      }
+    },
     "HomeEggs" : {
       "comment" : "Eggs",
       "localizations" : {
@@ -443,6 +533,78 @@
         }
       }
     },
+    "HomeFusilli" : {
+      "comment" : "Fusilli pasta",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fusilli pasta"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Макароны спирали"
+          }
+        }
+      }
+    },
+    "HomeGoldenApples" : {
+      "comment" : "Golden Delicious apples",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Golden Delicious apples"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Яблоки Голден"
+          }
+        }
+      }
+    },
+    "HomeGrannySmithApples" : {
+      "comment" : "Granny Smith apples",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Granny Smith apples"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Яблоки Гренни Смит"
+          }
+        }
+      }
+    },
+    "HomeHalfKilogram" : {
+      "comment" : "500 g",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "500 g"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "500 г"
+          }
+        }
+      }
+    },
     "HomeIncreaseQuantity" : {
       "comment" : "Increase product quantity",
       "localizations" : {
@@ -526,6 +688,60 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "HomeKubanskayaBrand" : {
+      "comment" : "Kubanskaya Buryonka",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kubanskaya Buryonka"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кубанская Бурёнка"
+          }
+        }
+      }
+    },
+    "HomeKubanskayaMilk" : {
+      "comment" : "2.5% milk",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2.5% milk"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Молоко 2,5%"
+          }
+        }
+      }
+    },
+    "HomeKubanskayaPackage" : {
+      "comment" : "930 ml",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "930 ml"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "930 мл"
           }
         }
       }
@@ -717,6 +933,42 @@
         }
       }
     },
+    "HomePenne" : {
+      "comment" : "Penne pasta",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penne pasta"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Макароны перья"
+          }
+        }
+      }
+    },
+    "HomePlumTomatoes" : {
+      "comment" : "Plum tomatoes",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plum tomatoes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Томаты сливовидные"
+          }
+        }
+      }
+    },
     "HomePriceFrom" : {
       "comment" : "from",
       "localizations" : {
@@ -730,6 +982,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "от"
+          }
+        }
+      }
+    },
+    "HomeProductAlternatives" : {
+      "comment" : "Other options",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other options"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Другие варианты"
           }
         }
       }
@@ -764,6 +1034,78 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Количество: %@"
+          }
+        }
+      }
+    },
+    "HomeQuarterKilogram" : {
+      "comment" : "250 g",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "250 g"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "250 г"
+          }
+        }
+      }
+    },
+    "HomeRyeBread" : {
+      "comment" : "Rye bread",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rye bread"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ржаной хлеб"
+          }
+        }
+      }
+    },
+    "HomeSecondGradeEggs" : {
+      "comment" : "C2 eggs",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "C2 eggs"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Яйца С2"
+          }
+        }
+      }
+    },
+    "HomeSelectedEggs" : {
+      "comment" : "C0 eggs",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "C0 eggs"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Яйца С0"
           }
         }
       }

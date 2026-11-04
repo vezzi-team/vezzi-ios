@@ -16,8 +16,12 @@ final class HomeViewModel: ObservableObject {
 
     func quantity(for productID: String) -> Int { quantities[productID, default: 0] }
 
+    func alternatives(for productID: String) -> [HomeProduct] {
+        HomeMockData.alternatives(for: productID)
+    }
+
     func setQuantity(_ quantity: Int, for productID: String) {
-        guard products.contains(where: { $0.id == productID }) else { return }
+        guard HomeMockData.productIDs.contains(productID) else { return }
         let value = min(max(quantity, Self.quantityRange.lowerBound), Self.quantityRange.upperBound)
         quantities[productID] = value == 0 ? nil : value
     }

@@ -7,17 +7,21 @@ struct HomeProductDetailView: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     let product: HomeProduct
-    @Binding var quantity: Int
+    @ObservedObject var viewModel: HomeViewModel
+    let selectProduct: (HomeProduct) -> Void
 
     var body: some View {
         NavigationStack {
             productList
+                .id(product.id)
+                .navigationTitle(product.name)
+                .navigationSubtitle(product.brand + " · " + product.package)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { dismissToolbar }
-                .safeAreaInset(edge: .bottom, spacing: .zero) { bottomActions }
+                .safeAreaBar(edge: .bottom, spacing: .zero) { bottomActions }
         }
         .presentationDetents([.large])
-        .presentationDragIndicator(.hidden)
+        .presentationDragIndicator(.visible)
         .presentationCornerRadius(Const.sheetCornerRadius)
     }
 
@@ -47,6 +51,12 @@ struct HomeProductDetailView: View {
                 ForEach(product.offers) { offer in
                     offerRow(offer)
                 }
+                if !alternatives.isEmpty {
+                    sectionHeading(Texts.Home.Product.alternatives)
+                        .padding(.top, Const.sectionSpacing - Const.rowSpacing)
+                    alternativeProducts
+                        .padding(.bottom, Const.contentInset)
+                }
             }
             .listRowInsets(EdgeInsets(top: .zero, leading: Const.contentInset,
                                       bottom: .zero, trailing: Const.contentInset))
@@ -54,6 +64,8 @@ struct HomeProductDetailView: View {
             .listRowBackground(Color.clear)
         }
         .listStyle(.plain)
+        .scrollIndicators(.hidden)
+        .environment(\.defaultMinListRowHeight, .zero)
         .listRowSpacing(Const.rowSpacing)
         .contentMargins(.vertical, .zero, for: .scrollContent)
         .scrollContentBackground(.hidden)
@@ -64,10 +76,10 @@ struct HomeProductDetailView: View {
         VStack(alignment: .leading, spacing: .zero) {
             artworkPlaceholder
                 .padding(.bottom, Const.contentInset)
-            productHeading
             priceSummary
-                .padding(.top, Const.priceTopInset)
         }
+        .padding(.top, Const.rowSpacing)
+        .padding(.bottom, Const.sectionSpacing - Const.rowSpacing)
     }
 
     private var artworkPlaceholder: some View {
@@ -79,47 +91,32 @@ struct HomeProductDetailView: View {
             .accessibilityHidden(true)
     }
 
-    private var productHeading: some View {
+    private var priceSummary: some View {
         VStack(alignment: .leading, spacing: .zero) {
-            Text(product.name)
-                .onestTextStyle(size: Const.titleFontSize, lineHeight: Const.titleLineHeight,
-                               weight: .bold, relativeTo: .title)
-                .foregroundStyle(Color.Label.primary)
-                .accessibilityAddTraits(.isHeader)
-            Text(product.brand + " · " + product.package)
+            if let price = product.lowestPrice {
+                HomePriceLabel(price: price)
+                    .onestTextStyle(size: Const.priceFontSize, lineHeight: Const.priceLineHeight,
+                                   weight: .bold, relativeTo: .title)
+            }
+            Text(Texts.Home.Product.inStores(product.offers.count))
                 .onestTextStyle(size: Const.subtitleFontSize, lineHeight: Const.subtitleLineHeight, relativeTo: .subheadline)
                 .foregroundStyle(Color.Label.secondary)
         }
     }
 
-    private var priceSummary: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .firstTextBaseline, spacing: Const.rowSpacing) { priceLabels }
-            VStack(alignment: .leading, spacing: Const.rowSpacing) { priceLabels }
-        }
-    }
-
-    @ViewBuilder private var priceLabels: some View {
-        if let price = product.lowestPrice {
-            HomePriceLabel(price: price)
-                .onestTextStyle(size: Const.sectionFontSize, lineHeight: Const.sectionLineHeight,
-                               weight: .semibold, relativeTo: .title3)
-        }
-        Text(Texts.Home.Product.inStores(product.offers.count))
-            .onestTextStyle(size: Const.storeCountFontSize, lineHeight: Const.storeCountLineHeight, relativeTo: .footnote)
-            .foregroundStyle(Color.Label.secondary)
-    }
-
     // MARK: - Stores
 
     private var offersHeading: some View {
-        Text(Texts.Home.Product.availableNearby)
+        sectionHeading(Texts.Home.Product.availableNearby)
+            .padding(.bottom, Const.headingBottomInset)
+    }
+
+    private func sectionHeading(_ title: String) -> some View {
+        Text(title)
             .onestTextStyle(size: Const.sectionFontSize, lineHeight: Const.sectionLineHeight,
                            weight: .semibold, relativeTo: .title3)
             .foregroundStyle(Color.Label.primary)
             .accessibilityAddTraits(.isHeader)
-            .padding(.top, Const.headingTopInset)
-            .padding(.bottom, Const.headingBottomInset)
     }
 
     private func offerRow(_ offer: HomeStoreOffer) -> some View {
@@ -138,6 +135,7 @@ struct HomeProductDetailView: View {
             }
         }
         .padding(.vertical, Const.rowVerticalInset)
+        .frame(minHeight: Const.storeRowHeight)
         .accessibilityElement(children: .combine)
     }
 
@@ -168,90 +166,85 @@ struct HomeProductDetailView: View {
             .fixedSize(horizontal: true, vertical: false)
     }
 
+    // MARK: - Alternatives
+
+    private var alternatives: [HomeProduct] {
+        viewModel.alternatives(for: product.id)
+    }
+
+    private var alternativeProducts: some View {
+        LazyVGrid(columns: alternativeColumns, alignment: .leading, spacing: Const.contentInset) {
+            ForEach(alternatives) { alternative in
+                HomeProductCard(product: alternative, quantity: quantityBinding(for: alternative.id)) {
+                    selectProduct(alternative)
+                }
+            }
+        }
+    }
+
+    private var alternativeColumns: [GridItem] {
+        if dynamicTypeSize.isAccessibilitySize {
+            return [GridItem(.flexible())]
+        }
+        return [GridItem(.adaptive(minimum: Const.minimumCardWidth), spacing: Const.contentInset, alignment: .top)]
+    }
+
     // MARK: - Bottom Action
 
     private var bottomActions: some View {
-        VStack(spacing: Const.footerSpacing) {
-            if quantity == 0 {
-                addButton
-            } else {
-                quantityStepper
-            }
-            Text(quantity == 0 ? Texts.Home.Product.compareHint : Texts.Home.Product.inList)
-                .onestTextStyle(size: Const.subtitleFontSize, lineHeight: Const.subtitleLineHeight, relativeTo: .subheadline)
-                .foregroundStyle(Color.Label.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .padding(.horizontal, Const.footerHorizontalInset)
-        .padding(.bottom, Const.footerBottomInset)
-        .background(Color.Background.elevated)
+        HomeProductActions(productName: product.name, quantity: quantityBinding(for: product.id))
+            .padding(.horizontal, Const.footerHorizontalInset)
+            .padding(.top, Const.rowSpacing)
+            .padding(.bottom, Const.footerBottomInset)
     }
 
-    private var addButton: some View {
-        Button { quantity = 1 } label: {
-            Text(Texts.Home.Quantity.add)
-                .onestTextStyle(size: Const.storeFontSize, lineHeight: Const.storeLineHeight,
-                               weight: .semibold, relativeTo: .headline)
-                .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.glassProminent)
-        .controlSize(.large)
-        .frame(minHeight: Const.actionHeight)
-        .accessibilityIdentifier(AccessibilityID.Home.ProductDetail.add)
-    }
-
-    private var quantityStepper: some View {
-        Stepper(value: $quantity, in: HomeViewModel.quantityRange) {
-            Text(quantity, format: .number)
-                .onestTextStyle(.appText, weight: .semibold)
-                .monospacedDigit()
-        }
-        .frame(minHeight: Const.actionHeight)
-        .accessibilityLabel(Texts.Home.Quantity.quantityOf(product.name))
-        .accessibilityValue(Text(quantity, format: .number))
+    private func quantityBinding(for productID: String) -> Binding<Int> {
+        Binding(
+            get: { viewModel.quantity(for: productID) },
+            set: { viewModel.setQuantity($0, for: productID) }
+        )
     }
 
     private enum Const {
         static let contentInset: CGFloat = 16
         static let rowSpacing: CGFloat = 8
-        static let priceTopInset: CGFloat = 13
-        static let headingTopInset: CGFloat = 4
+        static let sectionSpacing: CGFloat = 30
         static let headingBottomInset: CGFloat = 2
         static let storeSpacing: CGFloat = 12
         static let storeTextSpacing: CGFloat = 4
         static let rowVerticalInset: CGFloat = 4
         static let storeSize: CGFloat = 36
+        static let storeRowHeight: CGFloat = 51
+        static let minimumCardWidth: CGFloat = 150
         static let artworkHeight: CGFloat = 216
         static let compactArtworkHeight: CGFloat = 40
         static let artworkCornerRadius: CGFloat = 16
         static let sheetCornerRadius: CGFloat = 34
-        static let titleFontSize: CGFloat = 28
-        static let titleLineHeight: CGFloat = 34
+        static let priceFontSize: CGFloat = 28
+        static let priceLineHeight: CGFloat = 34
         static let subtitleFontSize: CGFloat = 15
         static let subtitleLineHeight: CGFloat = 20
         static let sectionFontSize: CGFloat = 20
         static let sectionLineHeight: CGFloat = 25
-        static let storeCountFontSize: CGFloat = 13
-        static let storeCountLineHeight: CGFloat = 18
         static let storeFontSize: CGFloat = 17
         static let storeLineHeight: CGFloat = 22
         static let availabilityFontSize: CGFloat = 12
         static let availabilityLineHeight: CGFloat = 16
-        static let actionHeight: CGFloat = 52
-        static let footerSpacing: CGFloat = 4
         static let footerHorizontalInset: CGFloat = 21
         static let footerBottomInset: CGFloat = 4
     }
 }
 
 #Preview("Product") {
-    @Previewable @State var quantity = 0
-    HomeProductDetailView(product: HomeMockData.products[0], quantity: $quantity)
+    @Previewable @StateObject var viewModel = HomeViewModel()
+    @Previewable @State var product = HomeMockData.products[0]
+    HomeProductDetailView(product: product, viewModel: viewModel) { product = $0 }
 }
 
 #Preview("Product — dark, large text") {
-    @Previewable @State var quantity = 1
-    HomeProductDetailView(product: HomeMockData.products[0], quantity: $quantity)
+    @Previewable @StateObject var viewModel = HomeViewModel()
+    @Previewable @State var product = HomeMockData.products[0]
+    HomeProductDetailView(product: product, viewModel: viewModel) { product = $0 }
         .preferredColorScheme(.dark)
         .dynamicTypeSize(.accessibility3)
 }

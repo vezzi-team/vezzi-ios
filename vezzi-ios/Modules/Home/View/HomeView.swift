@@ -8,12 +8,12 @@ struct HomeView: View {
     var body: some View {
         ScrollView { content }
         .safeAreaBar(edge: .top, spacing: .zero) {
-            if !dynamicTypeSize.isAccessibilitySize { header }
+            if !dynamicTypeSize.isAccessibilitySize { addressHeader }
         }
         .background(Color.Background.primary.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .sheet(item: $selectedProduct) { product in
-            HomeProductDetailView(product: product, quantity: quantityBinding(for: product.id))
+            HomeProductDetailView(product: product, viewModel: viewModel) { selectedProduct = $0 }
         }
         .sensoryFeedback(.selection, trigger: viewModel.quantities)
     }
@@ -23,26 +23,26 @@ struct HomeView: View {
     private var content: some View {
         VStack(spacing: .zero) {
             // Let a large accessibility header scroll so the catalog remains reachable.
-            if dynamicTypeSize.isAccessibilitySize { header }
-            recommendations
-                .padding(.horizontal, Const.contentInset)
-                .padding(.bottom, Const.contentInset)
-                .frame(maxWidth: Const.maximumWidth)
-                .frame(maxWidth: .infinity)
+            if dynamicTypeSize.isAccessibilitySize { addressHeader }
+            VStack(alignment: .leading, spacing: Const.sectionSpacing) {
+                dinnerCard
+                recommendations
+            }
+            .padding(.horizontal, Const.contentInset)
+            .padding(.bottom, Const.contentInset)
+            .frame(maxWidth: Const.maximumWidth)
+            .frame(maxWidth: .infinity)
         }
         .environment(\.isShimmerEnabled, selectedProduct == nil)
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: Const.headerSpacing) {
-            addressPicker
-            dinnerCard
-        }
-        .padding(.horizontal, Const.contentInset)
-        .padding(.top, Const.headerTopInset)
-        .padding(.bottom, Const.sectionSpacing)
-        .frame(maxWidth: Const.maximumWidth)
-        .frame(maxWidth: .infinity)
+    private var addressHeader: some View {
+        addressPicker
+            .padding(.horizontal, Const.contentInset)
+            .padding(.top, Const.headerTopInset)
+            .padding(.bottom, Const.headerBottomInset)
+            .frame(maxWidth: Const.maximumWidth)
+            .frame(maxWidth: .infinity)
     }
 
     private var recommendations: some View {
@@ -168,7 +168,7 @@ struct HomeView: View {
         static let contentInset: CGFloat = 16
         static let maximumWidth: CGFloat = 760
         static let sectionSpacing: CGFloat = 11
-        static let headerSpacing: CGFloat = 3
+        static let headerBottomInset: CGFloat = 8
         static let headerTopInset: CGFloat = 8
         static let gridHeaderSpacing: CGFloat = 12
         static let gridSpacing: CGFloat = 16
