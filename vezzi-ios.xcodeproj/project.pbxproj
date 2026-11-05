@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E33C14BCBE4C4FD1BBD202FD /* HomeViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5631CF446F124C069A1EFFE1 /* HomeViewModelTests.swift */; };
+		F3A5C60A94D047608C47E6E6 /* HomeCategoryFilterBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAE0FA79DDA4C35B778B626 /* HomeCategoryFilterBar.swift */; };
 		A3E08B79AD174360B453F1A2 /* HomeProductActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39486FF511284E31A693D851 /* HomeProductActions.swift */; };
 		7F51185D82AC43848C7B9E56 /* PressScaleEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51A36D587BA4911A26B34C6 /* PressScaleEffect.swift */; };
 		03C2DB445D8723AB81251191 /* AppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2F65272448A03EEEFEFCDDD /* AppDependencies.swift */; };
@@ -78,6 +80,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5631CF446F124C069A1EFFE1 /* HomeViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModelTests.swift; sourceTree = "<group>"; };
+		DDAE0FA79DDA4C35B778B626 /* HomeCategoryFilterBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeCategoryFilterBar.swift; sourceTree = "<group>"; };
 		39486FF511284E31A693D851 /* HomeProductActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeProductActions.swift; sourceTree = "<group>"; };
 		A51A36D587BA4911A26B34C6 /* PressScaleEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PressScaleEffect.swift; sourceTree = "<group>"; };
 		05FBFDF795B14F9DBD1563FD /* CatalogRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogRepositoryTests.swift; sourceTree = "<group>"; };
@@ -268,6 +272,7 @@
 				05FBFDF795B14F9DBD1563FD /* CatalogRepositoryTests.swift */,
 				3992045D24484273824C296F /* CatalogTestSupport.swift */,
 				FABAF4F2DDB74814862FBEA5 /* SearchViewModelTests.swift */,
+				5631CF446F124C069A1EFFE1 /* HomeViewModelTests.swift */,
 				F54815A5C5B546409607CE9F /* CoreDataCatalogCacheTests.swift */,
 			);
 			path = "vezzi-iosTests";
@@ -357,6 +362,7 @@
 				8E8B8AA9B5924DEDB3AF7C50 /* HomeProductCard.swift */,
 				6EB5FA6C65BD496DB652EDAB /* HomeProductDetailView.swift */,
 				39486FF511284E31A693D851 /* HomeProductActions.swift */,
+				DDAE0FA79DDA4C35B778B626 /* HomeCategoryFilterBar.swift */,
 				3E2C26D836804633B4D34470 /* HomeQuantityControl.swift */,
 				C0DE00000000000000000007 /* HomeView.swift */,
 			);
@@ -611,6 +617,7 @@
 				C99E23D1FD4E8423D1289B4A /* CatalogRepositoryTests.swift in Sources */,
 				7E6BF8B791CB483FBF167666 /* CatalogTestSupport.swift in Sources */,
 				780ED9EF3F71496B8A5B681B /* SearchViewModelTests.swift in Sources */,
+				E33C14BCBE4C4FD1BBD202FD /* HomeViewModelTests.swift in Sources */,
 				8A06ABEEF56141F399E3D7A0 /* CoreDataCatalogCacheTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -647,6 +654,7 @@
 				EB65944FDCDF499E89BD5C26 /* HomeProductCard.swift in Sources */,
 				2324930A444D4FB5880C3CE7 /* HomeProductDetailView.swift in Sources */,
 				A3E08B79AD174360B453F1A2 /* HomeProductActions.swift in Sources */,
+				F3A5C60A94D047608C47E6E6 /* HomeCategoryFilterBar.swift in Sources */,
 				2E8DEAA5A2024160A646AB80 /* HomeQuantityControl.swift in Sources */,
 				C0DE00000000000000000017 /* HomeView.swift in Sources */,
 				C0DE00000000000000000014 /* ShoppingListView.swift in Sources */,

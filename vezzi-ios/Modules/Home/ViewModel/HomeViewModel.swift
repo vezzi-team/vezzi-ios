@@ -4,11 +4,16 @@ import Combine
 final class HomeViewModel: ObservableObject {
     let products = HomeMockData.products
     @Published var selectedAddress = HomeAddress.home
+    @Published var selectedCategory: HomeProductCategory?
     @Published private(set) var quantities: [String: Int] = [:]
 
     nonisolated deinit {}
 
     static let quantityRange = 0...99
+
+    var filteredProducts: [HomeProduct] {
+        products(in: selectedCategory)
+    }
 
     var hasDinnerProducts: Bool {
         HomeMockData.dinnerProductIDs.allSatisfy { quantity(for: $0) > 0 }
@@ -18,6 +23,11 @@ final class HomeViewModel: ObservableObject {
 
     func alternatives(for productID: String) -> [HomeProduct] {
         HomeMockData.alternatives(for: productID)
+    }
+
+    func products(in category: HomeProductCategory?) -> [HomeProduct] {
+        guard let category else { return products }
+        return products.filter { $0.category == category }
     }
 
     func setQuantity(_ quantity: Int, for productID: String) {

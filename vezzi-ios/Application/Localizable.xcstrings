@@ -482,6 +482,91 @@
         }
       }
     },
+    "HomeFilterBakery" : {
+      "comment" : "Bakery",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bakery"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выпечка"
+          }
+        }
+      }
+    },
+    "HomeFilterDairy" : {
+      "comment" : "Dairy",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dairy"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Молочное"
+          }
+        }
+      }
+    },
+    "HomeFilterEggs" : {
+      "comment" : "Eggs",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eggs"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Яйца"
+          }
+        }
+      }
+    },
+    "HomeFilterPantry" : {
+      "comment" : "Pantry",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pantry"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бакалея"
+          }
+        }
+      }
+    },
+    "HomeFilterProduce" : {
+      "comment" : "Fruit & vegetables",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fruit & vegetables"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Овощи и фрукты"
+          }
+        }
+      }
+    },
     "HomeForYou" : {
       "comment" : "For you",
       "localizations" : {
