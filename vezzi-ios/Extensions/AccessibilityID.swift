@@ -6,6 +6,14 @@ enum AccessibilityID {
         static let address = "home.address"
         static let addDinner = "home.dinner.add"
 
+        enum Filters {
+            static let bar = "home.filters"
+
+            static func category(_ id: String) -> String {
+                "home.filter.\(id)"
+            }
+        }
+
         static func product(_ id: String) -> String {
             "home.product.\(id)"
         }

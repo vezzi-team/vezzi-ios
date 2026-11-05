@@ -5,9 +5,20 @@ struct HomeProduct: Identifiable {
     let name: String
     let brand: String
     let package: String
+    let category: HomeProductCategory
     let offers: [HomeStoreOffer]
 
     var lowestPrice: Decimal? { offers.map(\.price).min() }
+}
+
+enum HomeProductCategory: String, CaseIterable, Identifiable {
+    case dairy
+    case produce
+    case bakery
+    case pantry
+    case eggs
+
+    var id: Self { self }
 }
 
 struct HomeStoreOffer: Identifiable {

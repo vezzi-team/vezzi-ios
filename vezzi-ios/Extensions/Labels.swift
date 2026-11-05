@@ -37,6 +37,14 @@ final class Texts {
             static let forYou = NSLocalizedString("HomeForYou", comment: "For you")
         }
 
+        enum Filters {
+            static let dairy = NSLocalizedString("HomeFilterDairy", comment: "Dairy")
+            static let produce = NSLocalizedString("HomeFilterProduce", comment: "Fruit & vegetables")
+            static let bakery = NSLocalizedString("HomeFilterBakery", comment: "Bakery")
+            static let pantry = NSLocalizedString("HomeFilterPantry", comment: "Pantry")
+            static let eggs = NSLocalizedString("HomeFilterEggs", comment: "Eggs")
+        }
+
         enum Product {
             static let priceFrom = NSLocalizedString("HomePriceFrom", comment: "from")
             static let offeredAtStores = NSLocalizedString("HomeOfferedAtStores", comment: "Stores")

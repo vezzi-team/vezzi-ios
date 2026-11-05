@@ -3,10 +3,24 @@ import SwiftUI
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var selectedProduct: HomeProduct?
+    @State private var displayedCategory: HomeProductCategory?
+    @State private var isPastResultsTop = false
+    @State private var filterBarHeight: CGFloat = .zero
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        ScrollView { content }
+        GeometryReader { geometry in
+            ScrollViewReader { proxy in
+                ScrollView { content(viewportHeight: geometry.size.height) }
+                    .onChange(of: viewModel.selectedCategory) { _, _ in
+                        showSelectedCategory(using: proxy)
+                    }
+                    .onScrollPhaseChange { _, phase in
+                        if phase == .idle { applySelectedCategory(using: proxy) }
+                    }
+            }
+        }
         .safeAreaBar(edge: .top, spacing: .zero) {
             if !dynamicTypeSize.isAccessibilitySize { addressHeader }
         }
@@ -20,20 +34,59 @@ struct HomeView: View {
 
     // MARK: - Content
 
-    private var content: some View {
+    private func showSelectedCategory(using proxy: ScrollViewProxy) {
+        let displayedCount = viewModel.products(in: displayedCategory).count
+        let shouldAnimate = !reduceMotion && isPastResultsTop && viewModel.filteredProducts.count < displayedCount
+        guard shouldAnimate else {
+            applySelectedCategory(using: proxy)
+            return
+        }
+
+        // Keep the current feed until scrolling finishes so shrinking it cannot expose an empty viewport.
+        withAnimation(.easeInOut(duration: Const.filterScrollDuration)) {
+            proxy.scrollTo(Const.resultsTopID, anchor: .top)
+        }
+    }
+
+    private func applySelectedCategory(using proxy: ScrollViewProxy) {
+        guard displayedCategory != viewModel.selectedCategory else { return }
+        if isPastResultsTop {
+            proxy.scrollTo(Const.resultsTopID, anchor: .top)
+        }
+        displayedCategory = viewModel.selectedCategory
+    }
+
+    private func content(viewportHeight: CGFloat) -> some View {
         VStack(spacing: .zero) {
             // Let a large accessibility header scroll so the catalog remains reachable.
             if dynamicTypeSize.isAccessibilitySize { addressHeader }
-            VStack(alignment: .leading, spacing: Const.sectionSpacing) {
-                dinnerCard
-                recommendations
-            }
-            .padding(.horizontal, Const.contentInset)
-            .padding(.bottom, Const.contentInset)
-            .frame(maxWidth: Const.maximumWidth)
-            .frame(maxWidth: .infinity)
+            dinnerCard
+                .padding(.horizontal, Const.contentInset)
+                .padding(.bottom, Const.sectionSpacing)
+            productSection(viewportHeight: viewportHeight)
         }
+        .frame(maxWidth: Const.maximumWidth)
+        .frame(maxWidth: .infinity)
         .environment(\.isShimmerEnabled, selectedProduct == nil)
+    }
+
+    private func productSection(viewportHeight: CGFloat) -> some View {
+        LazyVStack(spacing: .zero, pinnedViews: [.sectionHeaders]) {
+            Section {
+                productGrid
+                    .padding(.horizontal, Const.contentInset)
+                    .padding(.bottom, Const.contentInset)
+                    // A short filtered feed must still leave enough room to pin its header.
+                    .frame(minHeight: max(.zero, viewportHeight - filterBarHeight), alignment: .top)
+            } header: {
+                categoryFilters
+            }
+        }
+        // Keep the scroll target outside lazy children so it remains available offscreen.
+        .id(Const.resultsTopID)
+        .onGeometryChange(for: Bool.self) { geometry in
+            geometry.frame(in: .scrollView(axis: .vertical)).minY < -Const.scrollTopTolerance
+        } action: { isPastResultsTop = $0 }
     }
 
     private var addressHeader: some View {
@@ -45,32 +98,23 @@ struct HomeView: View {
             .frame(maxWidth: .infinity)
     }
 
-    private var recommendations: some View {
-        VStack(alignment: .leading, spacing: Const.gridHeaderSpacing) {
-            categoryLabel
-            productGrid
-        }
-    }
-
-    private var categoryLabel: some View {
-        Text(Texts.Home.Main.forYou)
-            .onestTextStyle(size: Const.chipFontSize, lineHeight: Const.chipLineHeight,
-                           weight: .semibold, relativeTo: .caption)
-            .foregroundStyle(Color.Label.white)
-            .padding(.horizontal, Const.chipHorizontalInset)
-            .padding(.vertical, Const.chipVerticalInset)
-            .background(Color.accentColor, in: .capsule)
-            .accessibilityAddTraits(.isHeader)
+    private var categoryFilters: some View {
+        HomeCategoryFilterBar(selectedCategory: $viewModel.selectedCategory)
+            .padding(.bottom, Const.gridHeaderSpacing)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { filterBarHeight = $0 }
     }
 
     private var productGrid: some View {
         LazyVGrid(columns: columns, alignment: .leading, spacing: Const.gridSpacing) {
-            ForEach(viewModel.products) { product in
+            ForEach(viewModel.products(in: displayedCategory)) { product in
                 HomeProductCard(product: product, quantity: quantityBinding(for: product.id)) {
                     selectedProduct = product
                 }
+                .transition(reduceMotion ? .identity : AnyTransition(.blurReplace))
             }
         }
+        .animation(reduceMotion ? nil : .easeOut(duration: Const.filterTransitionDuration),
+                   value: displayedCategory)
     }
 
     private var columns: [GridItem] {
@@ -165,6 +209,8 @@ struct HomeView: View {
     }
 
     private enum Const {
+        static let resultsTopID = "home.results.top"
+        static let scrollTopTolerance: CGFloat = 1
         static let contentInset: CGFloat = 16
         static let maximumWidth: CGFloat = 760
         static let sectionSpacing: CGFloat = 11
@@ -172,16 +218,14 @@ struct HomeView: View {
         static let headerTopInset: CGFloat = 8
         static let gridHeaderSpacing: CGFloat = 12
         static let gridSpacing: CGFloat = 16
+        static let filterScrollDuration: TimeInterval = 0.22
+        static let filterTransitionDuration: TimeInterval = 0.18
         static let minimumCardWidth: CGFloat = 150
         static let chevronSpacing: CGFloat = 14
         static let headingFontSize: CGFloat = 17
         static let headingLineHeight: CGFloat = 22
         static let captionFontSize: CGFloat = 13
         static let captionLineHeight: CGFloat = 18
-        static let chipFontSize: CGFloat = 12
-        static let chipLineHeight: CGFloat = 16
-        static let chipHorizontalInset: CGFloat = 7
-        static let chipVerticalInset: CGFloat = 5
         static let dinnerSpacing: CGFloat = 4
         static let dinnerHorizontalInset: CGFloat = 16
         static let dinnerVerticalInset: CGFloat = 16
