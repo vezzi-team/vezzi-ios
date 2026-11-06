@@ -21,6 +21,10 @@ final class HomeViewModel: ObservableObject {
 
     func quantity(for productID: String) -> Int { quantities[productID, default: 0] }
 
+    func product(for productID: String) -> HomeProduct? {
+        HomeMockData.product(for: productID)
+    }
+
     func alternatives(for productID: String) -> [HomeProduct] {
         HomeMockData.alternatives(for: productID)
     }

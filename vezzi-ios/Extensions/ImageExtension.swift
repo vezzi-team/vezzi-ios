@@ -6,15 +6,18 @@
 //
 
 import SwiftUI
+import UIKit
 
 extension Image {
     // MARK: - SF Symbols
 
     enum System {
+        static let person = Image(systemName: "person.crop.circle")
         static let chevronDown = Image(systemName: "chevron.down")
         static let xmark = Image(systemName: "xmark")
         static let arrowRight = Image(systemName: "arrow.right")
         static let checkmark = Image(systemName: "checkmark")
+        static let checkmarkCircle = Image(systemName: "checkmark.circle.fill")
         static let plus = Image(systemName: "plus")
         static let minus = Image(systemName: "minus")
         static let house = Image(systemName: "house")
@@ -40,5 +43,12 @@ extension Image {
     
     enum Demo {
         static let main = Image("DemoMain")
+    }
+}
+
+// Core Animation uses the same asset catalog as SwiftUI images.
+extension UIImage {
+    enum Brand {
+        static let motiYarn = UIImage(named: "MotiYarn")
     }
 }

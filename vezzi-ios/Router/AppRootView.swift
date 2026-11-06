@@ -3,15 +3,19 @@ import SwiftUI
 /// Composes the app's modules and owns state shared across tabs.
 struct AppRootView: View {
     @StateObject private var appRouter: AppRouter
+    @ObservedObject private var authentication: AuthenticationSession
+    @Namespace private var profileTransition
     private let catalog: any CatalogRepository
     private let contentScale: CGFloat
 
     init(
         catalog: any CatalogRepository,
+        authentication: AuthenticationSession,
         initialTab: AppRouter.Tab = .home,
         contentScale: CGFloat = Const.defaultContentScale
     ) {
         self.catalog = catalog
+        self.authentication = authentication
         self.contentScale = contentScale
         _appRouter = StateObject(wrappedValue: AppRouter(selectedTab: initialTab))
     }
@@ -45,6 +49,13 @@ struct AppRootView: View {
         }
         .tint(.accentColor)
         .environmentObject(appRouter)
+        .sheet(item: presentedSheet) { sheet in
+            DestinationFactory.sheet(for: sheet, authentication: authentication)
+                .navigationTransition(.zoom(sourceID: sheet, in: profileTransition))
+        }
+        .onChange(of: authentication.user) { _, user in
+            if user == nil { appRouter.popToRoot(in: .home) }
+        }
     }
 
     private func tabLabel(for tab: AppRouter.Tab) -> some View {
@@ -77,9 +88,11 @@ struct AppRootView: View {
 
     private func navigationStack(for tab: AppRouter.Tab) -> some View {
         NavigationStack(path: pathBinding(for: tab)) {
-            DestinationFactory.view(for: tab.rootRoute, catalog: catalog)
+            DestinationFactory.view(for: tab.rootRoute, catalog: catalog, authentication: authentication,
+                                    profileTransition: profileTransition)
                 .navigationDestination(for: AppRouter.Route.self) { route in
-                    DestinationFactory.view(for: route, catalog: catalog)
+                    DestinationFactory.view(for: route, catalog: catalog, authentication: authentication,
+                                            profileTransition: profileTransition)
                 }
         }
         .scaleEffect(contentScale, anchor: .top)
@@ -92,6 +105,10 @@ struct AppRootView: View {
         )
     }
 
+    private var presentedSheet: Binding<AppRouter.Sheet?> {
+        Binding(get: { appRouter.presentedSheet }, set: { _ in appRouter.dismissSheet() })
+    }
+
     private enum Const {
         static let defaultContentScale: CGFloat = 1
     }
@@ -100,11 +117,11 @@ struct AppRootView: View {
 // MARK: - Preview
 
 #Preview("Light") {
-    AppRootView(catalog: PreviewCatalogRepository())
+    AppRootView(catalog: PreviewCatalogRepository(), authentication: AuthenticationSession())
         .preferredColorScheme(.light)
 }
 
 #Preview("Dark") {
-    AppRootView(catalog: PreviewCatalogRepository())
+    AppRootView(catalog: PreviewCatalogRepository(), authentication: AuthenticationSession())
         .preferredColorScheme(.dark)
 }

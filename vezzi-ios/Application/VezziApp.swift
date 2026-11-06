@@ -13,7 +13,7 @@ struct VezziApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppLaunchView(catalog: dependencies.catalog)
+            AppLaunchView(catalog: dependencies.catalog, authentication: dependencies.authentication)
                 .task { await dependencies.load() }
         }
     }

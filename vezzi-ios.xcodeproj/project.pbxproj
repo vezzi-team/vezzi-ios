@@ -67,6 +67,19 @@
 		E213B653F2B04CFB9C6FD4B6 /* HomeMockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 373A8419DF674800ABADE81E /* HomeMockData.swift */; };
 		E22C697E9C25DCB6E4A3EC5B /* CatalogRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 753C6740DC2BEA99B0799055 /* CatalogRepository.swift */; };
 		EB65944FDCDF499E89BD5C26 /* HomeProductCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E8B8AA9B5924DEDB3AF7C50 /* HomeProductCard.swift */; };
+		65427AB85D83461C9BB9885E /* AuthenticationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F48E39C5E2D49049E1BB05E /* AuthenticationService.swift */; };
+		BA873B096E0442DD9DC6D580 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04C2A8D27FF14DF8AA2D5C25 /* LoginView.swift */; };
+		EDAC3F3121444F6CB20B5495 /* MotiMascotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F128376C6B5C4549916BDA3C /* MotiMascotView.swift */; };
+		1ECC9449D5604A7D8059703E /* AuthenticationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = E03AA146628B4894848B70AC /* AuthenticationSession.swift */; };
+		847A5D21DDE14B9088F9ED00 /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F50A55F078B24381A4DFAD38 /* LoginViewModel.swift */; };
+		9C4702A980F04E47B9B95794 /* ProfilePreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 194C0DEFDCAE43B58A871BB2 /* ProfilePreferences.swift */; };
+		34E9B086EBAA43AB8754977D /* ProfileDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47F3D4BF132A4BEC950695EC /* ProfileDetailView.swift */; };
+		649A4223ED484570BB4E9CE3 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05DE0C07445C48EDBD5DBCA5 /* ProfileView.swift */; };
+		A4571AC65EDA43429193DFA1 /* LoginViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20C1C43C5DA141C1997C77DE /* LoginViewModelTests.swift */; };
+		9B7614FD3D1F459EBEF2708C /* MotiFaceGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74489B575A254779A2832B68 /* MotiFaceGeometry.swift */; };
+		7D87F6560ED544068DD07B94 /* MotiMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C87B391EFA4D6B8CADB7F8 /* MotiMotion.swift */; };
+		7A1D4E277412462F9EC696B7 /* MotiAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95A5716AD8E452C9EC30802 /* MotiAnimationView.swift */; };
+		064631660337493BA6298C05 /* MotiDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E85001FA9CD4EF7AFECCB8E /* MotiDebugView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -143,6 +156,19 @@
 		F54815A5C5B546409607CE9F /* CoreDataCatalogCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataCatalogCacheTests.swift; sourceTree = "<group>"; };
 		F9FDA70B3C1339B425500472 /* DefaultCatalogRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultCatalogRepository.swift; sourceTree = "<group>"; };
 		FABAF4F2DDB74814862FBEA5 /* SearchViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModelTests.swift; sourceTree = "<group>"; };
+		1F48E39C5E2D49049E1BB05E /* AuthenticationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationService.swift; sourceTree = "<group>"; };
+		04C2A8D27FF14DF8AA2D5C25 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		F128376C6B5C4549916BDA3C /* MotiMascotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotiMascotView.swift; sourceTree = "<group>"; };
+		E03AA146628B4894848B70AC /* AuthenticationSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationSession.swift; sourceTree = "<group>"; };
+		F50A55F078B24381A4DFAD38 /* LoginViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewModel.swift; sourceTree = "<group>"; };
+		194C0DEFDCAE43B58A871BB2 /* ProfilePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePreferences.swift; sourceTree = "<group>"; };
+		47F3D4BF132A4BEC950695EC /* ProfileDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDetailView.swift; sourceTree = "<group>"; };
+		05DE0C07445C48EDBD5DBCA5 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		20C1C43C5DA141C1997C77DE /* LoginViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewModelTests.swift; sourceTree = "<group>"; };
+		74489B575A254779A2832B68 /* MotiFaceGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotiFaceGeometry.swift; sourceTree = "<group>"; };
+		F4C87B391EFA4D6B8CADB7F8 /* MotiMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotiMotion.swift; sourceTree = "<group>"; };
+		A95A5716AD8E452C9EC30802 /* MotiAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotiAnimationView.swift; sourceTree = "<group>"; };
+		1E85001FA9CD4EF7AFECCB8E /* MotiDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotiDebugView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -268,6 +294,7 @@
 		B13E8DAE067D5AB24C5AAEBB /* vezzi-iosTests */ = {
 			isa = PBXGroup;
 			children = (
+				20C1C43C5DA141C1997C77DE /* LoginViewModelTests.swift */,
 				9214D5599DBF4DC985AFCB89 /* SplashViewModelTests.swift */,
 				05FBFDF795B14F9DBD1563FD /* CatalogRepositoryTests.swift */,
 				3992045D24484273824C296F /* CatalogTestSupport.swift */,
@@ -459,6 +486,9 @@
 		D4AD4CCE30974D4D002BDC87 /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				4FF4FC8D12A141DA90A01C58 /* Debug */,
+				34F2800DF1B84CBFB12EBD88 /* Profile */,
+				25C9CA09E34B412D8C7E1E16 /* Authentication */,
 				0D3E86C9ED01487ABC006DE5 /* Splash */,
 				C0DE00000000000000000028 /* Home */,
 				C0DE00000000000000000022 /* ShoppingList */,
@@ -502,6 +532,87 @@
 				D4AD4CD730975793002BDC87 /* DemoViewModel.swift */,
 			);
 			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		25C9CA09E34B412D8C7E1E16 /* Authentication */ = {
+			isa = PBXGroup;
+			children = (
+				4FFA296A7A8A4597AE6280EE /* ViewModel */,
+				DE59A08BA6FB464BAD1D5BF7 /* View */,
+				0AB14429F3E1415A9B1C3ED1 /* Model */,
+			);
+			path = Authentication;
+			sourceTree = "<group>";
+		};
+		0AB14429F3E1415A9B1C3ED1 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				1F48E39C5E2D49049E1BB05E /* AuthenticationService.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		DE59A08BA6FB464BAD1D5BF7 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				A95A5716AD8E452C9EC30802 /* MotiAnimationView.swift */,
+				F4C87B391EFA4D6B8CADB7F8 /* MotiMotion.swift */,
+				74489B575A254779A2832B68 /* MotiFaceGeometry.swift */,
+				F128376C6B5C4549916BDA3C /* MotiMascotView.swift */,
+				04C2A8D27FF14DF8AA2D5C25 /* LoginView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		4FFA296A7A8A4597AE6280EE /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				F50A55F078B24381A4DFAD38 /* LoginViewModel.swift */,
+				E03AA146628B4894848B70AC /* AuthenticationSession.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		34F2800DF1B84CBFB12EBD88 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				56149197BD8F4065ABA20F3F /* View */,
+				18D831BA6AD24BE79E283E53 /* Model */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		18D831BA6AD24BE79E283E53 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				194C0DEFDCAE43B58A871BB2 /* ProfilePreferences.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		56149197BD8F4065ABA20F3F /* View */ = {
+			isa = PBXGroup;
+			children = (
+				05DE0C07445C48EDBD5DBCA5 /* ProfileView.swift */,
+				47F3D4BF132A4BEC950695EC /* ProfileDetailView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		4FF4FC8D12A141DA90A01C58 /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				8793EE0F6F594E5AAAE37B8F /* View */,
+			);
+			path = Debug;
+			sourceTree = "<group>";
+		};
+		8793EE0F6F594E5AAAE37B8F /* View */ = {
+			isa = PBXGroup;
+			children = (
+				1E85001FA9CD4EF7AFECCB8E /* MotiDebugView.swift */,
+			);
+			path = View;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -613,6 +724,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A4571AC65EDA43429193DFA1 /* LoginViewModelTests.swift in Sources */,
 				2FA66685AD294DC584F5632B /* SplashViewModelTests.swift in Sources */,
 				C99E23D1FD4E8423D1289B4A /* CatalogRepositoryTests.swift in Sources */,
 				7E6BF8B791CB483FBF167666 /* CatalogTestSupport.swift in Sources */,
@@ -626,6 +738,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				064631660337493BA6298C05 /* MotiDebugView.swift in Sources */,
+				7A1D4E277412462F9EC696B7 /* MotiAnimationView.swift in Sources */,
+				7D87F6560ED544068DD07B94 /* MotiMotion.swift in Sources */,
+				9B7614FD3D1F459EBEF2708C /* MotiFaceGeometry.swift in Sources */,
+				649A4223ED484570BB4E9CE3 /* ProfileView.swift in Sources */,
+				34E9B086EBAA43AB8754977D /* ProfileDetailView.swift in Sources */,
+				9C4702A980F04E47B9B95794 /* ProfilePreferences.swift in Sources */,
+				847A5D21DDE14B9088F9ED00 /* LoginViewModel.swift in Sources */,
+				1ECC9449D5604A7D8059703E /* AuthenticationSession.swift in Sources */,
+				EDAC3F3121444F6CB20B5495 /* MotiMascotView.swift in Sources */,
+				BA873B096E0442DD9DC6D580 /* LoginView.swift in Sources */,
+				65427AB85D83461C9BB9885E /* AuthenticationService.swift in Sources */,
 				876ACF3C5937443289AE8C29 /* SplashViewModel.swift in Sources */,
 				6C9C1AFF9AC942CA871185A0 /* SplashView.swift in Sources */,
 				1BFA9AD3BA984C4C8E22E5DE /* AppLaunchView.swift in Sources */,

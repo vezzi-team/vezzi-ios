@@ -5,6 +5,7 @@ import Combine
 final class AppRouter: ObservableObject {
     @Published private(set) var selectedTab: Tab
     @Published private(set) var navigationPaths: [Tab: [Route]]
+    @Published private(set) var presentedSheet: Sheet?
 
     init(selectedTab: Tab = .home) {
         self.selectedTab = selectedTab
@@ -43,6 +44,19 @@ final class AppRouter: ObservableObject {
     func popToRoot(in tab: Tab) {
         navigationPaths[tab] = []
     }
+
+    func presentAuthentication() {
+        presentedSheet = .authentication
+    }
+
+    func dismissSheet() {
+        presentedSheet = nil
+    }
+
+    enum Sheet: String, Identifiable {
+        case authentication
+        var id: Self { self }
+    }
 }
 
 // MARK: - Tabs
@@ -78,6 +92,9 @@ extension AppRouter {
         case shoppingList
         case stores
         case search
+        case profile
+        case profileDetails(ProfileDestination)
+        case motiDebug
 
         var title: String {
             switch self {
@@ -85,6 +102,9 @@ extension AppRouter {
             case .shoppingList: return Texts.Tabbar.shoppingList
             case .stores: return Texts.Tabbar.stores
             case .search: return Texts.Tabbar.search
+            case .profile: return Texts.Profile.Main.title
+            case .profileDetails(let destination): return destination.title
+            case .motiDebug: return Texts.Debug.Moti.title
             }
         }
     }

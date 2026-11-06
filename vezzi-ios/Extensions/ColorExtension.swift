@@ -9,6 +9,12 @@ import SwiftUI
 
 extension Color {
     
+    enum Mascot {
+        static let ink = Color("MotiInk")
+        static let cheek = Color("MotiCheek")
+        static let highlight = Color("MotiHighlight")
+    }
+
     // MARK: - Back Colors
     
     enum Background {
@@ -25,6 +31,7 @@ extension Color {
     // MARK: - Label Colors
     
     enum Label {
+        static let error = Color("LabelError")
         static let disable = Color("LabelDisable")
         static let details = Color("LabelDetails")
         static let primary = Color("LabelPrimary")

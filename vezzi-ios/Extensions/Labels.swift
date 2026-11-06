@@ -123,6 +123,89 @@ final class Texts {
         }
     }
 
+    // MARK: - Authentication and Profile
+
+    enum Authentication {
+        static let title = NSLocalizedString("AuthenticationTitle", comment: "Sign in")
+        static let greeting = NSLocalizedString("AuthenticationGreeting", comment: "Hi, I’m Moti!")
+        static let subtitle = NSLocalizedString("AuthenticationSubtitle", comment: "Sign in to keep shopping and find ideas for dinner")
+        static let welcome = NSLocalizedString("AuthenticationWelcome", comment: "Glad to see you!")
+        static let email = NSLocalizedString("AuthenticationEmail", comment: "Email")
+        static let emailPlaceholder = NSLocalizedString("AuthenticationEmailPlaceholder", comment: "you@example.com")
+        static let password = NSLocalizedString("AuthenticationPassword", comment: "Password")
+        static let passwordPlaceholder = NSLocalizedString("AuthenticationPasswordPlaceholder", comment: "Enter your password")
+        static let missingPassword = NSLocalizedString("AuthenticationMissingPassword", comment: "Enter your password")
+        static let tryAgain = NSLocalizedString("AuthenticationTryAgain", comment: "Let’s try again")
+        static let checkingCredentials = NSLocalizedString("AuthenticationCheckingCredentials", comment: "Checking your details…")
+        static let creatingAccount = NSLocalizedString("AuthenticationCreatingAccount", comment: "Creating your account…")
+        static let continueShopping = NSLocalizedString("AuthenticationContinueShopping", comment: "You can keep shopping")
+        static let invalidEmail = NSLocalizedString("AuthenticationInvalidEmail", comment: "Enter a valid email address")
+        static let unavailable = NSLocalizedString("AuthenticationUnavailable", comment: "Couldn’t sign in. Please try again.")
+        static let signIn = NSLocalizedString("AuthenticationSignIn", comment: "Sign in")
+        static let signingIn = NSLocalizedString("AuthenticationSigningIn", comment: "Signing in…")
+        static let signedIn = NSLocalizedString("AuthenticationSignedIn", comment: "You’re signed in")
+        static let register = NSLocalizedString("AuthenticationRegister", comment: "Create an account")
+        static let close = NSLocalizedString("AuthenticationClose", comment: "Close")
+        static let cancel = NSLocalizedString("AuthenticationCancel", comment: "Cancel")
+    }
+
+    enum Profile {
+        enum Main {
+            static let title = NSLocalizedString("ProfileMainTitle", comment: "Profile")
+            static let subtitle = NSLocalizedString("ProfileMainSubtitle", comment: "Address, preferences and settings")
+            static let yourProfile = NSLocalizedString("ProfileMainYourProfile", comment: "Your profile")
+            static let personalDetails = NSLocalizedString("ProfileMainPersonalDetails", comment: "Personal details")
+            static let shopping = NSLocalizedString("ProfileMainShopping", comment: "Shopping")
+            static let address = NSLocalizedString("ProfileMainAddress", comment: "Shopping address")
+            static let priority = NSLocalizedString("ProfileMainPriority", comment: "Shopping priority")
+            static let settings = NSLocalizedString("ProfileMainSettings", comment: "Settings")
+            static let debug = NSLocalizedString("ProfileMainDebug", comment: "Debug")
+            static let notifications = NSLocalizedString("ProfileMainNotifications", comment: "Notifications")
+            static let help = NSLocalizedString("ProfileMainHelp", comment: "Help")
+            static let about = NSLocalizedString("ProfileMainAbout", comment: "About")
+            static let terms = NSLocalizedString("ProfileMainTerms", comment: "Terms of use and privacy")
+        }
+
+        enum Settings {
+            static let balanced = NSLocalizedString("ProfileSettingsBalanced", comment: "Balance price and time")
+            static let lowestPrice = NSLocalizedString("ProfileSettingsLowestPrice", comment: "Lowest price")
+            static let fastest = NSLocalizedString("ProfileSettingsFastest", comment: "Save time")
+            static let enabled = NSLocalizedString("ProfileSettingsEnabled", comment: "On")
+            static let disabled = NSLocalizedString("ProfileSettingsDisabled", comment: "Off")
+            static let signOut = NSLocalizedString("ProfileSettingsSignOut", comment: "Sign out")
+            static let signOutConfirmation = NSLocalizedString("ProfileSettingsSignOutConfirmation", comment: "Sign out of your account?")
+        }
+
+        enum Information {
+            static let help = NSLocalizedString("ProfileInformationHelp", comment: "Browse products on Home and add them to your list with the + button. Open a product to compare offers and alternatives.")
+            static let about = NSLocalizedString("ProfileInformationAbout", comment: "Plan your shopping, compare offers and discover ideas for dinner.")
+            static let version = NSLocalizedString("ProfileInformationVersion", comment: "Version")
+            static let notifications = NSLocalizedString("ProfileInformationNotifications", comment: "Notifications aren’t sent in this preview. You can try the preference here.")
+            static let terms = NSLocalizedString("ProfileInformationTerms", comment: "Terms of use and the privacy policy will be available before account registration launches.")
+        }
+
+    }
+
+    // MARK: - Debug
+
+    enum Debug {
+        enum Moti {
+            static let title = NSLocalizedString("DebugMotiTitle", comment: "Moti animations")
+            static let state = NSLocalizedString("DebugMotiState", comment: "Current state")
+            static let emotions = NSLocalizedString("DebugMotiEmotions", comment: "Emotion")
+            static let playback = NSLocalizedString("DebugMotiPlayback", comment: "Playback")
+            static let idle = NSLocalizedString("DebugMotiIdle", comment: "Idle")
+            static let typing = NSLocalizedString("DebugMotiTyping", comment: "Typing")
+            static let error = NSLocalizedString("DebugMotiError", comment: "Error")
+            static let loading = NSLocalizedString("DebugMotiLoading", comment: "Loading")
+            static let success = NSLocalizedString("DebugMotiSuccess", comment: "Success")
+            static let noMotion = NSLocalizedString("DebugMotiNoMotion", comment: "Without motion")
+            static let rapidTransitions = NSLocalizedString("DebugMotiRapidTransitions", comment: "Test rapid transitions")
+            static let stop = NSLocalizedString("DebugMotiStop", comment: "Stop transitions")
+            static let playbackHint = NSLocalizedString("DebugMotiPlaybackHint", comment: "Rapid transitions switch emotions every 0.12 seconds. The system Reduce Motion setting is always respected.")
+        }
+    }
+
     // MARK: - Storage
 
     enum Storage {

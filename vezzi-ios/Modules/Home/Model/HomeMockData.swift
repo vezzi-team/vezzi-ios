@@ -6,6 +6,10 @@ enum HomeMockData {
     static let productIDs = Set(productGroups.joined().map(\.id))
     static let dinnerProductIDs = ["pasta", "tomatoes"]
 
+    static func product(for productID: String) -> HomeProduct? {
+        productGroups.joined().first { $0.id == productID }
+    }
+
     static func alternatives(for productID: String) -> [HomeProduct] {
         guard let group = productGroups.first(where: { $0.contains(where: { $0.id == productID }) }) else { return [] }
         return group.filter { $0.id != productID }
