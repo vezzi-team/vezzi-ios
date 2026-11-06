@@ -2,30 +2,32 @@ import SwiftUI
 
 struct HomeProductDetailView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.locale) private var locale
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
-
+    @State private var path: [String] = []
     let product: HomeProduct
     @ObservedObject var viewModel: HomeViewModel
-    let selectProduct: (HomeProduct) -> Void
 
     var body: some View {
-        NavigationStack {
-            productList
-                .id(product.id)
-                .navigationTitle(product.name)
-                .navigationSubtitle(product.brand + " · " + product.package)
-                .navigationBarTitleDisplayMode(.inline)
+        NavigationStack(path: $path) {
+            productPage(for: product)
                 .toolbar { dismissToolbar }
-                .safeAreaBar(edge: .bottom, spacing: .zero) { bottomActions }
+                .navigationDestination(for: String.self) { productID in
+                    if let product = viewModel.product(for: productID) {
+                        productPage(for: product)
+                    }
+                }
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(Const.sheetCornerRadius)
     }
 
-    // MARK: - Presentation
+    // MARK: - Navigation
+
+    private func productPage(for product: HomeProduct) -> some View {
+        HomeProductDetailPage(product: product, viewModel: viewModel) { alternative in
+            path.append(alternative.id)
+        }
+    }
 
     private var dismissToolbar: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
@@ -39,6 +41,28 @@ struct HomeProductDetailView: View {
         }
         .tint(Color.Label.primary)
         .accessibilityIdentifier(AccessibilityID.Home.ProductDetail.close)
+    }
+
+    private enum Const {
+        static let sheetCornerRadius: CGFloat = 34
+    }
+}
+
+private struct HomeProductDetailPage: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+
+    let product: HomeProduct
+    @ObservedObject var viewModel: HomeViewModel
+    let selectProduct: (HomeProduct) -> Void
+
+    var body: some View {
+        productList
+            .navigationTitle(product.name)
+            .navigationSubtitle(product.brand + " · " + product.package)
+            .navigationBarTitleDisplayMode(.inline)
+            .safeAreaBar(edge: .bottom, spacing: .zero) { bottomActions }
     }
 
     // MARK: - Product
@@ -219,7 +243,6 @@ struct HomeProductDetailView: View {
         static let artworkHeight: CGFloat = 216
         static let compactArtworkHeight: CGFloat = 40
         static let artworkCornerRadius: CGFloat = 16
-        static let sheetCornerRadius: CGFloat = 34
         static let priceFontSize: CGFloat = 28
         static let priceLineHeight: CGFloat = 34
         static let subtitleFontSize: CGFloat = 15
@@ -237,14 +260,12 @@ struct HomeProductDetailView: View {
 
 #Preview("Product") {
     @Previewable @StateObject var viewModel = HomeViewModel()
-    @Previewable @State var product = HomeMockData.products[0]
-    HomeProductDetailView(product: product, viewModel: viewModel) { product = $0 }
+    HomeProductDetailView(product: HomeMockData.products[0], viewModel: viewModel)
 }
 
 #Preview("Product — dark, large text") {
     @Previewable @StateObject var viewModel = HomeViewModel()
-    @Previewable @State var product = HomeMockData.products[0]
-    HomeProductDetailView(product: product, viewModel: viewModel) { product = $0 }
+    HomeProductDetailView(product: HomeMockData.products[0], viewModel: viewModel)
         .preferredColorScheme(.dark)
         .dynamicTypeSize(.accessibility3)
 }

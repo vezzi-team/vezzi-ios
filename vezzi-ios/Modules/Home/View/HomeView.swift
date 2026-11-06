@@ -29,7 +29,7 @@ struct HomeView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { navigationToolbar }
         .sheet(item: $selectedProduct) { product in
-            HomeProductDetailView(product: product, viewModel: viewModel) { selectedProduct = $0 }
+            HomeProductDetailView(product: product, viewModel: viewModel)
         }
         .sensoryFeedback(.selection, trigger: viewModel.quantities)
     }
