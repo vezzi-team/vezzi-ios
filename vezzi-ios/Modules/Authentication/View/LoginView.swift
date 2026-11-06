@@ -26,6 +26,8 @@ struct LoginView: View {
                 }
                 .scrollIndicators(.hidden)
                 .scrollDismissesKeyboard(.interactively)
+                .contentShape(.rect)
+                .onTapGesture { focusedField = nil }
                 .onChange(of: viewModel.phase) { _, phase in
                     if phase == .success {
                         withAnimation(stateAnimation) { proxy.scrollTo(ScrollTarget.hero, anchor: .top) }
@@ -39,6 +41,13 @@ struct LoginView: View {
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
+        .sensoryFeedback(trigger: viewModel.phase) { _, phase in
+            switch phase {
+            case .success: return .success
+            case .failure: return .error
+            case .idle, .loading: return nil
+            }
+        }
         .task(id: viewModel.request?.id) {
             await viewModel.authenticate(using: session,
                                          successDuration: reduceMotion ? .zero : Const.successDuration)
@@ -229,6 +238,7 @@ struct LoginView: View {
 
     private var termsLink: some View {
         Button {
+            focusedField = nil
             // TODO: Open the terms URL when it is available.
         } label: {
             Text(Texts.Profile.Main.terms)
