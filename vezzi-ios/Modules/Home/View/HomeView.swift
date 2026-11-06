@@ -2,6 +2,9 @@ import SwiftUI
 
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
+    @ObservedObject var authentication: AuthenticationSession
+    let profileTransition: Namespace.ID
+    @EnvironmentObject private var router: AppRouter
     @State private var selectedProduct: HomeProduct?
     @State private var displayedCategory: HomeProductCategory?
     @State private var isPastResultsTop = false
@@ -21,11 +24,10 @@ struct HomeView: View {
                     }
             }
         }
-        .safeAreaBar(edge: .top, spacing: .zero) {
-            if !dynamicTypeSize.isAccessibilitySize { addressHeader }
-        }
         .background(Color.Background.primary.ignoresSafeArea())
-        .toolbar(.hidden, for: .navigationBar)
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { navigationToolbar }
         .sheet(item: $selectedProduct) { product in
             HomeProductDetailView(product: product, viewModel: viewModel) { selectedProduct = $0 }
         }
@@ -67,7 +69,7 @@ struct HomeView: View {
         }
         .frame(maxWidth: Const.maximumWidth)
         .frame(maxWidth: .infinity)
-        .environment(\.isShimmerEnabled, selectedProduct == nil)
+        .environment(\.isShimmerEnabled, selectedProduct == nil && router.presentedSheet == nil)
     }
 
     private func productSection(viewportHeight: CGFloat) -> some View {
@@ -126,6 +128,31 @@ struct HomeView: View {
 
     // MARK: - Header
 
+    @ToolbarContentBuilder
+    private var navigationToolbar: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            if !dynamicTypeSize.isAccessibilitySize {
+                addressPicker
+                    .buttonStyle(.plain)
+            }
+        }
+        .sharedBackgroundVisibility(.hidden)
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                if authentication.user != nil {
+                    router.push(.profile, in: .home)
+                } else {
+                    router.presentAuthentication()
+                }
+            } label: {
+                Label { Text(Texts.Profile.Main.title) } icon: { Image.System.person }
+            }
+            .tint(Color.Label.primary)
+            .accessibilityIdentifier(AccessibilityID.Home.profile)
+        }
+        .matchedTransitionSource(id: AppRouter.Sheet.authentication, in: profileTransition)
+    }
+
     private var addressPicker: some View {
         Menu {
             Picker(Texts.Home.Main.address, selection: $viewModel.selectedAddress) {
@@ -146,6 +173,7 @@ struct HomeView: View {
                 Text(viewModel.selectedAddress.title)
                     .onestTextStyle(size: Const.headingFontSize, lineHeight: Const.headingLineHeight,
                                    weight: .semibold, relativeTo: .headline)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
                 Image.System.chevronDown
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Color.Label.tertiary)
@@ -239,12 +267,20 @@ struct HomeView: View {
 }
 
 #Preview("Home — light") {
-    NavigationStack { HomeView() }
+    @Previewable @Namespace var profileTransition
+    NavigationStack {
+        HomeView(authentication: AuthenticationSession(), profileTransition: profileTransition)
+            .environmentObject(AppRouter())
+    }
         .preferredColorScheme(.light)
 }
 
 #Preview("Home — dark, large text") {
-    NavigationStack { HomeView() }
+    @Previewable @Namespace var profileTransition
+    NavigationStack {
+        HomeView(authentication: AuthenticationSession(), profileTransition: profileTransition)
+            .environmentObject(AppRouter())
+    }
         .preferredColorScheme(.dark)
         .dynamicTypeSize(.accessibility3)
 }

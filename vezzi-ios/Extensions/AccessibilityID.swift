@@ -3,6 +3,7 @@ enum AccessibilityID {
     // MARK: - Home
 
     enum Home {
+        static let profile = "home.profile"
         static let address = "home.address"
         static let addDinner = "home.dinner.add"
 
@@ -42,6 +43,44 @@ enum AccessibilityID {
 
             static func increase(_ productID: String) -> String {
                 "home.quantity.increase.\(productID)"
+            }
+        }
+    }
+
+    enum Authentication {
+        static let email = "authentication.email"
+        static let password = "authentication.password"
+        static let success = "authentication.success"
+        static let terms = "authentication.terms"
+        static let signIn = "authentication.signIn"
+        static let register = "authentication.register"
+        static let close = "authentication.close"
+        static let error = "authentication.error"
+    }
+
+    enum Profile {
+        static let screen = "profile.screen"
+        static let motiDebug = "profile.motiDebug"
+        static let personalDetails = "profile.personalDetails"
+        static let signOut = "profile.signOut"
+        static let confirmSignOut = "profile.confirmSignOut"
+        static let address = "profile.address"
+        static let notifications = "profile.notifications"
+
+        static func destination(_ id: String) -> String {
+            "profile.destination.\(id)"
+        }
+    }
+
+    enum Debug {
+        enum Moti {
+            static let screen = "debug.moti.screen"
+            static let currentState = "debug.moti.currentState"
+            static let noMotion = "debug.moti.noMotion"
+            static let rapidTransitions = "debug.moti.rapidTransitions"
+
+            static func state(_ id: String) -> String {
+                "debug.moti.state.\(id)"
             }
         }
     }

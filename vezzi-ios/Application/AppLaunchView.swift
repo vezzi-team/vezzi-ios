@@ -7,6 +7,7 @@ struct AppLaunchView: View {
     @Environment(\.scenePhase) private var scenePhase
 
     let catalog: any CatalogRepository
+    let authentication: AuthenticationSession
 
     private var showsSplash: Bool { splash.isPresented && !reduceMotion }
 
@@ -16,6 +17,7 @@ struct AppLaunchView: View {
         ZStack {
             AppRootView(
                 catalog: catalog,
+                authentication: authentication,
                 contentScale: showsSplash ? Const.initialContentScale : Const.restingContentScale
             )
                 .allowsHitTesting(!showsSplash)
@@ -60,10 +62,10 @@ struct AppLaunchView: View {
 }
 
 #Preview("Launch") {
-    AppLaunchView(catalog: PreviewCatalogRepository())
+    AppLaunchView(catalog: PreviewCatalogRepository(), authentication: AuthenticationSession())
 }
 
 #Preview("Launch — dark") {
-    AppLaunchView(catalog: PreviewCatalogRepository())
+    AppLaunchView(catalog: PreviewCatalogRepository(), authentication: AuthenticationSession())
         .preferredColorScheme(.dark)
 }
