@@ -172,7 +172,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: .zero) {
             HStack(alignment: .firstTextBaseline, spacing: Const.chevronSpacing) {
                 Text(viewModel.selectedAddress.title)
-                    .onestTextStyle(size: Const.headingFontSize, lineHeight: Const.headingLineHeight,
+                    .appTextStyle(size: Const.headingFontSize, lineHeight: Const.headingLineHeight,
                                    weight: .semibold, relativeTo: .headline)
                     .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
                 Image.System.chevronDown
@@ -180,7 +180,7 @@ struct HomeView: View {
                     .foregroundStyle(Color.Label.tertiary)
             }
             Text(Texts.Home.Main.nearbyStores)
-                .onestTextStyle(size: Const.captionFontSize, lineHeight: Const.captionLineHeight, relativeTo: .footnote)
+                .appTextStyle(size: Const.captionFontSize, lineHeight: Const.captionLineHeight, relativeTo: .footnote)
                 .foregroundStyle(Color.Label.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -207,11 +207,11 @@ struct HomeView: View {
     private var dinnerContent: some View {
         VStack(alignment: .leading, spacing: Const.dinnerSpacing) {
             Text(Texts.Home.Main.dinnerTitle)
-                .onestTextStyle(size: Const.headingFontSize, lineHeight: Const.headingLineHeight,
+                .appTextStyle(size: Const.headingFontSize, lineHeight: Const.headingLineHeight,
                                weight: .semibold, relativeTo: .headline)
                 .foregroundStyle(Color.Label.primary)
             Text(Texts.Home.Main.dinnerSubtitle)
-                .onestTextStyle(size: Const.captionFontSize, lineHeight: Const.captionLineHeight, relativeTo: .footnote)
+                .appTextStyle(size: Const.captionFontSize, lineHeight: Const.captionLineHeight, relativeTo: .footnote)
                 .foregroundStyle(Color.Label.secondary)
             dinnerActionLabel
         }
@@ -223,7 +223,7 @@ struct HomeView: View {
             Text(viewModel.hasDinnerProducts ? Texts.Home.Main.dinnerAdded : Texts.Home.Main.collectProducts)
             viewModel.hasDinnerProducts ? Image.System.checkmark : Image.System.arrowRight
         }
-        .onestTextStyle(size: Const.captionFontSize, lineHeight: Const.captionLineHeight,
+        .appTextStyle(size: Const.captionFontSize, lineHeight: Const.captionLineHeight,
                        weight: .semibold, relativeTo: .footnote)
         .foregroundStyle(Color.accentColor)
     }

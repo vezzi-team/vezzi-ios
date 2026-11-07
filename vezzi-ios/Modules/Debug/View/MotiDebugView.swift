@@ -16,7 +16,7 @@ struct MotiDebugView: View {
             .scrollContentBackground(.hidden)
         }
         .background(Color.Background.primary)
-        .onestTextStyle(.appText)
+        .appTextStyle(.appText)
         .foregroundStyle(Color.Label.primary)
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier(AccessibilityID.Debug.Moti.screen)
@@ -41,7 +41,7 @@ struct MotiDebugView: View {
                 .frame(maxWidth: Const.mascotWidth)
                 .frame(maxWidth: .infinity)
             Text(title(for: state))
-                .onestTextStyle(.caption)
+                .appTextStyle(.caption)
                 .foregroundStyle(Color.Label.secondary)
                 .multilineTextAlignment(.center)
                 .accessibilityLabel(Texts.Debug.Moti.state)
@@ -73,7 +73,7 @@ struct MotiDebugView: View {
             Text(Texts.Debug.Moti.playback)
         } footer: {
             Text(Texts.Debug.Moti.playbackHint)
-                .onestTextStyle(.caption)
+                .appTextStyle(.caption)
         }
         .listRowBackground(Color.Background.elevated)
     }

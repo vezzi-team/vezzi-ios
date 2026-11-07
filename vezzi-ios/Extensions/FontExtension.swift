@@ -1,24 +1,9 @@
 import SwiftUI
 
 extension Font {
-    // MARK: - Onest
+    // MARK: - App Typography
 
-    /// Uses the brand style's default weight unless an explicit weight is supplied.
-    /// Sizes scale with the corresponding Dynamic Type text style.
-    static func onest(_ style: OnestStyle, weight: Font.Weight? = nil) -> Font {
-        onest(size: style.size, weight: weight ?? style.defaultWeight, relativeTo: style.textStyle)
-    }
-
-    /// Supports layout-specific metrics while retaining named weights and Dynamic Type.
-    static func onest(size: CGFloat, weight: Font.Weight = .regular, relativeTo textStyle: Font.TextStyle) -> Font {
-        .custom(
-            onestName(for: weight),
-            size: size,
-            relativeTo: textStyle
-        )
-    }
-
-    enum OnestStyle: String, CaseIterable {
+    enum AppTextStyle: String, CaseIterable {
         case title
         case subtitle
         case body
@@ -62,77 +47,49 @@ extension Font {
             }
         }
     }
-
-    /// Named instances preserve the exact 100–900 weights of the bundled variable font.
-    private static func onestName(for weight: Font.Weight) -> String {
-        switch weight {
-        case .ultraLight: return "Onest-Thin"
-        case .thin: return "Onest-ExtraLight"
-        case .light: return "Onest-Light"
-        case .regular: return "Onest-Regular"
-        case .medium: return "Onest-Medium"
-        case .semibold: return "Onest-SemiBold"
-        case .bold: return "Onest-Bold"
-        case .heavy: return "Onest-ExtraBold"
-        case .black: return "Onest-Black"
-        default: return "Onest-Regular"
-        }
-    }
 }
 
 // MARK: - Text Layout
 
 extension View {
-    /// Applies the brand font and line height, adapting to Dynamic Type and Bold Text.
-    func onestTextStyle(_ style: Font.OnestStyle, weight: Font.Weight? = nil) -> some View {
-        onestTextStyle(size: style.size, lineHeight: style.lineHeight,
-                       weight: weight ?? style.defaultWeight, relativeTo: style.textStyle)
+    /// Applies system typography with the app's metrics and Dynamic Type scaling.
+    func appTextStyle(_ style: Font.AppTextStyle, weight: Font.Weight? = nil) -> some View {
+        appTextStyle(size: style.size, lineHeight: style.lineHeight,
+                     weight: weight ?? style.defaultWeight, relativeTo: style.textStyle)
     }
 
-    func onestTextStyle(
+    func appTextStyle(
         size: CGFloat,
         lineHeight: CGFloat,
         weight: Font.Weight = .regular,
         relativeTo textStyle: Font.TextStyle
     ) -> some View {
-        modifier(OnestTextStyleModifier(size: size, lineHeight: lineHeight, weight: weight, textStyle: textStyle))
+        modifier(AppTextStyleModifier(size: size, lineHeight: lineHeight, weight: weight, textStyle: textStyle))
     }
 }
 
-private struct OnestTextStyleModifier: ViewModifier {
-    @Environment(\.legibilityWeight) private var legibilityWeight
+private struct AppTextStyleModifier: ViewModifier {
+    @ScaledMetric private var scaledSize: CGFloat
 
-    let size: CGFloat
-    let lineHeight: CGFloat
-    let weight: Font.Weight
-    let textStyle: Font.TextStyle
+    private let lineHeightRatio: CGFloat
+    private let weight: Font.Weight
+
+    init(size: CGFloat, lineHeight: CGFloat, weight: Font.Weight, textStyle: Font.TextStyle) {
+        _scaledSize = ScaledMetric(wrappedValue: size, relativeTo: textStyle)
+        lineHeightRatio = lineHeight / size
+        self.weight = weight
+    }
 
     func body(content: Content) -> some View {
         content
-            .font(.onest(size: size, weight: resolvedWeight, relativeTo: textStyle))
-            .lineHeight(.multiple(factor: lineHeight / size))
-    }
-
-    private var resolvedWeight: Font.Weight {
-        let baseWeight = weight
-        guard legibilityWeight == .bold else { return baseWeight }
-
-        switch baseWeight {
-        case .ultraLight: return .light
-        case .thin: return .regular
-        case .light: return .medium
-        case .regular: return .semibold
-        case .medium, .semibold: return .bold
-        case .bold: return .heavy
-        case .heavy, .black: return .black
-        default: return .semibold
-        }
+            .font(.system(size: scaledSize, weight: weight))
+            .lineHeight(.multiple(factor: lineHeightRatio))
     }
 }
 
 // MARK: - Preview
 
-private struct OnestPreview: View {
+private struct AppTypographyPreview: View {
     @State private var isBold = false
 
     var body: some View {
@@ -140,16 +97,16 @@ private struct OnestPreview: View {
             VStack(alignment: .leading, spacing: Const.spacing) {
                 Toggle(isOn: $isBold) {
                     Text(verbatim: "Bold / Жирный")
-                        .onestTextStyle(.appText)
+                        .appTextStyle(.appText)
                 }
 
-                ForEach(Font.OnestStyle.allCases, id: \.self) { style in
+                ForEach(Font.AppTextStyle.allCases, id: \.self) { style in
                     VStack(alignment: .leading, spacing: Const.labelSpacing) {
                         Text(verbatim: "\(style.rawValue) · \(Int(style.size)) / \(Int(style.lineHeight))")
-                            .onestTextStyle(.caption)
+                            .appTextStyle(.caption)
                             .foregroundStyle(Color.Label.secondary)
                         Text(verbatim: "Полка / Polka\nЁжик, йогурт, 123 ₽")
-                            .onestTextStyle(style, weight: isBold ? .bold : nil)
+                            .appTextStyle(style, weight: isBold ? .bold : nil)
                     }
                 }
             }
@@ -166,22 +123,22 @@ private struct OnestPreview: View {
     }
 }
 
-#Preview("Onest — light") {
-    OnestPreview()
+#Preview("System typography — light") {
+    AppTypographyPreview()
         .preferredColorScheme(.light)
 }
 
-#Preview("Onest — dark") {
-    OnestPreview()
+#Preview("System typography — dark") {
+    AppTypographyPreview()
         .preferredColorScheme(.dark)
 }
 
-#Preview("Onest — accessibility") {
-    OnestPreview()
+#Preview("System typography — accessibility") {
+    AppTypographyPreview()
         .dynamicTypeSize(.accessibility3)
 }
 
-#Preview("Onest — Bold Text") {
-    OnestPreview()
+#Preview("System typography — Bold Text") {
+    AppTypographyPreview()
         .environment(\.legibilityWeight, .bold)
 }

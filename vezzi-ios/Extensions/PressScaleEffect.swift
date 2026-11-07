@@ -130,7 +130,7 @@ private struct PressScalePreview: View {
                 ForEach(0..<Const.cardCount, id: \.self) { _ in
                     Button {} label: {
                         Text(Texts.Home.Main.collectProducts)
-                            .onestTextStyle(.appText, weight: .semibold)
+                            .appTextStyle(.appText, weight: .semibold)
                             .foregroundStyle(Color.Label.primary)
                             .frame(maxWidth: .infinity)
                             .frame(height: Const.cardHeight)

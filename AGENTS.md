@@ -20,7 +20,6 @@ Paths below are relative to the repository root.
 | `vezzi-ios/Application/AuthenticationSession.swift` | App-wide observable account state, restoration, and temporary profile preferences. |
 | `vezzi-ios/Application/Localizable.xcstrings` | English and Russian interface strings. |
 | `vezzi-ios/Application/InfoPlist.xcstrings` | Localized bundle metadata, including the display name. |
-| `vezzi-ios/Application/Info.plist` | Additional plist keys merged with generated metadata; registers bundled fonts. |
 | `vezzi-ios/Router/` | Tab selection, navigation paths, root composition, and destination construction. |
 | `vezzi-ios/Modules/Demo/` | Standalone MVVM / binding example, available through previews. |
 | `vezzi-ios/Modules/Home/` | Draft product grid and detail sheet, with feature-local mock data and quantities. |
@@ -41,7 +40,6 @@ Paths below are relative to the repository root.
 | `vezzi-ios/SupportingFiles/Assets.xcassets` | App icons, semantic colors, and images with appearance variants. |
 | `vezzi-ios/SupportingFiles/LaunchScreen.storyboard` | Static system launch screen; shares the splash background and wordmark layout. |
 | `vezzi-ios/SupportingFiles/Animations/` | Bundled Lottie JSON; Moti includes all image data and needs no network. |
-| `vezzi-ios/SupportingFiles/Fonts/` | Onest variable font and its SIL Open Font License. |
 | `vezzi-ios.xcodeproj/project.pbxproj` | Explicit source/resource membership and build configuration. |
 
 ## Architecture and state ownership
@@ -115,11 +113,11 @@ Paths below are relative to the repository root.
 - Define palette colors in Assets and expose them through `ColorExtension` (`Color.Background`, `Color.Label`, `Color.Border`, `Color.Shadow`); use these helpers in views and previews instead of system palette colors or built-in color literals. `.accentColor` uses the existing accent asset; `Color.clear` is reserved for transparent surfaces. Keep one palette across supported iOS versions, with light/dark and increased-contrast variants where needed. Reuse image helpers such as `Image.Demo.main`; add shared assets to the existing asset catalog.
 - Centralize SF Symbols in `Image.System` in `Extensions/ImageExtension.swift`. Pass these images through native label closures for buttons, tabs, and empty states instead of keeping symbol-name strings in views or the router.
 - Support light and dark appearances using asset variants and semantic colors.
-- Prefer `.onestTextStyle(_:weight:)` for brand text: it applies the sizes (48, 32, 20, 16, 14 pt), line heights, Dynamic Type, and system Bold Text adjustment. For explicit design metrics, use `.onestTextStyle(size:lineHeight:weight:relativeTo:)` without changing the shared named styles. `Font.onest` is the font-only factory; it scales with Dynamic Type but does not read Bold Text from the environment. Pass weights through these helpers to select exact named Onest instances. The variable font comes from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/onest); keep its license bundled.
+- Use the native system font throughout the app. `.appTextStyle(_:weight:)` preserves shared sizes (48, 32, 20, 16, 14 pt) and line heights; `@ScaledMetric` adapts explicit sizes to Dynamic Type, and the system font handles Bold Text. For layout-specific metrics, use `.appTextStyle(size:lineHeight:weight:relativeTo:)`. Native controls may use standard SwiftUI text styles. Do not bundle custom fonts.
 - Add user-facing text to `Application/Localizable.xcstrings` in both English and Russian, and expose it through the relevant namespace in `Texts` in `Extensions/Labels.swift`. English is the source language.
 - Split growing `Texts` feature namespaces into nested enums by screen or reusable component, and keep mock content in a separate group. For Home, use `Main`, `Product`, `Quantity`, and `Mock`; share declarations across consumers instead of duplicating them.
 - Keep accessibility identifiers in `Extensions/AccessibilityID.swift`, grouped by feature. Use constants for fixed controls and functions with stable model IDs for repeated elements. Do not localize identifiers; VoiceOver labels still use `Texts`.
-- `InfoPlist.xcstrings` is for bundle metadata. The base display name comes from the target's `INFOPLIST_KEY_CFBundleDisplayName`. Xcode merges `Application/Info.plist` (currently `UIAppFonts`) with generated metadata; keep display names, launch screen, and scene settings in the existing build settings.
+- `InfoPlist.xcstrings` is for bundle metadata. The base display name comes from the target's `INFOPLIST_KEY_CFBundleDisplayName`. Xcode generates the app's Info.plist from build settings; keep display names, launch screen, and scene settings there.
 - Keep identifiers and router comments in English. The demo contains intentional Russian teaching comments; preserve their purpose and language when editing it.
 - Provide useful `#Preview` configurations for changed views. For an interactive binding preview, use `@Previewable @State` and pass `$value` to the control.
 - Do not wrap `#Preview` declarations or their supporting preview types in `#if DEBUG`.

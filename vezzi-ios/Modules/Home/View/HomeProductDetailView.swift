@@ -119,11 +119,11 @@ private struct HomeProductDetailPage: View {
         VStack(alignment: .leading, spacing: .zero) {
             if let price = product.lowestPrice {
                 HomePriceLabel(price: price)
-                    .onestTextStyle(size: Const.priceFontSize, lineHeight: Const.priceLineHeight,
+                    .appTextStyle(size: Const.priceFontSize, lineHeight: Const.priceLineHeight,
                                    weight: .bold, relativeTo: .title)
             }
             Text(Texts.Home.Product.inStores(product.offers.count))
-                .onestTextStyle(size: Const.subtitleFontSize, lineHeight: Const.subtitleLineHeight, relativeTo: .subheadline)
+                .appTextStyle(size: Const.subtitleFontSize, lineHeight: Const.subtitleLineHeight, relativeTo: .subheadline)
                 .foregroundStyle(Color.Label.secondary)
         }
     }
@@ -137,7 +137,7 @@ private struct HomeProductDetailPage: View {
 
     private func sectionHeading(_ title: String) -> some View {
         Text(title)
-            .onestTextStyle(size: Const.sectionFontSize, lineHeight: Const.sectionLineHeight,
+            .appTextStyle(size: Const.sectionFontSize, lineHeight: Const.sectionLineHeight,
                            weight: .semibold, relativeTo: .title3)
             .foregroundStyle(Color.Label.primary)
             .accessibilityAddTraits(.isHeader)
@@ -174,18 +174,18 @@ private struct HomeProductDetailPage: View {
     private func storeSummary(_ offer: HomeStoreOffer) -> some View {
         VStack(alignment: .leading, spacing: Const.storeTextSpacing) {
             Text(offer.name)
-                .onestTextStyle(size: Const.storeFontSize, lineHeight: Const.storeLineHeight,
+                .appTextStyle(size: Const.storeFontSize, lineHeight: Const.storeLineHeight,
                                weight: .semibold, relativeTo: .headline)
             Text(Texts.Search.inStock + " · " + offer.distance.formatted(
                 .measurement(width: .abbreviated, usage: .asProvided).locale(locale)))
-                .onestTextStyle(size: Const.availabilityFontSize, lineHeight: Const.availabilityLineHeight, relativeTo: .caption)
+                .appTextStyle(size: Const.availabilityFontSize, lineHeight: Const.availabilityLineHeight, relativeTo: .caption)
                 .foregroundStyle(Color.Label.secondary)
         }
     }
 
     private func storePrice(_ offer: HomeStoreOffer) -> some View {
         Text(offer.price, format: .currency(code: "RUB").precision(.fractionLength(0)))
-            .onestTextStyle(size: Const.storeFontSize, lineHeight: Const.storeLineHeight,
+            .appTextStyle(size: Const.storeFontSize, lineHeight: Const.storeLineHeight,
                            weight: .semibold, relativeTo: .headline)
             .fixedSize(horizontal: true, vertical: false)
     }

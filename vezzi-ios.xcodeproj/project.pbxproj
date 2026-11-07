@@ -15,7 +15,6 @@
 		1ECC9449D5604A7D8059703E /* AuthenticationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = E03AA146628B4894848B70AC /* AuthenticationSession.swift */; };
 		2324930A444D4FB5880C3CE7 /* HomeProductDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB5FA6C65BD496DB652EDAB /* HomeProductDetailView.swift */; };
 		250A8BDFBD789D2DCCA54893 /* CatalogImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 734D6BDC6E9FB19F523736DB /* CatalogImporter.swift */; };
-		27CA2D9F6E02493FAC3919F4 /* Onest-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 574FB768C1DD48E899981043 /* Onest-Variable.ttf */; };
 		28947EFEC06D4E1093493139 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 45A3B7C400B448C7966850E0 /* LaunchScreen.storyboard */; };
 		2ADE1F920DDC4879BCB4A417 /* Shimmer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07B55DFCAF48456D90866DE4 /* Shimmer.swift */; };
 		2E8DEAA5A2024160A646AB80 /* HomeQuantityControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E2C26D836804633B4D34470 /* HomeQuantityControl.swift */; };
@@ -64,7 +63,6 @@
 		C99E23D1FD4E8423D1289B4A /* CatalogRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FBFDF795B14F9DBD1563FD /* CatalogRepositoryTests.swift */; };
 		CC3B54FB7CFA41F7A02E6E47 /* AuthenticationServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5B58E8851FF49B08143A545 /* AuthenticationServiceTests.swift */; };
 		CF847703A28A4E68878B7B62 /* AccessibilityID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE68479BCC94680A82BFC2A /* AccessibilityID.swift */; };
-		D28D1F620D604614A280DC0B /* Onest-OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = B85897A61CE8464893BC3064 /* Onest-OFL.txt */; };
 		D4AD4CBC30974B04002BDC87 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D4AD4CB830974B04002BDC87 /* Assets.xcassets */; };
 		D4AD4CBE30974B04002BDC87 /* VezziApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CBA30974B04002BDC87 /* VezziApp.swift */; };
 		D4AD4CC230974C24002BDC87 /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CC130974C21002BDC87 /* ColorExtension.swift */; };
@@ -115,7 +113,6 @@
 		2005305CB75566B0276971A6 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
 		20C1C43C5DA141C1997C77DE /* LoginViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewModelTests.swift; sourceTree = "<group>"; };
 		2386D3263398416ABC9B659F /* AuthenticationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationModels.swift; sourceTree = "<group>"; };
-		2697240581304FE1BC1B93BD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		289EDAD8F9F049BF9DF8A210 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		29E3F99A531F433D9143AB54 /* MotiSplash.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MotiSplash.json; sourceTree = "<group>"; };
 		373A8419DF674800ABADE81E /* HomeMockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeMockData.swift; sourceTree = "<group>"; };
@@ -128,7 +125,6 @@
 		45A3B7C400B448C7966850E0 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		47F3D4BF132A4BEC950695EC /* ProfileDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDetailView.swift; sourceTree = "<group>"; };
 		5631CF446F124C069A1EFFE1 /* HomeViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModelTests.swift; sourceTree = "<group>"; };
-		574FB768C1DD48E899981043 /* Onest-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Onest-Variable.ttf"; sourceTree = "<group>"; };
 		67DCADD568124280887FBF19 /* ExactDecimal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExactDecimal.swift; sourceTree = "<group>"; };
 		6840F1EB65E331CB9AACE0A9 /* Polka.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Polka.xcdatamodel; sourceTree = "<group>"; };
 		6EB5FA6C65BD496DB652EDAB /* HomeProductDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeProductDetailView.swift; sourceTree = "<group>"; };
@@ -144,7 +140,6 @@
 		A95A5716AD8E452C9EC30802 /* MotiAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotiAnimationView.swift; sourceTree = "<group>"; };
 		B590F1518363347AC5E38888 /* vezzi-iosTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "vezzi-iosTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5B58E8851FF49B08143A545 /* AuthenticationServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationServiceTests.swift; sourceTree = "<group>"; };
-		B85897A61CE8464893BC3064 /* Onest-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Onest-OFL.txt"; sourceTree = "<group>"; };
 		BA529CF7E686E4E782E0C76A /* CatalogImportValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogImportValidator.swift; sourceTree = "<group>"; };
 		C0DE00000000000000000001 /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
 		C0DE00000000000000000002 /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
@@ -279,15 +274,6 @@
 				16B254E27A27441BA51FD2F2 /* Preview */,
 			);
 			path = Authentication;
-			sourceTree = "<group>";
-		};
-		27395FD6D59D4FCEA4D78943 /* Fonts */ = {
-			isa = PBXGroup;
-			children = (
-				574FB768C1DD48E899981043 /* Onest-Variable.ttf */,
-				B85897A61CE8464893BC3064 /* Onest-OFL.txt */,
-			);
-			path = Fonts;
 			sourceTree = "<group>";
 		};
 		3405DE2A918382A3FE29BAAB /* Model */ = {
@@ -576,7 +562,6 @@
 		D4AD4CBF30974BFA002BDC87 /* SupportingFiles */ = {
 			isa = PBXGroup;
 			children = (
-				27395FD6D59D4FCEA4D78943 /* Fonts */,
 				AC6FC392ED174560B3DDAB63 /* Animations */,
 				45A3B7C400B448C7966850E0 /* LaunchScreen.storyboard */,
 				D4AD4CB830974B04002BDC87 /* Assets.xcassets */,
@@ -607,7 +592,6 @@
 				D4AD4CBA30974B04002BDC87 /* VezziApp.swift */,
 				D4AD4CCC30974C8C002BDC87 /* Localizable.xcstrings */,
 				D4AD4CDB30975F22002BDC87 /* InfoPlist.xcstrings */,
-				2697240581304FE1BC1B93BD /* Info.plist */,
 				E03AA146628B4894848B70AC /* AuthenticationSession.swift */,
 			);
 			path = Application;
@@ -781,8 +765,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				27CA2D9F6E02493FAC3919F4 /* Onest-Variable.ttf in Resources */,
-				D28D1F620D604614A280DC0B /* Onest-OFL.txt in Resources */,
 				28947EFEC06D4E1093493139 /* LaunchScreen.storyboard in Resources */,
 				4BB8EDB2278A42DE9CF9DB4B /* MotiSplash.json in Resources */,
 				D4AD4CDC30975F22002BDC87 /* InfoPlist.xcstrings in Resources */,
@@ -1023,7 +1005,6 @@
 				DEVELOPMENT_TEAM = GTBZ6M3J83;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "vezzi-ios/Application/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Polka;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -1063,7 +1044,6 @@
 				DEVELOPMENT_TEAM = GTBZ6M3J83;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "vezzi-ios/Application/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Polka;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

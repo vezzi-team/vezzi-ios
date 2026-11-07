@@ -87,7 +87,7 @@ struct HomeQuantityControl: View {
 
     private var quantityLabel: some View {
         Text(quantity, format: .number)
-            .onestTextStyle(size: Const.fontSize, lineHeight: Const.lineHeight, relativeTo: .footnote)
+            .appTextStyle(size: Const.fontSize, lineHeight: Const.lineHeight, relativeTo: .footnote)
             .monospacedDigit()
             .contentTransition(numberTransition)
             .foregroundStyle(Color.Label.primary)
@@ -109,7 +109,7 @@ struct HomeQuantityControl: View {
         Stepper(value: $quantity, in: HomeViewModel.quantityRange) {
             Text(quantity, format: .number)
                 .monospacedDigit()
-                .onestTextStyle(.appText, weight: .semibold)
+                .appTextStyle(.appText, weight: .semibold)
                 .contentTransition(numberTransition)
         }
         .accessibilityLabel(Texts.Home.Quantity.quantityOf(productName))
@@ -121,7 +121,7 @@ struct HomeQuantityControl: View {
         Button { setQuantity(1) } label: {
             Label { Text(Texts.Home.Quantity.add) } icon: { Image.System.plus }
         }
-        .onestTextStyle(.appText, weight: .semibold)
+        .appTextStyle(.appText, weight: .semibold)
         .buttonStyle(.glass)
         .accessibilityLabel(Texts.Home.Quantity.addProduct(productName))
         .accessibilityIdentifier(AccessibilityID.Home.Quantity.add(productID))

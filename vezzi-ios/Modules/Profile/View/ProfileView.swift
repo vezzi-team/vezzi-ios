@@ -10,7 +10,7 @@ struct ProfileView: View {
                 personalDetails
             } header: {
                 Text(Texts.Profile.Main.subtitle)
-                    .onestTextStyle(.caption)
+                    .appTextStyle(.caption)
                     .foregroundStyle(Color.Label.secondary)
                     .textCase(nil)
             }
@@ -25,7 +25,7 @@ struct ProfileView: View {
         .scrollIndicators(.hidden)
         .background(Color.Background.primary)
         .navigationBarTitleDisplayMode(.large)
-        .onestTextStyle(.appText)
+        .appTextStyle(.appText)
         .foregroundStyle(Color.Label.primary)
         .accessibilityIdentifier(AccessibilityID.Profile.screen)
     }
@@ -40,9 +40,9 @@ struct ProfileView: View {
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: Const.captionSpacing) {
                     Text(Texts.Profile.Main.yourProfile)
-                        .onestTextStyle(.body, weight: .semibold)
+                        .appTextStyle(.body, weight: .semibold)
                     Text(Texts.Profile.Main.personalDetails)
-                        .onestTextStyle(.caption)
+                        .appTextStyle(.caption)
                         .foregroundStyle(Color.accentColor)
                 }
             }
@@ -106,7 +106,7 @@ struct ProfileView: View {
         Section {
             NavigationLink(value: AppRouter.Route.profileDetails(.terms)) {
                 Text(Texts.Profile.Main.terms)
-                    .onestTextStyle(.caption)
+                    .appTextStyle(.caption)
                     .foregroundStyle(Color.accentColor)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
@@ -122,7 +122,7 @@ struct ProfileView: View {
                 Text(destination.title)
                 if let subtitle {
                     Text(subtitle)
-                        .onestTextStyle(.caption)
+                        .appTextStyle(.caption)
                         .foregroundStyle(Color.Label.secondary)
                 }
             }
@@ -132,7 +132,7 @@ struct ProfileView: View {
 
     private func sectionTitle(_ title: String) -> some View {
         Text(title)
-            .onestTextStyle(.body, weight: .semibold)
+            .appTextStyle(.body, weight: .semibold)
             .foregroundStyle(Color.Label.primary)
             .textCase(nil)
     }

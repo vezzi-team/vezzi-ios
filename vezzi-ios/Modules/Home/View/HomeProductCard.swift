@@ -50,7 +50,7 @@ struct HomeProductCard: View {
             nameAndPackage
             if let price = product.lowestPrice {
                 HomePriceLabel(price: price)
-                    .onestTextStyle(size: Const.priceFontSize, lineHeight: Const.priceLineHeight,
+                    .appTextStyle(size: Const.priceFontSize, lineHeight: Const.priceLineHeight,
                                    weight: .semibold, relativeTo: .headline)
             }
         }
@@ -63,7 +63,7 @@ struct HomeProductCard: View {
         VStack(alignment: .leading, spacing: Const.namePackageSpacing) {
             productName
             Text(product.package)
-                .onestTextStyle(size: Const.packageFontSize, lineHeight: Const.packageLineHeight,
+                .appTextStyle(size: Const.packageFontSize, lineHeight: Const.packageLineHeight,
                                relativeTo: .caption2)
                 .foregroundStyle(Color.Label.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -82,7 +82,7 @@ struct HomeProductCard: View {
 
     private var nameLabel: some View {
         Text(product.name)
-            .onestTextStyle(size: Const.nameFontSize, lineHeight: Const.nameLineHeight,
+            .appTextStyle(size: Const.nameFontSize, lineHeight: Const.nameLineHeight,
                            weight: .semibold, relativeTo: .caption)
             .foregroundStyle(Color.Label.primary)
     }

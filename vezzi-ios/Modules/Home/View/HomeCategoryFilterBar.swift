@@ -56,7 +56,7 @@ struct HomeCategoryFilterBar: View {
     private func filterLabel(for category: HomeProductCategory?, isSelected: Bool) -> some View {
         ZStack {
             Text(title(for: category))
-                .onestTextStyle(size: Const.fontSize, lineHeight: Const.lineHeight,
+                .appTextStyle(size: Const.fontSize, lineHeight: Const.lineHeight,
                                weight: .semibold, relativeTo: .caption)
                 .foregroundStyle(isSelected ? Color.Label.white : Color.Label.primary)
                 .lineLimit(1)

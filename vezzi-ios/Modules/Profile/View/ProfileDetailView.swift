@@ -9,7 +9,7 @@ struct ProfileDetailView: View {
 
     var body: some View {
         Form { content }
-            .onestTextStyle(.appText)
+            .appTextStyle(.appText)
             .foregroundStyle(Color.Label.primary)
             .scrollContentBackground(.hidden)
             .background(Color.Background.primary)
@@ -93,7 +93,7 @@ struct ProfileDetailView: View {
 
     private var about: some View {
         Section {
-            Text(Texts.AppInfo.title).onestTextStyle(.body, weight: .semibold)
+            Text(Texts.AppInfo.title).appTextStyle(.body, weight: .semibold)
             LabeledContent(Texts.Profile.Information.version,
                            value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—")
             Text(Texts.Profile.Information.about)

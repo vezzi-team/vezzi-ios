@@ -30,7 +30,7 @@ struct HomeProductActions: View {
     private var addButton: some View {
         Button { quantity = 1 } label: {
             Text(Texts.Home.Quantity.add)
-                .onestTextStyle(size: Const.buttonFontSize, lineHeight: Const.buttonLineHeight,
+                .appTextStyle(size: Const.buttonFontSize, lineHeight: Const.buttonLineHeight,
                                weight: .semibold, relativeTo: .headline)
                 .frame(maxWidth: .infinity)
         }
@@ -70,7 +70,7 @@ struct HomeProductActions: View {
 
     private var quantityLabel: some View {
         Text(quantity, format: .number)
-            .onestTextStyle(size: Const.numberFontSize, lineHeight: Const.numberLineHeight, relativeTo: .title2)
+            .appTextStyle(size: Const.numberFontSize, lineHeight: Const.numberLineHeight, relativeTo: .title2)
             .monospacedDigit()
             .contentTransition(reduceMotion ? .identity : .numericText(value: Double(quantity)))
             .frame(maxWidth: .infinity)
@@ -86,7 +86,7 @@ struct HomeProductActions: View {
 
     private var hint: some View {
         Text(quantity == 0 ? Texts.Home.Product.compareHint : Texts.Home.Product.inList)
-            .onestTextStyle(size: Const.hintFontSize, lineHeight: Const.hintLineHeight, relativeTo: .subheadline)
+            .appTextStyle(size: Const.hintFontSize, lineHeight: Const.hintLineHeight, relativeTo: .subheadline)
             .foregroundStyle(Color.Label.secondary)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
