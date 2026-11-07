@@ -5,6 +5,7 @@ struct ProfileView: View {
 
     var body: some View {
         List {
+            if let error = session.lastError { sessionStatus(error) }
             Section {
                 personalDetails
             } header: {
@@ -49,6 +50,18 @@ struct ProfileView: View {
         }
         .listRowBackground(Color.Background.elevated)
         .accessibilityIdentifier(AccessibilityID.Profile.personalDetails)
+    }
+
+    private func sessionStatus(_ error: AuthenticationFailure) -> some View {
+        Section {
+            Text(error.message)
+                .foregroundStyle(Color.Label.secondary)
+            Button(Texts.Authentication.retry) {
+                Task { await session.restore(force: true) }
+            }
+            .disabled(session.isVerifying || session.isSigningOut)
+        }
+        .listRowBackground(Color.Background.elevated)
     }
 
     private var shoppingSection: some View {
@@ -135,14 +148,14 @@ struct ProfileView: View {
 
 #Preview("Profile") {
     NavigationStack {
-        ProfileView(session: AuthenticationSession())
+        ProfileView(session: AuthenticationSession.preview())
             .navigationTitle(Texts.Profile.Main.title)
     }
 }
 
 #Preview("Profile — dark") {
     NavigationStack {
-        ProfileView(session: AuthenticationSession())
+        ProfileView(session: AuthenticationSession.preview())
             .navigationTitle(Texts.Profile.Main.title)
     }
     .preferredColorScheme(.dark)

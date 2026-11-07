@@ -117,11 +117,11 @@ struct AppRootView: View {
 // MARK: - Preview
 
 #Preview("Light") {
-    AppRootView(catalog: PreviewCatalogRepository(), authentication: AuthenticationSession())
+    AppRootView(catalog: PreviewCatalogRepository(), authentication: AuthenticationSession.preview())
         .preferredColorScheme(.light)
 }
 
 #Preview("Dark") {
-    AppRootView(catalog: PreviewCatalogRepository(), authentication: AuthenticationSession())
+    AppRootView(catalog: PreviewCatalogRepository(), authentication: AuthenticationSession.preview())
         .preferredColorScheme(.dark)
 }

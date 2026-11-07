@@ -1,6 +1,244 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "AuthenticationSessionCleanupFailed" : {
+      "comment" : "Your session has ended, but its saved data couldn’t be cleared. Please try again",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your session has ended, but its saved data couldn’t be cleared. Please try again"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сессия завершена, но её сохранённые данные не удалось удалить. Попробуйте ещё раз"
+          }
+        }
+      }
+    },
+    "AuthenticationPasswordTooShort" : {
+      "comment" : "Use at least 8 characters to create an account",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use at least 8 characters to create an account"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для регистрации нужно минимум 8 символов"
+          }
+        }
+      }
+    },
+    "AuthenticationPasswordTooLong" : {
+      "comment" : "Use no more than 128 characters",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use no more than 128 characters"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пароль должен содержать не более 128 символов"
+          }
+        }
+      }
+    },
+    "AuthenticationInvalidCredentials" : {
+      "comment" : "Incorrect email or password",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incorrect email or password"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Неверный email или пароль"
+          }
+        }
+      }
+    },
+    "AuthenticationEmailAlreadyRegistered" : {
+      "comment" : "This email is already registered. Try signing in",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This email is already registered. Try signing in"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этот email уже зарегистрирован. Попробуйте войти"
+          }
+        }
+      }
+    },
+    "AuthenticationInvalidInput" : {
+      "comment" : "Check your email and password and try again",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check your email and password and try again"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверьте email и пароль и попробуйте снова"
+          }
+        }
+      }
+    },
+    "AuthenticationOffline" : {
+      "comment" : "Couldn’t connect. Check your internet connection",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t connect. Check your internet connection"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось подключиться. Проверьте интернет-соединение"
+          }
+        }
+      }
+    },
+    "AuthenticationTimedOut" : {
+      "comment" : "The server took too long to respond. Please try again",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server took too long to respond. Please try again"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер не ответил вовремя. Попробуйте ещё раз"
+          }
+        }
+      }
+    },
+    "AuthenticationRateLimited" : {
+      "comment" : "Too many attempts. Please try again later",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Too many attempts. Please try again later"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Слишком много попыток. Попробуйте позже"
+          }
+        }
+      }
+    },
+    "AuthenticationSessionExpired" : {
+      "comment" : "Your session has expired. Please sign in again",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your session has expired. Please sign in again"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сессия завершена. Войдите снова"
+          }
+        }
+      }
+    },
+    "AuthenticationStorageError" : {
+      "comment" : "Couldn’t securely save or read your session. Please try again",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t securely save or read your session. Please try again"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось безопасно сохранить или прочитать сессию. Попробуйте ещё раз"
+          }
+        }
+      }
+    },
+    "AuthenticationErrorTitle" : {
+      "comment" : "Couldn’t complete the action",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t complete the action"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось выполнить действие"
+          }
+        }
+      }
+    },
+    "AuthenticationDismissError" : {
+      "comment" : "OK",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Понятно"
+          }
+        }
+      }
+    },
+    "AuthenticationRetry" : {
+      "comment" : "Try again",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повторить"
+          }
+        }
+      }
+    },
     "AuthenticationCreatingAccount" : {
       "comment" : "Creating your account…",
       "localizations" : {
@@ -480,19 +718,19 @@
         }
       }
     },
-    "AuthenticationSignedIn" : {
-      "comment" : "You’re signed in",
+    "AuthenticationSuccessTitle" : {
+      "comment" : "Welcome",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You’re signed in"
+            "value" : "Welcome"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вы вошли"
+            "value" : "Добро пожаловать"
           }
         }
       }

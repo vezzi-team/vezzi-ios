@@ -5,6 +5,7 @@ struct ProfileDetailView: View {
     let destination: ProfileDestination
     @ObservedObject var session: AuthenticationSession
     @State private var showsSignOutConfirmation = false
+    @State private var showsSignOutError = false
 
     var body: some View {
         Form { content }
@@ -14,9 +15,19 @@ struct ProfileDetailView: View {
             .background(Color.Background.primary)
             .confirmationDialog(Texts.Profile.Settings.signOutConfirmation,
                                 isPresented: $showsSignOutConfirmation, titleVisibility: .visible) {
-                Button(Texts.Profile.Settings.signOut, role: .destructive) { session.signOut() }
+                Button(Texts.Profile.Settings.signOut, role: .destructive) {
+                    Task {
+                        do { try await session.signOut() }
+                        catch { showsSignOutError = true }
+                    }
+                }
                     .accessibilityIdentifier(AccessibilityID.Profile.confirmSignOut)
                 Button(Texts.Authentication.cancel, role: .cancel) { }
+            }
+            .alert(Texts.Authentication.errorTitle, isPresented: $showsSignOutError) {
+                Button(Texts.Authentication.dismissError, role: .cancel) { }
+            } message: {
+                Text(session.lastError?.message ?? Texts.Authentication.unavailable)
             }
     }
 
@@ -42,6 +53,7 @@ struct ProfileDetailView: View {
             .listRowBackground(Color.Background.elevated)
             Section {
                 Button(Texts.Profile.Settings.signOut, role: .destructive) { showsSignOutConfirmation = true }
+                    .disabled(session.isSigningOut)
                     .accessibilityIdentifier(AccessibilityID.Profile.signOut)
             }
             .listRowBackground(Color.Background.elevated)
@@ -97,7 +109,7 @@ struct ProfileDetailView: View {
 
 #Preview("Preferences") {
     NavigationStack {
-        ProfileDetailView(destination: .priority, session: AuthenticationSession())
+        ProfileDetailView(destination: .priority, session: AuthenticationSession.preview())
             .navigationTitle(Texts.Profile.Main.priority)
     }
 }

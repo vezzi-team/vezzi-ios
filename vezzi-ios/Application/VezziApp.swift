@@ -10,11 +10,17 @@ import SwiftUI
 @main
 struct VezziApp: App {
     @StateObject private var dependencies = AppDependencies()
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
             AppLaunchView(catalog: dependencies.catalog, authentication: dependencies.authentication)
                 .task { await dependencies.load() }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .active {
+                        Task { await dependencies.authentication.restore(force: true) }
+                    }
+                }
         }
     }
 }
