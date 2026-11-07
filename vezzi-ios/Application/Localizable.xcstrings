@@ -1059,23 +1059,6 @@
         }
       }
     },
-    "HomeBreadPackage" : {
-      "comment" : "380 g",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "380 g"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "380 гр."
-          }
-        }
-      }
-    },
     "HomeCherryTomatoes" : {
       "comment" : "Cherry tomatoes",
       "extractionState" : "manual",
@@ -1249,24 +1232,6 @@
         }
       }
     },
-    "HomeDomikPackage" : {
-      "comment" : "980 ml",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "980 ml"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "980 мл"
-          }
-        }
-      }
-    },
     "HomeEggs" : {
       "comment" : "Eggs",
       "localizations" : {
@@ -1297,23 +1262,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Деревенские"
-          }
-        }
-      }
-    },
-    "HomeEggsPackage" : {
-      "comment" : "10 pcs",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "10 pcs"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "10 шт."
           }
         }
       }
@@ -1508,24 +1456,6 @@
         }
       }
     },
-    "HomeHalfKilogram" : {
-      "comment" : "500 g",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "500 g"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "500 г"
-          }
-        }
-      }
-    },
     "HomeIncreaseQuantity" : {
       "comment" : "Increase product quantity",
       "localizations" : {
@@ -1649,24 +1579,6 @@
         }
       }
     },
-    "HomeKubanskayaPackage" : {
-      "comment" : "930 ml",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "930 ml"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "930 мл"
-          }
-        }
-      }
-    },
     "HomeLenta" : {
       "comment" : "Lenta",
       "localizations" : {
@@ -1769,40 +1681,6 @@
         }
       }
     },
-    "HomeOneKilogram" : {
-      "comment" : "1 kg",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1 kg"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1 кг"
-          }
-        }
-      }
-    },
-    "HomeOneLiter" : {
-      "comment" : "1 L",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1 L"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1 л"
-          }
-        }
-      }
-    },
     "HomePasta" : {
       "comment" : "Spaghetti",
       "localizations" : {
@@ -1833,23 +1711,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Макфа"
-          }
-        }
-      }
-    },
-    "HomePastaPackage" : {
-      "comment" : "450 g",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "450 g"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "450 г"
           }
         }
       }
@@ -1955,24 +1816,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Количество: %@"
-          }
-        }
-      }
-    },
-    "HomeQuarterKilogram" : {
-      "comment" : "250 g",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "250 g"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "250 г"
           }
         }
       }
@@ -2741,6 +2584,210 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Магазины"
+          }
+        }
+      }
+    },
+    "ProductUnitGram" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "g"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "г"
+          }
+        }
+      }
+    },
+    "ProductUnitKilogram" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kg"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "кг"
+          }
+        }
+      }
+    },
+    "ProductUnitLiter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "л"
+          }
+        }
+      }
+    },
+    "ProductUnitMilliliter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ml"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "мл"
+          }
+        }
+      }
+    },
+    "ProductUnitPiece" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pcs"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "шт."
+          }
+        }
+      }
+    },
+    "SearchCheaper" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Best price"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выгоднее"
+          }
+        }
+      }
+    },
+    "SearchFaster" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fastest"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Быстрее"
+          }
+        }
+      }
+    },
+    "SearchMockBread" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bread"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Хлеб"
+          }
+        }
+      }
+    },
+    "SearchMockMilk" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Milk"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Молоко"
+          }
+        }
+      }
+    },
+    "SearchMockPerekrestok" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perekrestok"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перекрёсток"
+          }
+        }
+      }
+    },
+    "SearchMode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search priority"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приоритет поиска"
+          }
+        }
+      }
+    },
+    "SearchWalkingTime" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d min away"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "За %d мин"
           }
         }
       }

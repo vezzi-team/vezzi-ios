@@ -32,9 +32,9 @@ extension Image {
         static let wordmark = Image("BrandWordmark")
     }
 
-    // MARK: - Home
+    // MARK: - Product
 
-    enum Home {
+    enum Product {
         static let storeAvatar = Image("HomeStoreAvatar")
         static let storeIcon = Image("HomeStoreIcon")
     }

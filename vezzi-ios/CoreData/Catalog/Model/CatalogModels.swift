@@ -13,6 +13,9 @@ nonisolated struct CatalogProduct: Codable, Equatable, Identifiable, Sendable {
     var productType: String?
     var packageQuantity: Decimal?
     var packageUnit: String?
+
+    /// Shared by catalog grouping and the independent alternatives query.
+    var groupID: String { productType ?? category ?? id }
 }
 
 nonisolated struct CatalogStore: Codable, Equatable, Identifiable, Sendable {

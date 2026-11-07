@@ -3,6 +3,7 @@ import SwiftUI
 /// Composes the app's modules and owns state shared across tabs.
 struct AppRootView: View {
     @StateObject private var appRouter: AppRouter
+    @StateObject private var productSelection = ProductSelection()
     @ObservedObject private var authentication: AuthenticationSession
     @Namespace private var profileTransition
     private let catalog: any CatalogRepository
@@ -40,15 +41,17 @@ struct AppRootView: View {
                 tabLabel(for: .stores)
             }
 
-            // Keeps search separate from the other tabs on iPhone.
-            Tab(value: AppRouter.Tab.search, role: searchTabRole) {
+            Tab(value: AppRouter.Tab.search, role: .search) {
                 navigationStack(for: .search)
             } label: {
                 tabLabel(for: .search)
             }
         }
+        // Also gives the search tab its detached appearance on iOS 27.
+        .tabViewSearchActivation(.searchTabSelection)
         .tint(.accentColor)
         .environmentObject(appRouter)
+        .sensoryFeedback(.selection, trigger: productSelection.quantities)
         .sheet(item: presentedSheet) { sheet in
             DestinationFactory.sheet(for: sheet, authentication: authentication)
                 .navigationTransition(.zoom(sourceID: sheet, in: profileTransition))
@@ -71,14 +74,6 @@ struct AppRootView: View {
         }
     }
 
-    private var searchTabRole: TabRole {
-        if #available(iOS 27.0, *) {
-            return .prominent
-        } else {
-            return .search
-        }
-    }
-
     private var selectedTab: Binding<AppRouter.Tab> {
         Binding(
             get: { appRouter.selectedTab },
@@ -89,10 +84,10 @@ struct AppRootView: View {
     private func navigationStack(for tab: AppRouter.Tab) -> some View {
         NavigationStack(path: pathBinding(for: tab)) {
             DestinationFactory.view(for: tab.rootRoute, catalog: catalog, authentication: authentication,
-                                    profileTransition: profileTransition)
+                                    profileTransition: profileTransition, productSelection: productSelection)
                 .navigationDestination(for: AppRouter.Route.self) { route in
                     DestinationFactory.view(for: route, catalog: catalog, authentication: authentication,
-                                            profileTransition: profileTransition)
+                                            profileTransition: profileTransition, productSelection: productSelection)
                 }
         }
         .scaleEffect(contentScale, anchor: .top)

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct HomeProductActions: View {
+struct ProductActions: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Namespace private var glassNamespace
     @ScaledMetric(relativeTo: .body) private var actionHeight = Const.actionHeight
@@ -29,8 +29,8 @@ struct HomeProductActions: View {
 
     private var addButton: some View {
         Button { quantity = 1 } label: {
-            Text(Texts.Home.Quantity.add)
-                .onestTextStyle(size: Const.buttonFontSize, lineHeight: Const.buttonLineHeight,
+            Text(Texts.Product.Quantity.add)
+                .appTextStyle(size: Const.buttonFontSize, lineHeight: Const.buttonLineHeight,
                                weight: .semibold, relativeTo: .headline)
                 .frame(maxWidth: .infinity)
         }
@@ -38,24 +38,24 @@ struct HomeProductActions: View {
         .controlSize(.large)
         .glassEffectID(Const.addGlassID, in: glassNamespace)
         .glassEffectTransition(reduceMotion ? .identity : .matchedGeometry)
-        .accessibilityLabel(Texts.Home.Quantity.addProduct(productName))
-        .accessibilityIdentifier(AccessibilityID.Home.ProductDetail.add)
+        .accessibilityLabel(Texts.Product.Quantity.addProduct(productName))
+        .accessibilityIdentifier(AccessibilityID.Product.Detail.add)
     }
 
     private var quantityControl: some View {
         HStack(spacing: .zero) {
-            Button { quantity = max(HomeViewModel.quantityRange.lowerBound, quantity - 1) } label: {
+            Button { quantity = max(ProductSelection.quantityRange.lowerBound, quantity - 1) } label: {
                 symbol(Image.System.minus)
             }
-            .accessibilityLabel(Texts.Home.Quantity.decreaseQuantity(productName))
-            .accessibilityIdentifier(AccessibilityID.Home.ProductDetail.decrease)
+            .accessibilityLabel(Texts.Product.Quantity.decreaseQuantity(productName))
+            .accessibilityIdentifier(AccessibilityID.Product.Detail.decrease)
             quantityLabel
-            Button { quantity = min(HomeViewModel.quantityRange.upperBound, quantity + 1) } label: {
+            Button { quantity = min(ProductSelection.quantityRange.upperBound, quantity + 1) } label: {
                 symbol(Image.System.plus)
             }
-            .disabled(quantity >= HomeViewModel.quantityRange.upperBound)
-            .accessibilityLabel(Texts.Home.Quantity.increaseQuantity(productName))
-            .accessibilityIdentifier(AccessibilityID.Home.ProductDetail.increase)
+            .disabled(quantity >= ProductSelection.quantityRange.upperBound)
+            .accessibilityLabel(Texts.Product.Quantity.increaseQuantity(productName))
+            .accessibilityIdentifier(AccessibilityID.Product.Detail.increase)
         }
         .buttonStyle(.plain)
         .foregroundStyle(Color.Label.white)
@@ -63,14 +63,14 @@ struct HomeProductActions: View {
         .glassEffectID(Const.counterGlassID, in: glassNamespace)
         .glassEffectTransition(reduceMotion ? .identity : .matchedGeometry)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(Texts.Home.Quantity.quantityOf(productName))
+        .accessibilityLabel(Texts.Product.Quantity.quantityOf(productName))
         .accessibilityValue(Text(quantity, format: .number))
-        .accessibilityIdentifier(AccessibilityID.Home.ProductDetail.quantity)
+        .accessibilityIdentifier(AccessibilityID.Product.Detail.quantity)
     }
 
     private var quantityLabel: some View {
         Text(quantity, format: .number)
-            .onestTextStyle(size: Const.numberFontSize, lineHeight: Const.numberLineHeight, relativeTo: .title2)
+            .appTextStyle(size: Const.numberFontSize, lineHeight: Const.numberLineHeight, relativeTo: .title2)
             .monospacedDigit()
             .contentTransition(reduceMotion ? .identity : .numericText(value: Double(quantity)))
             .frame(maxWidth: .infinity)
@@ -85,8 +85,8 @@ struct HomeProductActions: View {
     }
 
     private var hint: some View {
-        Text(quantity == 0 ? Texts.Home.Product.compareHint : Texts.Home.Product.inList)
-            .onestTextStyle(size: Const.hintFontSize, lineHeight: Const.hintLineHeight, relativeTo: .subheadline)
+        Text(quantity == 0 ? Texts.Product.compareHint : Texts.Product.inList)
+            .appTextStyle(size: Const.hintFontSize, lineHeight: Const.hintLineHeight, relativeTo: .subheadline)
             .foregroundStyle(Color.Label.secondary)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
@@ -94,7 +94,7 @@ struct HomeProductActions: View {
             // Replace complete labels in a fixed-width slot to keep the transition centered.
             .id(quantity == 0)
             .transition(reduceMotion ? .identity : AnyTransition(.blurReplace))
-            .accessibilityIdentifier(AccessibilityID.Home.ProductDetail.hint)
+            .accessibilityIdentifier(AccessibilityID.Product.Detail.hint)
     }
 
     private var quantityAnimation: Animation? {
@@ -118,13 +118,13 @@ struct HomeProductActions: View {
 
 #Preview("Product actions") {
     @Previewable @State var quantity = 0
-    HomeProductActions(productName: HomeMockData.products[0].name, quantity: $quantity)
+    ProductActions(productName: ProductMockData.products[0].name, quantity: $quantity)
         .padding()
 }
 
 #Preview("Product actions — dark, large text") {
     @Previewable @State var quantity = 1
-    HomeProductActions(productName: HomeMockData.products[0].name, quantity: $quantity)
+    ProductActions(productName: ProductMockData.products[0].name, quantity: $quantity)
         .padding()
         .preferredColorScheme(.dark)
         .dynamicTypeSize(.accessibility3)

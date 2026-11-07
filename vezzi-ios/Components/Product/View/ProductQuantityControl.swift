@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct HomeQuantityControl: View {
+struct ProductQuantityControl: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Namespace private var glassNamespace
@@ -55,24 +55,24 @@ struct HomeQuantityControl: View {
         .glassEffect(.regular.interactive(), in: .capsule)
         .glassEffectID(Const.addGlassID, in: glassNamespace)
         .glassEffectTransition(reduceMotion ? .identity : .matchedGeometry)
-        .accessibilityLabel(Texts.Home.Quantity.addProduct(productName))
-        .accessibilityIdentifier(AccessibilityID.Home.Quantity.add(productID))
+        .accessibilityLabel(Texts.Product.Quantity.addProduct(productName))
+        .accessibilityIdentifier(AccessibilityID.Product.Quantity.add(productID))
     }
 
     private var compactStepper: some View {
         HStack(spacing: .zero) {
-            Button { setQuantity(max(HomeViewModel.quantityRange.lowerBound, quantity - 1)) } label: {
+            Button { setQuantity(max(ProductSelection.quantityRange.lowerBound, quantity - 1)) } label: {
                 symbol(Image.System.minus)
             }
-            .accessibilityLabel(Texts.Home.Quantity.decreaseQuantity(productName))
-            .accessibilityIdentifier(AccessibilityID.Home.Quantity.decrease(productID))
+            .accessibilityLabel(Texts.Product.Quantity.decreaseQuantity(productName))
+            .accessibilityIdentifier(AccessibilityID.Product.Quantity.decrease(productID))
             quantityLabel
-            Button { setQuantity(min(HomeViewModel.quantityRange.upperBound, quantity + 1)) } label: {
+            Button { setQuantity(min(ProductSelection.quantityRange.upperBound, quantity + 1)) } label: {
                 symbol(Image.System.plus)
             }
-            .disabled(quantity >= HomeViewModel.quantityRange.upperBound)
-            .accessibilityLabel(Texts.Home.Quantity.increaseQuantity(productName))
-            .accessibilityIdentifier(AccessibilityID.Home.Quantity.increase(productID))
+            .disabled(quantity >= ProductSelection.quantityRange.upperBound)
+            .accessibilityLabel(Texts.Product.Quantity.increaseQuantity(productName))
+            .accessibilityIdentifier(AccessibilityID.Product.Quantity.increase(productID))
         }
         .buttonStyle(.plain)
         .glassEffect(.regular.interactive(), in: .capsule)
@@ -80,14 +80,14 @@ struct HomeQuantityControl: View {
         .glassEffectTransition(reduceMotion ? .identity : .matchedGeometry)
         .frame(height: Const.controlHeight, alignment: .bottom)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(Texts.Home.Quantity.quantityOf(productName))
+        .accessibilityLabel(Texts.Product.Quantity.quantityOf(productName))
         .accessibilityValue(Text(quantity, format: .number))
-        .accessibilityIdentifier(AccessibilityID.Home.productQuantity(productID))
+        .accessibilityIdentifier(AccessibilityID.Product.quantity(productID))
     }
 
     private var quantityLabel: some View {
         Text(quantity, format: .number)
-            .onestTextStyle(size: Const.fontSize, lineHeight: Const.lineHeight, relativeTo: .footnote)
+            .appTextStyle(size: Const.fontSize, lineHeight: Const.lineHeight, relativeTo: .footnote)
             .monospacedDigit()
             .contentTransition(numberTransition)
             .foregroundStyle(Color.Label.primary)
@@ -106,25 +106,25 @@ struct HomeQuantityControl: View {
     }
 
     private var accessibleStepper: some View {
-        Stepper(value: $quantity, in: HomeViewModel.quantityRange) {
+        Stepper(value: $quantity, in: ProductSelection.quantityRange) {
             Text(quantity, format: .number)
                 .monospacedDigit()
-                .onestTextStyle(.appText, weight: .semibold)
+                .appTextStyle(.appText, weight: .semibold)
                 .contentTransition(numberTransition)
         }
-        .accessibilityLabel(Texts.Home.Quantity.quantityOf(productName))
+        .accessibilityLabel(Texts.Product.Quantity.quantityOf(productName))
         .accessibilityValue(Text(quantity, format: .number))
-        .accessibilityIdentifier(AccessibilityID.Home.productQuantity(productID))
+        .accessibilityIdentifier(AccessibilityID.Product.quantity(productID))
     }
 
     private var accessibleAddButton: some View {
         Button { setQuantity(1) } label: {
-            Label { Text(Texts.Home.Quantity.add) } icon: { Image.System.plus }
+            Label { Text(Texts.Product.Quantity.add) } icon: { Image.System.plus }
         }
-        .onestTextStyle(.appText, weight: .semibold)
+        .appTextStyle(.appText, weight: .semibold)
         .buttonStyle(.glass)
-        .accessibilityLabel(Texts.Home.Quantity.addProduct(productName))
-        .accessibilityIdentifier(AccessibilityID.Home.Quantity.add(productID))
+        .accessibilityLabel(Texts.Product.Quantity.addProduct(productName))
+        .accessibilityIdentifier(AccessibilityID.Product.Quantity.add(productID))
     }
 
     // MARK: - Animation
@@ -160,8 +160,8 @@ struct HomeQuantityControl: View {
 
 #Preview("Quantity — light") {
     @Previewable @State var quantity = 0
-    let product = HomeMockData.products[0]
-    HomeQuantityControl(productID: product.id, productName: product.name, quantity: $quantity)
+    let product = ProductMockData.products[0]
+    ProductQuantityControl(productID: product.id, productName: product.name, quantity: $quantity)
         .padding()
         .background(Color.Background.placeholder)
         .preferredColorScheme(.light)
@@ -169,8 +169,8 @@ struct HomeQuantityControl: View {
 
 #Preview("Quantity — dark") {
     @Previewable @State var quantity = 1
-    let product = HomeMockData.products[0]
-    HomeQuantityControl(productID: product.id, productName: product.name, quantity: $quantity)
+    let product = ProductMockData.products[0]
+    ProductQuantityControl(productID: product.id, productName: product.name, quantity: $quantity)
         .padding()
         .background(Color.Background.placeholder)
         .preferredColorScheme(.dark)
@@ -178,8 +178,8 @@ struct HomeQuantityControl: View {
 
 #Preview("Quantity — accessibility") {
     @Previewable @State var quantity = 0
-    let product = HomeMockData.products[0]
-    HomeQuantityControl(productID: product.id, productName: product.name, quantity: $quantity)
+    let product = ProductMockData.products[0]
+    ProductQuantityControl(productID: product.id, productName: product.name, quantity: $quantity)
         .padding()
         .dynamicTypeSize(.accessibility3)
 }

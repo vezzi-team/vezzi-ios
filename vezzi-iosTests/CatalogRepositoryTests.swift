@@ -4,6 +4,84 @@ import XCTest
 
 @MainActor
 final class CatalogRepositoryTests: XCTestCase {
+    func testRelatedProductsAreIndependentOfTheTextSearchLimit() async throws {
+        let repository = DefaultCatalogRepository()
+        var batch = CatalogImport(products: (0..<CatalogSearch.resultLimit).map {
+            CatalogProduct(id: "other-\($0)", name: "A product \($0)", productType: "other")
+        })
+        batch.products += [
+            CatalogProduct(id: "selected", name: "Z selected milk", productType: "milk"),
+            CatalogProduct(id: "alternative-1", name: "Z alternative one", productType: "milk"),
+            CatalogProduct(id: "alternative-2", name: "Z alternative two", productType: "milk")
+        ]
+        try await repository.importCatalog(batch)
+        let limited = await catalogItems(from: repository)
+        XCTAssertEqual(limited.count, CatalogSearch.resultLimit)
+        XCTAssertTrue(limited.allSatisfy { $0.id.hasPrefix("other-") })
+        let textResults = await catalogItems(from: repository, matching: "selected")
+        XCTAssertEqual(textResults.map(\.id), ["selected"])
+        let related = await publishedItems(repository.observeRelatedProducts(to: "selected", storeID: nil), where: { $0.count == 2 })
+        XCTAssertEqual(related.map(\.id), ["alternative-1", "alternative-2"])
+
+        let snapshot = try CatalogFixtures.snapshot(batch)
+        let previewRelated = await publishedItems(PreviewCatalogRepository(snapshot: snapshot)
+            .observeRelatedProducts(to: "selected", storeID: nil), where: { $0.count == 2 })
+        XCTAssertEqual(previewRelated, related)
+    }
+
+    func testRelatedQueryTracksOffersAndGroupChanges() async throws {
+        let repository = DefaultCatalogRepository()
+        var batch = CatalogFixtures.catalog()
+        batch.products[0].productType = "milk"
+        batch.products.append(CatalogProduct(id: "alternative", name: "Other milk", productType: "milk"))
+        batch.offers.append(CatalogOffer(id: "alternative-offer", productID: "alternative", storeID: "s1",
+                                        price: 110, currency: "RUB"))
+        try await repository.importCatalog(batch)
+        let initial = expectation(description: "Initial alternatives")
+        let updated = expectation(description: "Alternative price updates")
+        let removed = expectation(description: "Alternative leaves the group")
+        let observation = repository.observeRelatedProducts(to: "p1", storeID: nil).sink { items in
+            XCTAssertTrue(Thread.isMainThread)
+            if items.isEmpty { removed.fulfill() }
+            else if items.first?.offers.first?.offer.price == 120 { updated.fulfill() }
+            else { initial.fulfill() }
+        }
+        defer { observation.cancel() }
+        await fulfillment(of: [initial], timeout: 5)
+        batch.offers[1].price = 120
+        try await repository.importCatalog(CatalogImport(offers: [batch.offers[1]]))
+        await fulfillment(of: [updated], timeout: 5)
+        batch.products[1].productType = "bread"
+        try await repository.importCatalog(CatalogImport(products: [batch.products[1]]))
+        await fulfillment(of: [removed], timeout: 5)
+    }
+
+    func testRelatedQueryBoundsItsOwnResultsAndHandlesMissingGroups() throws {
+        let products = [CatalogProduct(id: "selected", name: "Selected", category: "Dairy")]
+            + (0...CatalogSearch.resultLimit).map { CatalogProduct(id: "p\($0)", name: "Product \($0)", category: "Dairy") }
+            + [CatalogProduct(id: "ungrouped", name: "Ungrouped")]
+        let snapshot = try CatalogFixtures.snapshot(CatalogImport(products: products))
+        let related = snapshot.relatedItems(to: "selected")
+        XCTAssertEqual(related.count, CatalogSearch.resultLimit)
+        XCTAssertFalse(related.contains { $0.id == "selected" })
+        XCTAssertTrue(snapshot.relatedItems(to: "ungrouped").isEmpty)
+        XCTAssertTrue(snapshot.relatedItems(to: "missing").isEmpty)
+    }
+
+    func testRelatedQueryFiltersTheStoreBeforeApplyingItsLimit() throws {
+        var batch = CatalogImport(products: (0..<CatalogSearch.resultLimit).map {
+            CatalogProduct(id: "unavailable-\($0)", name: "A product \($0)", productType: "milk")
+        }, stores: [CatalogStore(id: "s1", name: "Store")])
+        batch.products += [
+            CatalogProduct(id: "selected", name: "Selected", productType: "milk"),
+            CatalogProduct(id: "available", name: "Z available", productType: "milk")
+        ]
+        batch.offers = [CatalogOffer(id: "offer", productID: "available", storeID: "s1", price: 100, currency: "RUB", inStock: true)]
+        let snapshot = try CatalogFixtures.snapshot(batch)
+        XCTAssertEqual(snapshot.relatedItems(to: "selected", storeID: "s1").map(\.id), ["available"])
+        XCTAssertTrue(snapshot.relatedItems(to: "selected", storeID: "missing").isEmpty)
+    }
+
     func testOfferOnlyUpdateReachesExistingSubscription() async throws {
         let repository = DefaultCatalogRepository()
         try await repository.importCatalog(CatalogFixtures.catalog())

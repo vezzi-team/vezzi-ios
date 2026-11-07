@@ -3,7 +3,7 @@
 ## Project overview
 
 - Polka / Полка is a native iPhone and iPad app. The repository, Xcode project, target, and scheme are named `vezzi-ios`.
-- The app has Home, List, Stores, and Search tabs. Home is a temporary mock storefront; Search observes the repository's catalog. List and Stores remain placeholders. An educational MVVM demo is kept in the source files without an in-app entry point.
+- The app has Home, List, Stores, and Search tabs. Home and Search use temporary storefront fixtures; Search reads an explicitly injected mock catalog repository. List and Stores remain placeholders. An educational MVVM demo is kept in the source files without an in-app entry point.
 - Stack: SwiftUI, Foundation, Combine, and Core Data. Lottie 4.6.1 is resolved through the official `lottie-spm` package; keep `Package.resolved` in version control.
 - The project was created with Xcode 26.2. The app target supports iOS 26.0+, uses Swift 5 language mode, and enables default MainActor isolation. Project-level deployment settings currently specify 26.2; the target overrides them.
 - This is a Git repository
@@ -20,10 +20,10 @@ Paths below are relative to the repository root.
 | `vezzi-ios/Application/AuthenticationSession.swift` | App-wide observable account state, restoration, and temporary profile preferences. |
 | `vezzi-ios/Application/Localizable.xcstrings` | English and Russian interface strings. |
 | `vezzi-ios/Application/InfoPlist.xcstrings` | Localized bundle metadata, including the display name. |
-| `vezzi-ios/Application/Info.plist` | Additional plist keys merged with generated metadata; registers bundled fonts. |
 | `vezzi-ios/Router/` | Tab selection, navigation paths, root composition, and destination construction. |
 | `vezzi-ios/Modules/Demo/` | Standalone MVVM / binding example, available through previews. |
-| `vezzi-ios/Modules/Home/` | Draft product grid and detail sheet, with feature-local mock data and quantities. |
+| `vezzi-ios/Modules/Home/` | Product grid, category filters, address selection, and dinner banner. |
+| `vezzi-ios/Components/Product/` | Shared product models, fixtures, cards, quantity controls, horizontal shelves, details, and temporary selection state. |
 | `vezzi-ios/Authentication/` | Shared authentication models, service contract and implementation, Keychain storage, and explicit preview mock. |
 | `vezzi-ios/Networking/` | URLSession transport, API configuration, JSON decoding, and safe HTTP errors. |
 | `vezzi-ios/Modules/Login/` | Login screen and its MVVM presentation state. |
@@ -32,7 +32,7 @@ Paths below are relative to the repository root.
 | `vezzi-ios/Modules/Debug/` | Diagnostic screens opened from the profile's Debug section. |
 | `vezzi-ios/Modules/ShoppingList/View/` | Shopping list placeholder. |
 | `vezzi-ios/Modules/Stores/View/` | Stores placeholder. |
-| `vezzi-ios/Modules/Search/` | Search UI and observable presentation state. |
+| `vezzi-ios/Modules/Search/` | Native product search, price/store grouping, observable presentation state, and mock catalog adapter. |
 | `vezzi-ios/Modules/Splash/` | Moti animation, bottom wordmark, and bounded splash presentation state. |
 | `vezzi-ios/CoreData/Catalog/` | Catalog models, session actor, indexed queries, repository, and optional cache adapter. |
 | `vezzi-ios/CoreData/Persistence/` | Persistent container and versioned `Polka.xcdatamodeld`. |
@@ -41,7 +41,6 @@ Paths below are relative to the repository root.
 | `vezzi-ios/SupportingFiles/Assets.xcassets` | App icons, semantic colors, and images with appearance variants. |
 | `vezzi-ios/SupportingFiles/LaunchScreen.storyboard` | Static system launch screen; shares the splash background and wordmark layout. |
 | `vezzi-ios/SupportingFiles/Animations/` | Bundled Lottie JSON; Moti includes all image data and needs no network. |
-| `vezzi-ios/SupportingFiles/Fonts/` | Onest variable font and its SIL Open Font License. |
 | `vezzi-ios.xcodeproj/project.pbxproj` | Explicit source/resource membership and build configuration. |
 
 ## Architecture and state ownership
@@ -55,11 +54,12 @@ Paths below are relative to the repository root.
 - Keep the explicit `nonisolated deinit` in `AppRouter` and `DemoViewModel` while supporting early iOS 26 runtimes; they avoid [Swift runtime issue #88036](https://github.com/swiftlang/swift/issues/88036).
 - Follow `Modules/<Feature>/Model`, `ViewModel`, and `View` as a feature grows. Add only the layers that have actual responsibilities; empty screens do not need empty models or view models.
 - Prefer straightforward, readable code. The demo is also used to explain architecture to a beginner.
-- Home currently uses `HomeMockData` and an owned `HomeViewModel` for layout prototyping. The product sheet observes that same model and passes quantity bindings to its controls and alternative product cards. Quantities reset on scene recreation and are not imported into the catalog or persisted as shopping lists. The sheet uses native navigation title/subtitle and keeps `HomeProductActions` in a bottom `safeAreaBar`. The address and profile entry use the native navigation toolbar; at accessibility text sizes, the address scrolls with the catalog to preserve usable space. The dinner banner always scrolls with the catalog.
+- Home uses shared `ProductMockData` and an owned `HomeViewModel` for layout prototyping. `AppRootView` owns one `ProductSelection`, injected into Home, Search, and `ProductDetailView`. The detail sheet receives related product values and observes that selection, without depending on a feature view model. Quantities reset on scene recreation and are not imported into the catalog or persisted as shopping lists. The sheet uses native navigation title/subtitle and keeps `ProductActions` in a bottom `safeAreaBar`. The address and profile entry use the native navigation toolbar; at accessibility text sizes, the address scrolls with the catalog to preserve usable space. The dinner banner always scrolls with the catalog.
+- Search uses native `.searchable` and a segmented picker in the top `safeAreaBar`; regular-width layouts provide a native Cancel toolbar action to leave search and restore the tabs. Best price groups by product type and sorts each shelf by price; Fastest groups by store, orders known walking times first, and displays only that store's prices. Unknown travel times are omitted. Keep the 250 ms query debounce, independent cache/refresh errors, and stable model IDs. Content taps and user scrolling in either axis clear keyboard focus without ending search. Animate mode changes with a 0.2-second `blurReplace` in a stable container and result membership changes with a 0.18-second `blurReplace`, respecting Reduce Motion; never key the whole results view to raw input. Use standard shimmer for store headers and lighter shimmer for avatars over artwork. Use the shared `ProductCarousel`, card, and detail sheet; stop underlying shimmer while presenting a sheet. Load alternatives through `CatalogRepository.observeRelatedProducts`, independently of the text query and its result limit; apply the optional store scope before limiting. `SearchViewModel` owns the selected product and a single detail snapshot, cancelling its pending subscription on dismissal or replacement. Keep that snapshot while dismissing so pushed pages remain valid. Capture the selected store alongside the product; store-scoped detail pages and their alternative cards omit the price prefix. Map one representative offer per store (available/unknown stock first, then price, then offer ID); retain separate offer and store IDs. `AppDependencies.searchCatalog` is an isolated `MockSearchRepository`; mock records never enter the persistent catalog.
 - Category filters use a native pinned section header and a horizontal glass button strip. `HomeViewModel.selectedCategory` filters the Home feed; `nil` shows all products without clearing quantities. Preserve vertical position while the banner is visible; only scroll to the results container when the feed is below its start. Keep that container's ID outside lazy children. For a shorter feed, animate scrolling first, then apply the latest selection to the view's `displayedCategory` when `onScrollPhaseChange` reports idle; respect Reduce Motion. Observe only the Boolean top threshold, not every offset. Tapping the active category only centers its chip. Keep short filtered sections tall enough to retain the pinned header.
 - Home cards place store placeholders and quantity controls over the artwork, outside the product button. Names reserve two lines and truncate at the end; names, package labels, and prices have independent text sizes. At accessibility text sizes, show full names, move controls below the content, and retain the native `Stepper`. Quantity controls use native `GlassEffectContainer` morphing with distinct add/counter effect IDs in a local namespace and `numericText` for numbers; disable motion for Reduce Motion.
-- Product details use a standard sheet with its own navigation path of product IDs, independent of the tab paths. Selecting an alternative pushes a new page in that sheet. Only the root page shows Close; pushed pages use the native Back button and preserve the previous page's scroll position. All pages share Home's quantities.
-- Observe quantity changes for haptic feedback once in `HomeView`, using the shared quantities so card and sheet edits do not create duplicate feedback handlers.
+- Product details use a standard sheet with its own navigation path of product IDs, independent of the tab paths. Selecting an alternative pushes a new page in that sheet. Only the root page shows Close; pushed pages use the native Back button and preserve the previous page's scroll position. All pages share the injected `ProductSelection`. Keep the root and related products as a stable snapshot while the sheet is open.
+- Observe quantity changes for haptic feedback once in `AppRootView`, using the shared selection so Home, Search, and sheet edits do not create duplicate feedback handlers.
 - Use `.shimmer()` on gray placeholders for remotely loaded images, including product artwork and store logos. For store avatars over artwork, pair `.shimmer(style: .lighter)` with `Color.Background.placeholderLighter`. Derive phase from a fixed time origin so reused views stay synchronized. The modifier caps updates at 60 fps and fades in and out over 0.2 seconds; remove its timeline after fading out when loading ends, content is covered, or it leaves the scroll viewport. Remove immediately for Reduce Motion, inactive scenes, or disappearing views. Set `isShimmerEnabled` to false on content covered by a sheet, without disabling the sheet's own placeholders. Once real images are connected, drive `shimmer(isActive:)` from loading state and stop on success or failure.
 - The splash plays once per scene creation for 1.1 seconds, then reveals the interface with a short scale-down transition. Scale tab content only; keep the native tab bar stationary. Never gate dismissal on cache/network readiness. Skip the splash and transition for Reduce Motion, dismiss without motion on backgrounding, and retain the 1.6-second fallback if Lottie does not complete. Keep the system launch wordmark size/inset in sync with `SplashView`.
 
@@ -83,7 +83,7 @@ Paths below are relative to the repository root.
 
 ## Navigation
 
-- The three main tabs are Home / Главная, List / Список, and Stores / Магазины. Search / Поиск uses a separate native tab button with `.prominent` on iOS 27+ and `.search` on iOS 26, selected by `AppRootView.searchTabRole`.
+- The three main tabs are Home / Главная, List / Список, and Stores / Магазины. Search / Поиск uses `role: .search` on all supported versions and `TabView.tabViewSearchActivation(.searchTabSelection)`. Together they retain the detached search button and native bottom search-field transition on iPhone, including iOS 27. Cancelling search restores the previous tab. Do not replace the search role with `.prominent`, which provides appearance without search integration. Hide Search's navigation bar only in compact layouts; iPad keeps its native toolbar search.
 - Demo has no tab, route, or gesture-based entry point. Keep its files and previews available for future integration.
 - Each tab has its own `NavigationStack` and typed path. Do not combine them into one shared navigation history.
 - `AppRouter` owns selection and paths. Use `selectTab`, `push`, `pop`, `popToRoot`, and `setPath` rather than adding competing navigation state to feature views.
@@ -115,11 +115,11 @@ Paths below are relative to the repository root.
 - Define palette colors in Assets and expose them through `ColorExtension` (`Color.Background`, `Color.Label`, `Color.Border`, `Color.Shadow`); use these helpers in views and previews instead of system palette colors or built-in color literals. `.accentColor` uses the existing accent asset; `Color.clear` is reserved for transparent surfaces. Keep one palette across supported iOS versions, with light/dark and increased-contrast variants where needed. Reuse image helpers such as `Image.Demo.main`; add shared assets to the existing asset catalog.
 - Centralize SF Symbols in `Image.System` in `Extensions/ImageExtension.swift`. Pass these images through native label closures for buttons, tabs, and empty states instead of keeping symbol-name strings in views or the router.
 - Support light and dark appearances using asset variants and semantic colors.
-- Prefer `.onestTextStyle(_:weight:)` for brand text: it applies the sizes (48, 32, 20, 16, 14 pt), line heights, Dynamic Type, and system Bold Text adjustment. For explicit design metrics, use `.onestTextStyle(size:lineHeight:weight:relativeTo:)` without changing the shared named styles. `Font.onest` is the font-only factory; it scales with Dynamic Type but does not read Bold Text from the environment. Pass weights through these helpers to select exact named Onest instances. The variable font comes from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/onest); keep its license bundled.
+- Use the native system font throughout the app. `.appTextStyle(_:weight:)` preserves shared sizes (48, 32, 20, 16, 14 pt) and line heights; `@ScaledMetric` adapts explicit sizes to Dynamic Type, and the system font handles Bold Text. For layout-specific metrics, use `.appTextStyle(size:lineHeight:weight:relativeTo:)`. Native controls may use standard SwiftUI text styles. Do not bundle custom fonts.
 - Add user-facing text to `Application/Localizable.xcstrings` in both English and Russian, and expose it through the relevant namespace in `Texts` in `Extensions/Labels.swift`. English is the source language.
-- Split growing `Texts` feature namespaces into nested enums by screen or reusable component, and keep mock content in a separate group. For Home, use `Main`, `Product`, `Quantity`, and `Mock`; share declarations across consumers instead of duplicating them.
+- Split growing `Texts` feature namespaces into nested enums by screen or reusable component, and keep mock content in a separate group. For Home, use `Main`, `Filters`, and `Mock`; shared product copy belongs to `Texts.Product` with nested `Quantity`, `Unit`, and `Mock`. Share declarations across consumers instead of duplicating them.
 - Keep accessibility identifiers in `Extensions/AccessibilityID.swift`, grouped by feature. Use constants for fixed controls and functions with stable model IDs for repeated elements. Do not localize identifiers; VoiceOver labels still use `Texts`.
-- `InfoPlist.xcstrings` is for bundle metadata. The base display name comes from the target's `INFOPLIST_KEY_CFBundleDisplayName`. Xcode merges `Application/Info.plist` (currently `UIAppFonts`) with generated metadata; keep display names, launch screen, and scene settings in the existing build settings.
+- `InfoPlist.xcstrings` is for bundle metadata. The base display name comes from the target's `INFOPLIST_KEY_CFBundleDisplayName`. Xcode generates the app's Info.plist from build settings; keep display names, launch screen, and scene settings there.
 - Keep identifiers and router comments in English. The demo contains intentional Russian teaching comments; preserve their purpose and language when editing it.
 - Provide useful `#Preview` configurations for changed views. For an interactive binding preview, use `@Previewable @State` and pass `$value` to the control.
 - Do not wrap `#Preview` declarations or their supporting preview types in `#if DEBUG`.
@@ -133,7 +133,7 @@ Paths below are relative to the repository root.
 
 ## Build and validation
 
-Run commands from the repository root using Xcode 27+ (the iOS 27 SDK is required for `TabRole.prominent`). If an older Xcode is selected, prefix commands with `DEVELOPER_DIR='/Applications/Xcode 27.1.app/Contents/Developer'` or the path to the installed Xcode 27+. For changes to Swift code, resources, or project configuration, build for the simulator without code signing:
+Run commands from the repository root using Xcode 27+, matching the current project and simulator verification setup. If an older Xcode is selected, prefix commands with `DEVELOPER_DIR='/Applications/Xcode 27.1.app/Contents/Developer'` or the path to the installed Xcode 27+. For changes to Swift code, resources, or project configuration, build for the simulator without code signing:
 
 ```sh
 xcodebuild \

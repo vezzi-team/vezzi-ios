@@ -2,10 +2,17 @@ import SwiftUI
 
 struct SearchView: View {
     @StateObject private var viewModel: SearchViewModel
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ObservedObject private var selection: ProductSelection
+    @State private var isSearching = false
+    @State private var scrollPosition = ScrollPosition(edge: .top)
+    @FocusState private var isSearchFocused: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
-    init(repository: any CatalogRepository) {
-        _viewModel = StateObject(wrappedValue: SearchViewModel(repository: repository))
+    init(repository: any CatalogRepository, selection: ProductSelection? = nil,
+         stores: [String: SearchStoreInfo] = [:], groupOrder: [String] = []) {
+        _viewModel = StateObject(wrappedValue: SearchViewModel(repository: repository, stores: stores, groupOrder: groupOrder))
+        self.selection = selection ?? ProductSelection()
     }
 
     var body: some View {
@@ -16,89 +23,190 @@ struct SearchView: View {
                 results
             }
         }
-        .searchable(text: $viewModel.query, prompt: Texts.Search.prompt)
         .background(Color.Background.primary)
-        .safeAreaInset(edge: .bottom) {
-            if !dynamicTypeSize.isAccessibilitySize, let message = statusMessage {
-                statusView(message)
+        .toolbar(horizontalSizeClass == .compact ? .hidden : .automatic, for: .navigationBar)
+        .toolbar { searchToolbar }
+        .safeAreaBar(edge: .top, spacing: .zero) { modePicker }
+        .contentShape(.rect)
+        .simultaneousGesture(TapGesture().onEnded { isSearchFocused = false })
+        .searchable(text: $viewModel.query, isPresented: $isSearching, prompt: Texts.Search.prompt)
+        .searchPresentationToolbarBehavior(horizontalSizeClass == .regular ? .avoidHidingContent : .automatic)
+        .searchFocused($isSearchFocused)
+        .onSubmit(of: .search) { isSearchFocused = false }
+        .sheet(item: selectedProduct) { product in
+            ProductDetailView(product: product, relatedProducts: viewModel.relatedProducts, selection: selection,
+                              showsPricePrefix: viewModel.selectedProductStoreID == nil)
+        }
+    }
+
+    // MARK: - Search Presentation
+
+    private var selectedProduct: Binding<Product?> {
+        Binding(get: { viewModel.selectedProduct }, set: { _ in viewModel.dismissProduct() })
+    }
+
+    @ToolbarContentBuilder
+    private var searchToolbar: some ToolbarContent {
+        if horizontalSizeClass == .regular && isSearching {
+            ToolbarItem(placement: .cancellationAction) {
+                Button(role: .cancel) { isSearching = false }
+                    .accessibilityIdentifier(AccessibilityID.Search.cancel)
             }
         }
     }
 
-    private var results: some View {
-        List {
-            if dynamicTypeSize.isAccessibilitySize, let message = statusMessage {
-                statusView(message)
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.Background.secondary)
+    // MARK: - Modes
+
+    private var modePicker: some View {
+        Picker(Texts.Search.mode, selection: modeSelection) {
+            ForEach(ProductSearchMode.allCases) { mode in
+                Text(mode == .cheaper ? Texts.Search.cheaper : Texts.Search.faster).tag(mode)
             }
-            ForEach(viewModel.items) { item in
-                DisclosureGroup {
-                    if item.offers.isEmpty {
-                        Text(Texts.Search.noOffers)
-                            .foregroundStyle(Color.Label.secondary)
-                    }
-                    ForEach(item.offers) { cached in
-                        VStack(alignment: .leading, spacing: Const.rowSpacing) {
-                            Text(cached.store.name)
-                            Text(cached.offer.price, format: .currency(code: cached.offer.currency))
-                                .font(.headline)
-                            if let available = cached.offer.inStock {
-                                Text(available ? Texts.Search.inStock : Texts.Search.outOfStock)
-                                    .foregroundStyle(Color.Label.secondary)
-                            }
-                            if let date = cached.offer.sourceUpdatedAt {
-                                Text(date, format: .dateTime.day().month().year().hour().minute())
-                                    .font(.caption)
-                                    .foregroundStyle(Color.Label.secondary)
-                            } else {
-                                Text(Texts.Search.unknownPriceDate)
-                                    .font(.caption)
-                                    .foregroundStyle(Color.Label.secondary)
-                            }
-                        }
-                    }
-                } label: {
-                    VStack(alignment: .leading, spacing: Const.rowSpacing) {
-                        Text(item.product.name)
-                            .font(.headline)
-                        if let brand = item.product.brand {
-                            Text(brand)
-                                .foregroundStyle(Color.Label.secondary)
-                        }
-                        if let quantity = item.product.packageQuantity, let unit = item.product.packageUnit {
-                            Text(quantity.formatted() + " " + unit)
-                                .foregroundStyle(Color.Label.secondary)
-                        }
-                    }
-                }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, Const.contentInset)
+        .padding(.top, Const.pickerTopInset)
+        .padding(.bottom, Const.pickerBottomInset)
+        .gesture(TouchDownObserver { pressed in
+            if pressed { isSearchFocused = false }
+        })
+        .accessibilityIdentifier(AccessibilityID.Search.mode)
+    }
+
+    private var modeSelection: Binding<ProductSearchMode> {
+        Binding(get: { viewModel.mode }, set: { mode in
+            withAnimation(reduceMotion ? nil : .easeInOut(duration: Const.modeDuration)) {
+                viewModel.mode = mode
+            }
+        })
+    }
+
+    // MARK: - Results
+
+    private var results: some View {
+        ScrollView {
+            ZStack(alignment: .topLeading) {
+                resultsContent
+                    .id(viewModel.mode)
+                    .transition(resultsTransition)
+            }
+        }
+        .scrollIndicators(.hidden)
+        .scrollPosition($scrollPosition)
+        .onChange(of: viewModel.mode) { _, _ in
+            isSearchFocused = false
+            withTransaction(Transaction(animation: nil)) {
+                scrollPosition.scrollTo(edge: .top)
+            }
+        }
+        .scrollDismissesKeyboard(.immediately)
+        .onScrollPhaseChange(dismissSearchFocusOnScroll)
+        .overlay {
+            if viewModel.sections.isEmpty && statusMessage == nil {
+                emptyState.transition(resultsTransition)
+            }
+        }
+        .animation(reduceMotion ? nil : .easeOut(duration: Const.resultsTransitionDuration),
+                   value: viewModel.items.map(\.id))
+        .environment(\.isShimmerEnabled, viewModel.selectedProduct == nil)
+        .accessibilityIdentifier(AccessibilityID.Search.results)
+    }
+
+    private var resultsContent: some View {
+        LazyVStack(alignment: .leading, spacing: Const.sectionSpacing) {
+            if let message = statusMessage { statusView(message) }
+            ForEach(viewModel.sections) { section in
+                productSection(section)
+                    .transition(resultsTransition)
             }
             if viewModel.isResultLimitReached {
                 Text(Texts.Search.resultLimit)
                     .font(.footnote)
                     .foregroundStyle(Color.Label.secondary)
+                    .padding(.horizontal, Const.contentInset)
             }
         }
-        .scrollContentBackground(.hidden)
-        .overlay {
-            if viewModel.items.isEmpty && viewModel.refreshErrorMessage == nil
-                && !(dynamicTypeSize.isAccessibilitySize && statusMessage != nil) {
-                emptyState
+        .padding(.bottom, Const.contentInset)
+    }
+
+    private var resultsTransition: AnyTransition {
+        reduceMotion ? .identity : AnyTransition(.blurReplace)
+    }
+
+    private func dismissSearchFocusOnScroll(_: ScrollPhase, _ phase: ScrollPhase) {
+        if phase == .interacting { isSearchFocused = false }
+    }
+
+    private func productSection(_ section: SearchSection) -> some View {
+        VStack(alignment: .leading, spacing: Const.headingSpacing) {
+            sectionHeading(section)
+                .padding(.horizontal, Const.contentInset)
+            ProductCarousel(products: section.products, selection: selection,
+                            showsStoreBadges: section.storeID == nil) { product in
+                isSearchFocused = false
+                viewModel.showProduct(product, storeID: section.storeID)
             }
+            .onScrollPhaseChange(dismissSearchFocusOnScroll)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Search.section(section.id))
+    }
+
+    private func sectionHeading(_ section: SearchSection) -> some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: Const.headingSpacing) {
+                sectionTitle(section)
+                Spacer(minLength: Const.headingSpacing)
+                walkingTime(section)
+            }
+            VStack(alignment: .leading, spacing: Const.headingSpacing) {
+                sectionTitle(section)
+                walkingTime(section)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+    }
+
+    private func sectionTitle(_ section: SearchSection) -> some View {
+        HStack(spacing: Const.storeSpacing) {
+            if section.storeID != nil {
+                StoreLogoPlaceholder()
+                    .frame(width: Const.storeSize, height: Const.storeSize)
+            }
+            Text(section.title)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(Color.Label.primary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    @ViewBuilder private func walkingTime(_ section: SearchSection) -> some View {
+        if let minutes = section.walkingMinutes {
+            Text(Texts.Search.walkingTime(minutes))
+                .font(.caption)
+                .foregroundStyle(Color.Label.secondary)
+                .fixedSize(horizontal: true, vertical: false)
         }
     }
 
     private var emptyState: some View {
         ContentUnavailableView {
             Label {
-                Text(viewModel.query.isEmpty ? Texts.Search.emptyTitle : Texts.Search.noResultsTitle)
+                Text(viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                     ? Texts.Search.emptyTitle : Texts.Search.noResultsTitle)
             } icon: {
                 Image.System.magnifyingGlass
             }
         } description: {
-            Text(viewModel.query.isEmpty ? Texts.Search.emptyDescription : Texts.Search.noResultsDescription)
+            Text(viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                 ? Texts.Search.emptyDescription : Texts.Search.noResultsDescription)
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Search.empty)
     }
+
+    // MARK: - Repository Status
 
     private var statusMessage: String? {
         viewModel.refreshErrorMessage ?? (viewModel.isCacheUnavailable ? Texts.Storage.cacheUnavailable : nil)
@@ -107,44 +215,44 @@ struct SearchView: View {
     private func statusView(_ message: String) -> some View {
         VStack(spacing: Const.messageSpacing) {
             Text(message)
-            Button(Texts.Storage.retry) {
-                Task { await viewModel.retry() }
-            }
+            Button(Texts.Storage.retry) { Task { await viewModel.retry() } }
         }
         .font(.callout)
         .multilineTextAlignment(.center)
-        .padding(Const.messagePadding)
+        .padding(Const.contentInset)
         .frame(maxWidth: .infinity)
         .background(Color.Background.secondary)
     }
 
     private enum Const {
-        static let rowSpacing: CGFloat = 4
+        static let contentInset: CGFloat = 16
+        static let pickerTopInset: CGFloat = 8
+        static let pickerBottomInset: CGFloat = 16
+        static let sectionSpacing: CGFloat = 14
+        static let headingSpacing: CGFloat = 4
+        static let storeSpacing: CGFloat = 10
+        static let storeSize: CGFloat = 24
         static let messageSpacing: CGFloat = 8
-        static let messagePadding: CGFloat = 16
+        static let modeDuration: TimeInterval = 0.2
+        static let resultsTransitionDuration: TimeInterval = 0.18
     }
 }
 
-#Preview("Empty") {
+#Preview("Search — light") {
     NavigationStack {
-        SearchView(repository: PreviewCatalogRepository())
-            .navigationTitle(Texts.Tabbar.search)
-    }
-}
-
-#Preview("Catalog — light") {
-    NavigationStack {
-        SearchView(repository: PreviewCatalogRepository.sample)
-            .navigationTitle(Texts.Tabbar.search)
+        SearchView(repository: MockSearchRepository(), stores: SearchMockData.stores, groupOrder: SearchMockData.groupOrder)
     }
     .preferredColorScheme(.light)
 }
 
-#Preview("Catalog — dark, large text") {
+#Preview("Search — dark, large text") {
     NavigationStack {
-        SearchView(repository: PreviewCatalogRepository.sample)
-            .navigationTitle(Texts.Tabbar.search)
+        SearchView(repository: MockSearchRepository(), stores: SearchMockData.stores, groupOrder: SearchMockData.groupOrder)
     }
     .preferredColorScheme(.dark)
     .dynamicTypeSize(.accessibility3)
+}
+
+#Preview("Search — empty catalog") {
+    NavigationStack { SearchView(repository: PreviewCatalogRepository()) }
 }

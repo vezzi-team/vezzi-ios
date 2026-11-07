@@ -66,10 +66,10 @@ struct LoginView: View {
                 .frame(maxWidth: Const.mascotWidth)
             VStack(spacing: Const.copySpacing) {
                 Text(heroTitle)
-                    .onestTextStyle(.appText, weight: .semibold)
+                    .appTextStyle(.appText, weight: .semibold)
                     .foregroundStyle(Color.Label.primary)
                 Text(heroSubtitle)
-                    .onestTextStyle(.caption)
+                    .appTextStyle(.caption)
                     .foregroundStyle(Color.Label.secondary)
             }
             .multilineTextAlignment(.center)
@@ -163,10 +163,10 @@ struct LoginView: View {
     private func inputField<Input: View>(title: String, error: String?, @ViewBuilder input: () -> Input) -> some View {
         VStack(alignment: .leading, spacing: Const.fieldSpacing) {
             Text(title)
-                .onestTextStyle(.caption, weight: .semibold)
+                .appTextStyle(.caption, weight: .semibold)
                 .fixedSize(horizontal: false, vertical: true)
             input()
-                .onestTextStyle(.appText)
+                .appTextStyle(.appText)
                 .padding(.horizontal, Const.fieldInset)
                 .frame(minHeight: Const.fieldHeight)
                 .background(viewModel.isBusy ? Color.Background.secondary : Color.Background.elevated,
@@ -186,7 +186,7 @@ struct LoginView: View {
 
     private func errorMessage(_ text: String) -> some View {
         Text(text)
-            .onestTextStyle(.caption)
+            .appTextStyle(.caption)
             .foregroundStyle(Color.Label.error)
             .fixedSize(horizontal: false, vertical: true)
             .transition(reduceMotion ? .identity : .opacity.combined(with: .scale(scale: Const.messageScale, anchor: .topLeading)))
@@ -207,7 +207,7 @@ struct LoginView: View {
     private func actionLabel(title: String, isLoading: Bool) -> some View {
         // Keep the title's layout, including Dynamic Type wrapping, while replacing its visible content.
         Text(title)
-            .onestTextStyle(.appText, weight: .semibold)
+            .appTextStyle(.appText, weight: .semibold)
             .hidden()
             .frame(maxWidth: .infinity, minHeight: Const.buttonContentHeight)
             .overlay {
@@ -219,7 +219,7 @@ struct LoginView: View {
                             .transition(stateTransition)
                     } else {
                         Text(title)
-                            .onestTextStyle(.appText, weight: .semibold)
+                            .appTextStyle(.appText, weight: .semibold)
                             .transition(stateTransition)
                     }
                 }
@@ -233,7 +233,7 @@ struct LoginView: View {
             // TODO: Open the terms URL when it is available.
         } label: {
             Text(Texts.Profile.Main.terms)
-                .onestTextStyle(.caption)
+                .appTextStyle(.caption)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, minHeight: Const.linkHeight)
@@ -327,7 +327,7 @@ private struct LoginSuccessConfirmation: View {
 
     var body: some View {
         Text(isVisible ? Texts.Authentication.successTitle : "")
-            .onestTextStyle(.title)
+            .appTextStyle(.title)
             .foregroundStyle(Color.accentColor)
             .multilineTextAlignment(.center)
             .lineLimit(Const.lineLimit)

@@ -1,17 +1,19 @@
 import SwiftUI
 
-struct HomeProductDetailView: View {
+struct ProductDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var path: [String] = []
-    let product: HomeProduct
-    @ObservedObject var viewModel: HomeViewModel
+    let product: Product
+    let relatedProducts: [Product]
+    let selection: ProductSelection
+    var showsPricePrefix = true
 
     var body: some View {
         NavigationStack(path: $path) {
             productPage(for: product)
                 .toolbar { dismissToolbar }
                 .navigationDestination(for: String.self) { productID in
-                    if let product = viewModel.product(for: productID) {
+                    if let product = ([product] + relatedProducts).first(where: { $0.id == productID }) {
                         productPage(for: product)
                     }
                 }
@@ -23,8 +25,9 @@ struct HomeProductDetailView: View {
 
     // MARK: - Navigation
 
-    private func productPage(for product: HomeProduct) -> some View {
-        HomeProductDetailPage(product: product, viewModel: viewModel) { alternative in
+    private func productPage(for product: Product) -> some View {
+        ProductDetailPage(product: product, relatedProducts: [self.product] + relatedProducts,
+                          selection: selection, showsPricePrefix: showsPricePrefix) { alternative in
             path.append(alternative.id)
         }
     }
@@ -37,10 +40,10 @@ struct HomeProductDetailView: View {
 
     private var dismissButton: some View {
         Button { dismiss() } label: {
-            Label { Text(Texts.Home.Product.close) } icon: { Image.System.xmark }
+            Label { Text(Texts.Product.close) } icon: { Image.System.xmark }
         }
         .tint(Color.Label.primary)
-        .accessibilityIdentifier(AccessibilityID.Home.ProductDetail.close)
+        .accessibilityIdentifier(AccessibilityID.Product.Detail.close)
     }
 
     private enum Const {
@@ -48,14 +51,16 @@ struct HomeProductDetailView: View {
     }
 }
 
-private struct HomeProductDetailPage: View {
+private struct ProductDetailPage: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
     @Environment(\.verticalSizeClass) private var verticalSizeClass
 
-    let product: HomeProduct
-    @ObservedObject var viewModel: HomeViewModel
-    let selectProduct: (HomeProduct) -> Void
+    let product: Product
+    let relatedProducts: [Product]
+    @ObservedObject var selection: ProductSelection
+    let showsPricePrefix: Bool
+    let selectProduct: (Product) -> Void
 
     var body: some View {
         productList
@@ -76,7 +81,7 @@ private struct HomeProductDetailPage: View {
                     offerRow(offer)
                 }
                 if !alternatives.isEmpty {
-                    sectionHeading(Texts.Home.Product.alternatives)
+                    sectionHeading(Texts.Product.alternatives)
                         .padding(.top, Const.sectionSpacing - Const.rowSpacing)
                     alternativeProducts
                         .padding(.bottom, Const.contentInset)
@@ -117,13 +122,13 @@ private struct HomeProductDetailPage: View {
 
     private var priceSummary: some View {
         VStack(alignment: .leading, spacing: .zero) {
-            if let price = product.lowestPrice {
-                HomePriceLabel(price: price)
-                    .onestTextStyle(size: Const.priceFontSize, lineHeight: Const.priceLineHeight,
+            if let offer = product.lowestOffer {
+                ProductPriceLabel(price: offer.price, currency: offer.currency, showsPrefix: showsPricePrefix)
+                    .appTextStyle(size: Const.priceFontSize, lineHeight: Const.priceLineHeight,
                                    weight: .bold, relativeTo: .title)
             }
-            Text(Texts.Home.Product.inStores(product.offers.count))
-                .onestTextStyle(size: Const.subtitleFontSize, lineHeight: Const.subtitleLineHeight, relativeTo: .subheadline)
+            Text(Texts.Product.inStores(product.offers.count))
+                .appTextStyle(size: Const.subtitleFontSize, lineHeight: Const.subtitleLineHeight, relativeTo: .subheadline)
                 .foregroundStyle(Color.Label.secondary)
         }
     }
@@ -131,19 +136,19 @@ private struct HomeProductDetailPage: View {
     // MARK: - Stores
 
     private var offersHeading: some View {
-        sectionHeading(Texts.Home.Product.availableNearby)
+        sectionHeading(Texts.Product.availableNearby)
             .padding(.bottom, Const.headingBottomInset)
     }
 
     private func sectionHeading(_ title: String) -> some View {
         Text(title)
-            .onestTextStyle(size: Const.sectionFontSize, lineHeight: Const.sectionLineHeight,
+            .appTextStyle(size: Const.sectionFontSize, lineHeight: Const.sectionLineHeight,
                            weight: .semibold, relativeTo: .title3)
             .foregroundStyle(Color.Label.primary)
             .accessibilityAddTraits(.isHeader)
     }
 
-    private func offerRow(_ offer: HomeStoreOffer) -> some View {
+    private func offerRow(_ offer: ProductOffer) -> some View {
         HStack(spacing: Const.storeSpacing) {
             storeIcon
             ViewThatFits(in: .horizontal) {
@@ -164,42 +169,44 @@ private struct HomeProductDetailPage: View {
     }
 
     private var storeIcon: some View {
-        Image.Home.storeIcon
-            .foregroundStyle(Color.Background.placeholder)
+        StoreLogoPlaceholder()
             .frame(width: Const.storeSize, height: Const.storeSize)
-            .shimmer()
-            .accessibilityHidden(true)
     }
 
-    private func storeSummary(_ offer: HomeStoreOffer) -> some View {
+    private func storeSummary(_ offer: ProductOffer) -> some View {
         VStack(alignment: .leading, spacing: Const.storeTextSpacing) {
             Text(offer.name)
-                .onestTextStyle(size: Const.storeFontSize, lineHeight: Const.storeLineHeight,
+                .appTextStyle(size: Const.storeFontSize, lineHeight: Const.storeLineHeight,
                                weight: .semibold, relativeTo: .headline)
-            Text(Texts.Search.inStock + " · " + offer.distance.formatted(
-                .measurement(width: .abbreviated, usage: .asProvided).locale(locale)))
-                .onestTextStyle(size: Const.availabilityFontSize, lineHeight: Const.availabilityLineHeight, relativeTo: .caption)
+            Text(offerSubtitle(offer))
+                .appTextStyle(size: Const.availabilityFontSize, lineHeight: Const.availabilityLineHeight, relativeTo: .caption)
                 .foregroundStyle(Color.Label.secondary)
         }
     }
 
-    private func storePrice(_ offer: HomeStoreOffer) -> some View {
-        Text(offer.price, format: .currency(code: "RUB").precision(.fractionLength(0)))
-            .onestTextStyle(size: Const.storeFontSize, lineHeight: Const.storeLineHeight,
+    private func offerSubtitle(_ offer: ProductOffer) -> String {
+        let availability = offer.inStock.map { $0 ? Texts.Product.inStock : Texts.Product.outOfStock }
+        let distance = offer.distance?.formatted(.measurement(width: .abbreviated, usage: .asProvided).locale(locale))
+        return [availability, distance].compactMap { $0 }.joined(separator: " · ")
+    }
+
+    private func storePrice(_ offer: ProductOffer) -> some View {
+        Text(offer.price, format: .currency(code: offer.currency).precision(.fractionLength(0...2)))
+            .appTextStyle(size: Const.storeFontSize, lineHeight: Const.storeLineHeight,
                            weight: .semibold, relativeTo: .headline)
             .fixedSize(horizontal: true, vertical: false)
     }
 
     // MARK: - Alternatives
 
-    private var alternatives: [HomeProduct] {
-        viewModel.alternatives(for: product.id)
+    private var alternatives: [Product] {
+        relatedProducts.filter { $0.id != product.id }
     }
 
     private var alternativeProducts: some View {
         LazyVGrid(columns: alternativeColumns, alignment: .leading, spacing: Const.contentInset) {
             ForEach(alternatives) { alternative in
-                HomeProductCard(product: alternative, quantity: quantityBinding(for: alternative.id)) {
+                ProductCard(product: alternative, showsPricePrefix: showsPricePrefix, quantity: quantityBinding(for: alternative.id)) {
                     selectProduct(alternative)
                 }
             }
@@ -216,7 +223,7 @@ private struct HomeProductDetailPage: View {
     // MARK: - Bottom Action
 
     private var bottomActions: some View {
-        HomeProductActions(productName: product.name, quantity: quantityBinding(for: product.id))
+        ProductActions(productName: product.name, quantity: quantityBinding(for: product.id))
             .padding(.horizontal, Const.footerHorizontalInset)
             .padding(.top, Const.rowSpacing)
             .padding(.bottom, Const.footerBottomInset)
@@ -224,8 +231,8 @@ private struct HomeProductDetailPage: View {
 
     private func quantityBinding(for productID: String) -> Binding<Int> {
         Binding(
-            get: { viewModel.quantity(for: productID) },
-            set: { viewModel.setQuantity($0, for: productID) }
+            get: { selection.quantity(for: productID) },
+            set: { selection.setQuantity($0, for: productID) }
         )
     }
 
@@ -259,13 +266,26 @@ private struct HomeProductDetailPage: View {
 }
 
 #Preview("Product") {
-    @Previewable @StateObject var viewModel = HomeViewModel()
-    HomeProductDetailView(product: HomeMockData.products[0], viewModel: viewModel)
+    @Previewable @StateObject var selection = ProductSelection()
+    ProductDetailView(product: ProductMockData.products[0],
+                      relatedProducts: ProductMockData.alternatives(for: ProductMockData.products[0].id), selection: selection)
 }
 
 #Preview("Product — dark, large text") {
-    @Previewable @StateObject var viewModel = HomeViewModel()
-    HomeProductDetailView(product: HomeMockData.products[0], viewModel: viewModel)
+    @Previewable @StateObject var selection = ProductSelection()
+    ProductDetailView(product: ProductMockData.products[0],
+                      relatedProducts: ProductMockData.alternatives(for: ProductMockData.products[0].id), selection: selection)
         .preferredColorScheme(.dark)
         .dynamicTypeSize(.accessibility3)
+}
+
+#Preview("Product — specific store") {
+    @Previewable @StateObject var selection = ProductSelection()
+    let products = ProductMockData.productGroups[0].map { product in
+        var scoped = product
+        scoped.offers = Array(product.offers.prefix(1))
+        return scoped
+    }
+    ProductDetailView(product: products[0], relatedProducts: Array(products.dropFirst()),
+                      selection: selection, showsPricePrefix: false)
 }
