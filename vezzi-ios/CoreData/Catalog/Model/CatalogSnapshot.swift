@@ -85,14 +85,29 @@ nonisolated struct CatalogSnapshot: Sendable {
             }
         }.prefix(CatalogSearch.resultLimit)
 
-        return matches.map { product in
-            let availableOffers = (offerIDsByProduct[product.id] ?? []).compactMap { id -> CachedOffer? in
-                guard let record = offers[id], let store = stores[record.offer.storeID], store.isActive else { return nil }
-                return CachedOffer(offer: record.offer, store: store, cachedAt: record.cachedAt)
+        return matches.map(item)
+    }
+
+    func relatedItems(to productID: String, storeID: String? = nil) -> [CatalogItem] {
+        guard let product = products[productID] else { return [] }
+        let candidates = sortedProductIDs.lazy.compactMap { products[$0] }
+            .filter { $0.id != productID && $0.groupID == product.groupID }
+            .map(item)
+            .filter { item in
+                guard let storeID else { return true }
+                return item.offers.contains { $0.store.id == storeID && $0.offer.inStock != false }
             }
-            .sorted { $0.store.name == $1.store.name ? $0.id < $1.id : $0.store.name < $1.store.name }
-            return CatalogItem(product: product, offers: availableOffers)
+            .prefix(CatalogSearch.resultLimit)
+        return Array(candidates)
+    }
+
+    private func item(for product: CatalogProduct) -> CatalogItem {
+        let availableOffers = (offerIDsByProduct[product.id] ?? []).compactMap { id -> CachedOffer? in
+            guard let record = offers[id], let store = stores[record.offer.storeID], store.isActive else { return nil }
+            return CachedOffer(offer: record.offer, store: store, cachedAt: record.cachedAt)
         }
+        .sorted { $0.store.name == $1.store.name ? $0.id < $1.id : $0.store.name < $1.store.name }
+        return CatalogItem(product: product, offers: availableOffers)
     }
 
     private mutating func sortProducts() {

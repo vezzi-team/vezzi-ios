@@ -8,6 +8,10 @@ protocol CatalogRepository: AnyObject {
 
     /// Each subscription owns its query. Results are delivered on the main queue.
     func observeProducts(matching query: String) -> AnyPublisher<[CatalogItem], Never>
+    /// Matches the product's group across the catalog, independently of text search.
+    /// A store scope includes only items with an offer not marked out of stock at that active store.
+    /// Excludes the product itself and returns at most CatalogSearch.resultLimit items on the main queue.
+    func observeRelatedProducts(to productID: String, storeID: String?) -> AnyPublisher<[CatalogItem], Never>
     /// Accepts session changes. Optional cache writes are not a durability guarantee.
     func importCatalog(_ batch: CatalogImport) async throws
     func refresh() async throws

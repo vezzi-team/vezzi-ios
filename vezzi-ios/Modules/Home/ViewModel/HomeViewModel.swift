@@ -2,46 +2,54 @@ import Combine
 
 @MainActor
 final class HomeViewModel: ObservableObject {
-    let products = HomeMockData.products
+    let products = ProductMockData.products
     @Published var selectedAddress = HomeAddress.home
-    @Published var selectedCategory: HomeProductCategory?
-    @Published private(set) var quantities: [String: Int] = [:]
+    @Published var selectedCategory: ProductCategory?
+    let selection: ProductSelection
+    private var selectionSubscription: AnyCancellable?
+
+    init(selection: ProductSelection? = nil) {
+        let selection = selection ?? ProductSelection()
+        self.selection = selection
+        selectionSubscription = selection.objectWillChange.sink { [weak self] in
+            self?.objectWillChange.send()
+        }
+    }
 
     nonisolated deinit {}
 
-    static let quantityRange = 0...99
+    var quantities: [String: Int] { selection.quantities }
 
-    var filteredProducts: [HomeProduct] {
+    var filteredProducts: [Product] {
         products(in: selectedCategory)
     }
 
     var hasDinnerProducts: Bool {
-        HomeMockData.dinnerProductIDs.allSatisfy { quantity(for: $0) > 0 }
+        ProductMockData.dinnerProductIDs.allSatisfy { quantity(for: $0) > 0 }
     }
 
-    func quantity(for productID: String) -> Int { quantities[productID, default: 0] }
+    func quantity(for productID: String) -> Int { selection.quantity(for: productID) }
 
-    func product(for productID: String) -> HomeProduct? {
-        HomeMockData.product(for: productID)
+    func product(for productID: String) -> Product? {
+        ProductMockData.product(for: productID)
     }
 
-    func alternatives(for productID: String) -> [HomeProduct] {
-        HomeMockData.alternatives(for: productID)
+    func alternatives(for productID: String) -> [Product] {
+        ProductMockData.alternatives(for: productID)
     }
 
-    func products(in category: HomeProductCategory?) -> [HomeProduct] {
+    func products(in category: ProductCategory?) -> [Product] {
         guard let category else { return products }
         return products.filter { $0.category == category }
     }
 
     func setQuantity(_ quantity: Int, for productID: String) {
-        guard HomeMockData.productIDs.contains(productID) else { return }
-        let value = min(max(quantity, Self.quantityRange.lowerBound), Self.quantityRange.upperBound)
-        quantities[productID] = value == 0 ? nil : value
+        guard ProductMockData.productIDs.contains(productID) else { return }
+        selection.setQuantity(quantity, for: productID)
     }
 
     func addDinnerProducts() {
-        for productID in HomeMockData.dinnerProductIDs where quantity(for: productID) == 0 {
+        for productID in ProductMockData.dinnerProductIDs where quantity(for: productID) == 0 {
             setQuantity(1, for: productID)
         }
     }

@@ -14,16 +14,18 @@ enum AccessibilityID {
                 "home.filter.\(id)"
             }
         }
+    }
 
-        static func product(_ id: String) -> String {
+    enum Product {
+        static func card(_ id: String) -> String {
             "home.product.\(id)"
         }
 
-        static func productQuantity(_ id: String) -> String {
+        static func quantity(_ id: String) -> String {
             "home.product.quantity.\(id)"
         }
 
-        enum ProductDetail {
+        enum Detail {
             static let close = "home.product.close"
             static let add = "home.product.add"
             static let decrease = "home.product.decrease"
@@ -45,6 +47,15 @@ enum AccessibilityID {
                 "home.quantity.increase.\(productID)"
             }
         }
+    }
+
+    enum Search {
+        static let mode = "search.mode"
+        static let cancel = "search.cancel"
+        static let results = "search.results"
+        static let empty = "search.empty"
+
+        static func section(_ id: String) -> String { "search.section.\(id)" }
     }
 
     enum Authentication {

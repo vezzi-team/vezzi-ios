@@ -2,7 +2,7 @@ import SwiftUI
 
 struct HomeCategoryFilterBar: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Binding var selectedCategory: HomeProductCategory?
+    @Binding var selectedCategory: ProductCategory?
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -24,7 +24,7 @@ struct HomeCategoryFilterBar: View {
         GlassEffectContainer(spacing: Const.spacing) {
             HStack(spacing: Const.spacing) {
                 filterButton(for: nil, scrollProxy: scrollProxy)
-                ForEach(HomeProductCategory.allCases) { category in
+                ForEach(ProductCategory.allCases) { category in
                     filterButton(for: category, scrollProxy: scrollProxy)
                 }
             }
@@ -33,7 +33,7 @@ struct HomeCategoryFilterBar: View {
         .animation(selectionAnimation, value: selectedCategory)
     }
 
-    private func filterButton(for category: HomeProductCategory?, scrollProxy: ScrollViewProxy) -> some View {
+    private func filterButton(for category: ProductCategory?, scrollProxy: ScrollViewProxy) -> some View {
         let isSelected = selectedCategory == category
         return Button {
             if isSelected {
@@ -53,7 +53,7 @@ struct HomeCategoryFilterBar: View {
         .id(filterID(category))
     }
 
-    private func filterLabel(for category: HomeProductCategory?, isSelected: Bool) -> some View {
+    private func filterLabel(for category: ProductCategory?, isSelected: Bool) -> some View {
         ZStack {
             Text(title(for: category))
                 .appTextStyle(size: Const.fontSize, lineHeight: Const.lineHeight,
@@ -71,13 +71,13 @@ struct HomeCategoryFilterBar: View {
 
     // MARK: - Presentation
 
-    private func center(_ category: HomeProductCategory?, using proxy: ScrollViewProxy) {
+    private func center(_ category: ProductCategory?, using proxy: ScrollViewProxy) {
         withAnimation(selectionAnimation) {
             proxy.scrollTo(filterID(category), anchor: .center)
         }
     }
 
-    private func title(for category: HomeProductCategory?) -> String {
+    private func title(for category: ProductCategory?) -> String {
         switch category {
         case nil: Texts.Home.Main.forYou
         case .dairy: Texts.Home.Filters.dairy
@@ -88,7 +88,7 @@ struct HomeCategoryFilterBar: View {
         }
     }
 
-    private func filterID(_ category: HomeProductCategory?) -> String {
+    private func filterID(_ category: ProductCategory?) -> String {
         category?.rawValue ?? Const.allID
     }
 
@@ -110,7 +110,7 @@ struct HomeCategoryFilterBar: View {
 }
 
 #Preview("Filters — light") {
-    @Previewable @State var selectedCategory: HomeProductCategory?
+    @Previewable @State var selectedCategory: ProductCategory?
     HomeCategoryFilterBar(selectedCategory: $selectedCategory)
         .padding(.vertical)
         .background(Color.Background.primary)
@@ -118,7 +118,7 @@ struct HomeCategoryFilterBar: View {
 }
 
 #Preview("Filters — dark, large text") {
-    @Previewable @State var selectedCategory: HomeProductCategory? = .produce
+    @Previewable @State var selectedCategory: ProductCategory? = .produce
     HomeCategoryFilterBar(selectedCategory: $selectedCategory)
         .padding(.vertical)
         .background(Color.Background.primary)

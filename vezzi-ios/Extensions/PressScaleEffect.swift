@@ -46,8 +46,9 @@ private struct PressTrackingButtonStyle: ButtonStyle {
     }
 }
 
-/// Observes touches without recognizing an action or preventing the button's gestures.
-private struct TouchDownObserver: UIGestureRecognizerRepresentable {
+/// Shared by press feedback and native controls that need passive touch observation.
+/// Never recognizes an action or prevents the control's own gestures.
+struct TouchDownObserver: UIGestureRecognizerRepresentable {
     let onPressChanged: (Bool) -> Void
 
     func makeUIGestureRecognizer(context: Context) -> TouchDownRecognizer {
@@ -64,7 +65,7 @@ private struct TouchDownObserver: UIGestureRecognizerRepresentable {
     }
 }
 
-private final class TouchDownRecognizer: UIGestureRecognizer {
+final class TouchDownRecognizer: UIGestureRecognizer {
     var onPressChanged: ((Bool) -> Void)?
     private var origin: CGPoint?
     private var isPressed = false

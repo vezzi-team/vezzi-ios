@@ -4,6 +4,7 @@ import Foundation
 @MainActor
 final class AppDependencies: ObservableObject {
     let catalog: any CatalogRepository
+    let searchCatalog: any CatalogRepository
     let authentication: AuthenticationSession
 
     convenience init() {
@@ -16,6 +17,7 @@ final class AppDependencies: ObservableObject {
         authenticationService: any AuthenticationService = DefaultAuthenticationService()
     ) {
         catalog = DefaultCatalogRepository(cache: cache, source: source)
+        searchCatalog = MockSearchRepository()
         authentication = AuthenticationSession(service: authenticationService, startsRestoring: true)
     }
 

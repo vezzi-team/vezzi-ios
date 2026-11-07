@@ -1,8 +1,10 @@
 import SwiftUI
 
-struct HomeProductCard: View {
+struct ProductCard: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    let product: HomeProduct
+    let product: Product
+    var showsStoreBadges = true
+    var showsPricePrefix = true
     @Binding var quantity: Int
     let open: () -> Void
 
@@ -34,7 +36,7 @@ struct HomeProductCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(.rect)
         }
-        .accessibilityIdentifier(AccessibilityID.Home.product(product.id))
+        .accessibilityIdentifier(AccessibilityID.Product.card(product.id))
     }
 
     private var artwork: some View {
@@ -48,8 +50,8 @@ struct HomeProductCard: View {
     private var productInfo: some View {
         VStack(alignment: .leading, spacing: .zero) {
             nameAndPackage
-            if let price = product.lowestPrice {
-                HomePriceLabel(price: price)
+            if let offer = product.lowestOffer {
+                ProductPriceLabel(price: offer.price, currency: offer.currency, showsPrefix: showsPricePrefix)
                     .appTextStyle(size: Const.priceFontSize, lineHeight: Const.priceLineHeight,
                                    weight: .semibold, relativeTo: .headline)
             }
@@ -96,8 +98,9 @@ struct HomeProductCard: View {
             .allowsHitTesting(false)
             .overlay(alignment: .bottom) {
                 HStack(alignment: .bottom, spacing: Const.controlsSpacing) {
-                    storeBadges
-                        .padding(.bottom, Const.storeBottomInset)
+                    if showsStoreBadges {
+                        storeBadges.padding(.bottom, Const.storeBottomInset)
+                    }
                     Spacer(minLength: .zero)
                     quantityControl
                         .layoutPriority(1)
@@ -109,7 +112,7 @@ struct HomeProductCard: View {
 
     private var accessibleControls: some View {
         VStack(alignment: .leading, spacing: Const.controlsSpacing) {
-            storeBadges
+            if showsStoreBadges { storeBadges }
             quantityControl
         }
         .padding(.horizontal, Const.contentInset)
@@ -122,17 +125,15 @@ struct HomeProductCard: View {
             storeIcons(Array(product.offers.prefix(Const.compactStoreCount)))
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Texts.Home.Product.offeredAtStores)
+        .accessibilityLabel(Texts.Product.offeredAtStores)
         .accessibilityValue(product.offers.map(\.name).joined(separator: ", "))
     }
 
-    private func storeIcons(_ offers: [HomeStoreOffer]) -> some View {
+    private func storeIcons(_ offers: [ProductOffer]) -> some View {
         HStack(spacing: Const.storeOverlap) {
             ForEach(Array(offers.enumerated()), id: \.element.id) { index, _ in
-                Image.Home.storeAvatar
-                    .foregroundStyle(Color.Background.placeholderLighter)
+                StoreLogoPlaceholder(style: .lighter)
                     .frame(width: Const.storeSize, height: Const.storeSize)
-                    .shimmer(style: .lighter)
                     .overlay(Circle().strokeBorder(Color.Background.elevated, lineWidth: Const.borderWidth))
                     .zIndex(-Double(index))
             }
@@ -140,7 +141,7 @@ struct HomeProductCard: View {
     }
 
     private var quantityControl: some View {
-        HomeQuantityControl(productID: product.id, productName: product.name, quantity: $quantity)
+        ProductQuantityControl(productID: product.id, productName: product.name, quantity: $quantity)
             .buttonStyle(.plain)
     }
 
@@ -173,13 +174,15 @@ struct HomeProductCard: View {
     }
 }
 
-struct HomePriceLabel: View {
+struct ProductPriceLabel: View {
     let price: Decimal
+    var currency = "RUB"
+    var showsPrefix = true
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Const.spacing) {
-            Text(Texts.Home.Product.priceFrom)
-            Text(price, format: .currency(code: "RUB").precision(.fractionLength(0)))
+            if showsPrefix { Text(Texts.Product.priceFrom) }
+            Text(price, format: .currency(code: currency).precision(.fractionLength(0...2)))
         }
         .foregroundStyle(Color.Label.primary)
         .accessibilityElement(children: .combine)
@@ -194,8 +197,8 @@ struct HomePriceLabel: View {
     @Previewable @State var milkQuantity = 1
     @Previewable @State var eggsQuantity = 0
     HStack(alignment: .top) {
-        HomeProductCard(product: HomeMockData.products[0], quantity: $milkQuantity, open: {})
-        HomeProductCard(product: HomeMockData.products[3], quantity: $eggsQuantity, open: {})
+        ProductCard(product: ProductMockData.products[0], quantity: $milkQuantity, open: {})
+        ProductCard(product: ProductMockData.products[3], quantity: $eggsQuantity, open: {})
     }
     .fixedSize(horizontal: false, vertical: true)
     .padding()
@@ -205,7 +208,7 @@ struct HomePriceLabel: View {
 #Preview("Product labels — dark, accessibility") {
     @Previewable @State var quantity = 1
     ScrollView {
-        HomeProductCard(product: HomeMockData.products[0], quantity: $quantity, open: {})
+        ProductCard(product: ProductMockData.products[0], quantity: $quantity, open: {})
             .padding()
     }
     .preferredColorScheme(.dark)

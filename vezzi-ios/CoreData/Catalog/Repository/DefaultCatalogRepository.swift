@@ -29,9 +29,17 @@ final class DefaultCatalogRepository: CatalogRepository {
     nonisolated deinit {}
 
     func observeProducts(matching query: String) -> AnyPublisher<[CatalogItem], Never> {
+        observeItems { $0.items(matching: query) }
+    }
+
+    func observeRelatedProducts(to productID: String, storeID: String?) -> AnyPublisher<[CatalogItem], Never> {
+        observeItems { $0.relatedItems(to: productID, storeID: storeID) }
+    }
+
+    private func observeItems(_ query: @escaping @Sendable (CatalogSnapshot) -> [CatalogItem]) -> AnyPublisher<[CatalogItem], Never> {
         snapshot
             .receive(on: searchQueue)
-            .map { @Sendable in $0.items(matching: query) }
+            .map(query)
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()

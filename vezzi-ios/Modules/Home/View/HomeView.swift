@@ -1,16 +1,23 @@
 import SwiftUI
 
 struct HomeView: View {
-    @StateObject private var viewModel = HomeViewModel()
+    @StateObject private var viewModel: HomeViewModel
     @ObservedObject var authentication: AuthenticationSession
     let profileTransition: Namespace.ID
     @EnvironmentObject private var router: AppRouter
-    @State private var selectedProduct: HomeProduct?
-    @State private var displayedCategory: HomeProductCategory?
+    @State private var selectedProduct: Product?
+    @State private var displayedCategory: ProductCategory?
     @State private var isPastResultsTop = false
     @State private var filterBarHeight: CGFloat = .zero
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    init(authentication: AuthenticationSession, profileTransition: Namespace.ID,
+         selection: ProductSelection? = nil) {
+        self.authentication = authentication
+        self.profileTransition = profileTransition
+        _viewModel = StateObject(wrappedValue: HomeViewModel(selection: selection))
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -29,9 +36,9 @@ struct HomeView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { navigationToolbar }
         .sheet(item: $selectedProduct) { product in
-            HomeProductDetailView(product: product, viewModel: viewModel)
+            ProductDetailView(product: product, relatedProducts: viewModel.alternatives(for: product.id),
+                              selection: viewModel.selection)
         }
-        .sensoryFeedback(.selection, trigger: viewModel.quantities)
     }
 
     // MARK: - Content
@@ -109,7 +116,7 @@ struct HomeView: View {
     private var productGrid: some View {
         LazyVGrid(columns: columns, alignment: .leading, spacing: Const.gridSpacing) {
             ForEach(viewModel.products(in: displayedCategory)) { product in
-                HomeProductCard(product: product, quantity: quantityBinding(for: product.id)) {
+                ProductCard(product: product, quantity: quantityBinding(for: product.id)) {
                     selectedProduct = product
                 }
                 .transition(reduceMotion ? .identity : AnyTransition(.blurReplace))
