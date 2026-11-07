@@ -16,14 +16,18 @@ Paths below are relative to the repository root.
 | --- | --- |
 | `vezzi-ios/Application/VezziApp.swift` | App entry point; presents `AppLaunchView` and prepares caching independently. |
 | `vezzi-ios/Application/AppLaunchView.swift` | Keeps `AppRootView` alive beneath a temporary splash overlay. |
-| `vezzi-ios/Application/AppDependencies.swift` | Constructs shared repositories immediately and prepares optional caching. |
+| `vezzi-ios/Application/AppDependencies.swift` | Constructs shared dependencies; prepares optional caching and restores authentication independently. |
+| `vezzi-ios/Application/AuthenticationSession.swift` | App-wide observable account state, restoration, and temporary profile preferences. |
 | `vezzi-ios/Application/Localizable.xcstrings` | English and Russian interface strings. |
 | `vezzi-ios/Application/InfoPlist.xcstrings` | Localized bundle metadata, including the display name. |
 | `vezzi-ios/Application/Info.plist` | Additional plist keys merged with generated metadata; registers bundled fonts. |
 | `vezzi-ios/Router/` | Tab selection, navigation paths, root composition, and destination construction. |
 | `vezzi-ios/Modules/Demo/` | Standalone MVVM / binding example, available through previews. |
 | `vezzi-ios/Modules/Home/` | Draft product grid and detail sheet, with feature-local mock data and quantities. |
-| `vezzi-ios/Modules/Authentication/` | Mock email authentication, shared account session, login state, and reactive Moti animation. |
+| `vezzi-ios/Authentication/` | Shared authentication models, service contract and implementation, Keychain storage, and explicit preview mock. |
+| `vezzi-ios/Networking/` | URLSession transport, API configuration, JSON decoding, and safe HTTP errors. |
+| `vezzi-ios/Modules/Login/` | Login screen and its MVVM presentation state. |
+| `vezzi-ios/Components/Moti/` | Reusable mascot views, face geometry, and motion used by login and debug screens. |
 | `vezzi-ios/Modules/Profile/` | Profile overview and native editors for temporary session preferences. |
 | `vezzi-ios/Modules/Debug/` | Diagnostic screens opened from the profile's Debug section. |
 | `vezzi-ios/Modules/ShoppingList/View/` | Shopping list placeholder. |
@@ -74,7 +78,7 @@ Paths below are relative to the repository root.
 - Import batches upsert stable string IDs and save atomically. Missing records are retained. Reject duplicate IDs, invalid quantities/prices, and missing offer references. Preserve Decimal prices, currency, source timestamps, and provenance.
 - An older or undated offer must not overwrite an existing dated, newer offer; use the shared replacement rule. `StoredCatalogOffer.cachedAt` is receipt time, preserved across queueing, recovery, and disk writes. Unrelated changes must not refresh it; it is not evidence that the source price is current.
 - `PolkaV2` stores exact prices and package quantities as locale-independent decimal strings. Legacy numeric attributes remain for lightweight migration from version 1; read them only when the text field is absent. Malformed text is a cache error, not grounds to silently use a rounded number. Migration cannot reconstruct digits already lost by version 1.
-- The app starts with an empty session and restores cached catalog data when available. `CatalogSource` is the adapter boundary for a future file or API; no production source is configured yet. Sample records belong only in previews/tests. Authentication, account-specific data, and synchronization are future layers, not responsibilities of the Core Data adapter.
+- The catalog starts empty and restores cached data when available. `CatalogSource` is the adapter boundary for a future file or API; no production catalog source is configured yet. Sample catalog records belong only in previews/tests. Authentication uses separate Keychain storage; account-specific catalog data and synchronization remain future layers outside the Core Data adapter.
 - Never delete/recreate the store to recover from an opening or migration error. Continue with session data, surface cache failure without blocking the app, and allow retry. Add model versions as persistent schema changes.
 
 ## Navigation
@@ -89,12 +93,16 @@ Paths below are relative to the repository root.
 - When adding a section or destination, update the appropriate `Tab` / `Route` cases, destination factory, tab composition, and localized labels together.
 - The navigation reference was [SmartRecorder](https://github.com/WoTRemboy/SmartRecorder/tree/main/SmartRecorder/Router). The local implementation is the source of truth; there is no dependency on that repository.
 
-## Authentication and profile prototype
+## Authentication and profile
 
+- Keep authentication infrastructure in `Authentication/{Model,Service,Storage,Preview}` and HTTP transport in `Networking`. `Application/AuthenticationSession.swift` coordinates app-wide observable state; `Modules/Login` owns form presentation. Infrastructure must not depend on screen modules or SwiftUI. The reusable mascot belongs to `Components/Moti`.
 - `AppDependencies` owns one `AuthenticationSession`, injected through root composition and `DestinationFactory`. Guest profile taps present the router's authentication sheet; authenticated taps push the profile on Home's path. Successful login only dismisses the sheet and preserves the current screen; open the profile only on an explicit profile tap. Signing out returns Home to its root.
-- `AuthenticationService` is a temporary adapter boundary. Login validates an email and a nonempty password; the mock accepts both for sign-in or registration after a cancellable delay. Do not trim passwords or persist them in the session/cache. Clear the pending request and password on cancellation or successful completion. There is no Apple sign-in, email verification, token storage, or persistent login yet. Replace the mock when the backend contract is defined; never treat this prototype as real authentication.
+- Production injects `DefaultAuthenticationService`, an actor using `APIClient` and `KeychainSessionStore`, against `https://vezzi.vps.webdock.cloud/api/v1/`. Previews explicitly use `AuthenticationSession.preview()`; mocks never select the production backend. Requests follow `/openapi.json`: registration accepts 8–128 Unicode scalars, login 1–128. Never trim passwords or persist/log credentials or response bodies; validation errors may echo the input. Profile preferences remain temporary local values.
+- Store tokens, expiry and the minimal user snapshot as one Keychain item with `WhenUnlockedThisDeviceOnly`. Restore independently of splash/cache preparation and revalidate on foregrounding. Retain cached users on ordinary offline/5xx failures. Report storage failures; do not pretend local logout succeeded when deletion fails.
+- Reject cancelled or server-invalid sessions in memory before attempting Keychain cleanup. A UUID-only invalidation file prevents restoration across launches if deletion fails; never store credentials there. Retry cleanup on subsequent access. A successful new commit replaces the old record and cancels its pending cleanup; late discards must neither delete the new session nor invalidate a newer sign-in attempt's generation. `sessionCleanupFailed` clears the UI account, unlike an ordinary storage error.
+- One shared refresh task owns rotation. Refresh tokens are single-use; persist a pending marker before sending and replace the pair atomically afterward. An interrupted exchange, ambiguous transport failure or malformed/5xx refresh response requires sign-in, never replay of the old token. Definite pre-connection failures and rate limits preserve the session. Keep a rotated pair in memory if persistence fails and retry storage before further requests. Future authorized requests must reuse this owner; `/users/me` currently retries one 401 after refresh. Fence stale replies across logout/account changes and revoke known abandoned grants best effort.
 - Login animates validation messages, loading indicators, and the success confirmation; honor Reduce Motion. Disable both action buttons while busy; replace the active title with a spinner without changing its layout size. Its terms link scrolls below the buttons, hides on success, and intentionally has no destination yet. The authentication sheet uses a native zoom transition from Home's profile toolbar item; `AppRootView` owns the shared namespace, passed through `DestinationFactory` to `HomeView`, outside router state.
-- `LoginViewModel` validates input and owns request state. The view's `.task(id:)` owns the async lifetime; check cancellation and request identity before publishing success or committing the session. Closing the sheet must never cause a late login or navigation. Keep profile preferences in memory and separate from catalog storage.
+- `LoginViewModel` validates input and owns request state. The view's `.task(id:)` owns the attempt. Receive a provisional grant, check request identity/cancellation, then persist and publish the accepted session before showing success. Closing an unfinished attempt discards its grant; closing the success animation keeps the already committed account. Dismiss on `didComplete`, without pushing the profile. Passwords and pending requests are cleared on cancellation/completion. Native haptics follow success/error transitions; tapping outside fields clears focus.
 - The login mascot uses `MotiFaceGeometry`, authored `MotiMotion` gestures, and Core Animation in `MotiAnimationView`. Morph from current presentation paths/opacity/transforms before replacing animations, so interruptions remain continuous. Preserve matching Bézier topology and loop endpoints. Stop on inactive scenes, Reduce Motion, and removal from the window. Original artwork lives in `Documentation/Design/Moti`; only the yarn image is bundled in Assets. The splash still uses Lottie.
 - Profile's Debug section opens `MotiDebugView` through the shared router. It uses the same mascot as login, with local emotion selection, a no-motion toggle, and a cancellable rapid-transition sequence. The toggle can disable animation but cannot override system Reduce Motion. Debug controls do not change authentication state.
 
@@ -147,6 +155,7 @@ plutil -lint vezzi-ios.xcodeproj/project.pbxproj
 ```
 
 - The shared `vezzi-ios` scheme includes the `vezzi-iosTests` target. Run `xcodebuild -project vezzi-ios.xcodeproj -scheme vezzi-ios -destination 'platform=iOS Simulator,id=<discovered UUID>' -derivedDataPath /tmp/vezzi-ios-derived-data CODE_SIGNING_ALLOWED=NO test` with Xcode 27+. There is no formatter configuration.
+- Authentication tests use URLProtocol stubs for requests, cancellation, concurrent refresh, rotation recovery and storage failures. The actual Keychain round-trip test needs a signed app-hosted simulator run (`CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-`); unsigned runs skip it only for `errSecMissingEntitlement`. Never use real accounts or print tokens in automated tests.
 - Keep tests for atomic import, duplicate prevention, indexed queries and linked-data updates, independent errors, coalesced writes/recovery, exact Decimal round trips through SQLite, migration from version 1, and operation with an absent, slow, or failing cache. A build is not a test run.
 - For navigation changes, check all four tabs, separate search presentation, and independent histories.
 - For UI changes, inspect relevant light/dark and English/Russian states. Check large text and compact layouts when the change affects sizing.

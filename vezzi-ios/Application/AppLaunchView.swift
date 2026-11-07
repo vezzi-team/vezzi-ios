@@ -62,10 +62,10 @@ struct AppLaunchView: View {
 }
 
 #Preview("Launch") {
-    AppLaunchView(catalog: PreviewCatalogRepository(), authentication: AuthenticationSession())
+    AppLaunchView(catalog: PreviewCatalogRepository(), authentication: AuthenticationSession.preview())
 }
 
 #Preview("Launch — dark") {
-    AppLaunchView(catalog: PreviewCatalogRepository(), authentication: AuthenticationSession())
+    AppLaunchView(catalog: PreviewCatalogRepository(), authentication: AuthenticationSession.preview())
         .preferredColorScheme(.dark)
 }

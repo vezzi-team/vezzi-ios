@@ -13,15 +13,17 @@ final class AppDependencies: ObservableObject {
     init(
         cache: (any CatalogCache)?,
         source: (any CatalogSource)? = nil,
-        authenticationService: any AuthenticationService = MockAuthenticationService()
+        authenticationService: any AuthenticationService = DefaultAuthenticationService()
     ) {
         catalog = DefaultCatalogRepository(cache: cache, source: source)
-        authentication = AuthenticationSession(service: authenticationService)
+        authentication = AuthenticationSession(service: authenticationService, startsRestoring: true)
     }
 
     nonisolated deinit {}
 
     func load() async {
-        await catalog.prepareCache()
+        async let cache: Void = catalog.prepareCache()
+        async let session: Void = authentication.restore()
+        _ = await (cache, session)
     }
 }

@@ -148,6 +148,7 @@ struct HomeView: View {
                 Label { Text(Texts.Profile.Main.title) } icon: { Image.System.person }
             }
             .tint(Color.Label.primary)
+            .disabled(authentication.isRestoring || authentication.isSigningOut)
             .accessibilityIdentifier(AccessibilityID.Home.profile)
         }
         .matchedTransitionSource(id: AppRouter.Sheet.authentication, in: profileTransition)
@@ -269,7 +270,7 @@ struct HomeView: View {
 #Preview("Home — light") {
     @Previewable @Namespace var profileTransition
     NavigationStack {
-        HomeView(authentication: AuthenticationSession(), profileTransition: profileTransition)
+        HomeView(authentication: AuthenticationSession.preview(), profileTransition: profileTransition)
             .environmentObject(AppRouter())
     }
         .preferredColorScheme(.light)
@@ -278,7 +279,7 @@ struct HomeView: View {
 #Preview("Home — dark, large text") {
     @Previewable @Namespace var profileTransition
     NavigationStack {
-        HomeView(authentication: AuthenticationSession(), profileTransition: profileTransition)
+        HomeView(authentication: AuthenticationSession.preview(), profileTransition: profileTransition)
             .environmentObject(AppRouter())
     }
         .preferredColorScheme(.dark)

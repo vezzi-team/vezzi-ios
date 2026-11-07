@@ -52,10 +52,10 @@ struct LoginView: View {
             await viewModel.authenticate(using: session,
                                          successDuration: reduceMotion ? .zero : Const.successDuration)
         }
-        .onChange(of: session.user) { _, user in
-            if user != nil { dismiss() }
+        .onChange(of: viewModel.didComplete) { _, didComplete in
+            if didComplete { dismiss() }
         }
-        .onDisappear { viewModel.cancel() }
+        .onDisappear { viewModel.cancel(using: session) }
     }
 
     // MARK: - Hero
@@ -110,23 +110,23 @@ struct LoginView: View {
 
     private var formContent: some View {
         ZStack(alignment: .top) {
-            if viewModel.phase == .success {
-                successConfirmation
-                    .transition(stateTransition)
-            } else {
+            if viewModel.phase != .success {
                 form
                     .transition(stateTransition)
             }
+            // Keep Text alive so numericText can animate its content when authentication succeeds.
+            LoginSuccessConfirmation(isVisible: viewModel.phase == .success)
         }
     }
 
     private var form: some View {
         VStack(alignment: .leading, spacing: Const.formSpacing) {
+            if viewModel.phase == .idle, let error = session.lastError {
+                errorMessage(error.message)
+            }
             emailField
             passwordField
-            if viewModel.phase == .failure(.unavailable) {
-                errorMessage(Texts.Authentication.unavailable)
-            }
+            if let error = viewModel.formError { errorMessage(error) }
             signInButton
             registerButton
         }
@@ -134,7 +134,7 @@ struct LoginView: View {
 
     private var emailField: some View {
         inputField(title: Texts.Authentication.email,
-                   error: viewModel.phase == .failure(.invalidEmail) ? Texts.Authentication.invalidEmail : nil) {
+                   error: viewModel.emailError) {
             TextField(Texts.Authentication.emailPlaceholder, text: $viewModel.email)
                 .textContentType(.emailAddress)
                 .keyboardType(.emailAddress)
@@ -149,7 +149,7 @@ struct LoginView: View {
 
     private var passwordField: some View {
         inputField(title: Texts.Authentication.password,
-                   error: viewModel.phase == .failure(.missingPassword) ? Texts.Authentication.missingPassword : nil) {
+                   error: viewModel.passwordError) {
             SecureField(Texts.Authentication.passwordPlaceholder, text: $viewModel.password)
                 .textContentType(.password)
                 .submitLabel(.go)
@@ -164,6 +164,7 @@ struct LoginView: View {
         VStack(alignment: .leading, spacing: Const.fieldSpacing) {
             Text(title)
                 .onestTextStyle(.caption, weight: .semibold)
+                .fixedSize(horizontal: false, vertical: true)
             input()
                 .onestTextStyle(.appText)
                 .padding(.horizontal, Const.fieldInset)
@@ -226,16 +227,6 @@ struct LoginView: View {
             .accessibilityHidden(true)
     }
 
-    private var successConfirmation: some View {
-        Label { Text(Texts.Authentication.signedIn) } icon: { Image.System.checkmarkCircle }
-            .onestTextStyle(.appText, weight: .semibold)
-            .foregroundStyle(Color.accentColor)
-            .frame(maxWidth: .infinity)
-            .padding(Const.sectionSpacing)
-            .background(Color.Background.secondary, in: .rect(cornerRadius: Const.confirmationRadius))
-            .accessibilityIdentifier(AccessibilityID.Authentication.success)
-    }
-
     private var termsLink: some View {
         Button {
             focusedField = nil
@@ -277,7 +268,7 @@ struct LoginView: View {
     private var dismissToolbar: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
             Button {
-                viewModel.cancel()
+                viewModel.cancel(using: session)
                 dismiss()
             } label: {
                 Label { Text(Texts.Authentication.close) } icon: { Image.System.xmark }
@@ -291,8 +282,8 @@ struct LoginView: View {
         viewModel.submit(intent)
         switch viewModel.phase {
         case .loading, .success: focusedField = nil
-        case .failure(.invalidEmail): focusedField = .email
-        case .failure(.missingPassword): focusedField = .password
+        case .failure(.invalidEmail), .failure(.emailAlreadyRegistered): focusedField = .email
+        case .failure(.missingPassword), .failure(.passwordTooShort), .failure(.passwordTooLong): focusedField = .password
         default: break
         }
     }
@@ -324,19 +315,57 @@ struct LoginView: View {
         static let borderWidth: CGFloat = 1
         static let buttonContentHeight: CGFloat = 24
         static let linkHeight: CGFloat = 44
-        static let confirmationRadius: CGFloat = 16
         static let messageScale: CGFloat = 0.96
         static let animationDuration: TimeInterval = 0.26
         static let successDuration: Duration = .milliseconds(900)
     }
 }
 
+private struct LoginSuccessConfirmation: View {
+    let isVisible: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Text(isVisible ? Texts.Authentication.successTitle : "")
+            .onestTextStyle(.title)
+            .foregroundStyle(Color.accentColor)
+            .multilineTextAlignment(.center)
+            .lineLimit(Const.lineLimit)
+            .minimumScaleFactor(Const.minimumScaleFactor)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity)
+            .contentTransition(reduceMotion ? .identity : .numericText())
+            .allowsHitTesting(false)
+            .accessibilityHidden(!isVisible)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier(AccessibilityID.Authentication.success)
+    }
+
+    private enum Const {
+        static let lineLimit = 2
+        static let minimumScaleFactor: CGFloat = 0.5
+    }
+}
+
 #Preview("Login") {
-    LoginView(session: AuthenticationSession())
+    LoginView(session: AuthenticationSession.preview())
 }
 
 #Preview("Login — dark, large text") {
-    LoginView(session: AuthenticationSession())
+    LoginView(session: AuthenticationSession.preview())
         .preferredColorScheme(.dark)
         .environment(\.dynamicTypeSize, .accessibility2)
+}
+
+#Preview("Login — welcome animation") {
+    @Previewable @State var isVisible = false
+
+    VStack {
+        LoginSuccessConfirmation(isVisible: isVisible)
+        Button(Texts.Authentication.signIn) {
+            withAnimation(.smooth) { isVisible.toggle() }
+        }
+        .buttonStyle(.glassProminent)
+    }
+    .padding()
 }

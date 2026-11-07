@@ -51,7 +51,7 @@ final class LoginViewModelTests: XCTestCase {
         model.email = "moti@example.com"
         model.submit(.signIn)
         await model.authenticate(using: session, successDuration: .zero)
-        XCTAssertEqual(model.phase, .failure(.unavailable))
+        XCTAssertEqual(model.phase, .failure(.offline))
         XCTAssertNil(session.user)
 
         service.shouldFail = false
@@ -72,8 +72,8 @@ final class LoginViewModelTests: XCTestCase {
         let task = Task { await model.authenticate(using: session, successDuration: .zero) }
         await fulfillment(of: [started], timeout: 1)
 
-        model.cancel()
-        service.continuation?.resume(returning: AuthenticatedUser(email: model.email))
+        model.cancel(using: session)
+        service.continuation?.resume(returning: testGrant(email: model.email))
         await task.value
         XCTAssertNil(session.user)
         XCTAssertEqual(model.phase, .idle)
@@ -91,7 +91,7 @@ final class LoginViewModelTests: XCTestCase {
         await fulfillment(of: [started], timeout: 1)
 
         task.cancel()
-        service.continuation?.resume(returning: AuthenticatedUser(email: model.email))
+        service.continuation?.resume(returning: testGrant(email: model.email))
         await task.value
         XCTAssertNil(session.user)
         XCTAssertEqual(model.phase, .idle)
@@ -99,12 +99,12 @@ final class LoginViewModelTests: XCTestCase {
         XCTAssertNil(model.request)
     }
 
-    func testSignOutClearsAccountPreferences() {
-        let session = AuthenticationSession()
-        session.signIn(as: AuthenticatedUser(email: "moti@example.com"))
+    func testSignOutClearsAccountPreferences() async throws {
+        let session = AuthenticationSession(service: ImmediateService())
+        try await session.signIn(email: "moti@example.com", password: "password", intent: .signIn, requestID: UUID())
         session.preferences.priority = .price
         session.preferences.notificationsEnabled = false
-        session.signOut()
+        try await session.signOut()
         XCTAssertNil(session.user)
         XCTAssertEqual(session.preferences.priority, .balanced)
         XCTAssertTrue(session.preferences.notificationsEnabled)
@@ -126,7 +126,7 @@ final class LoginViewModelTests: XCTestCase {
         XCTAssertEqual(model.phase, .idle)
     }
 
-    func testCancelDuringSuccessConfirmationNeverCommitsTheAccount() async {
+    func testClosingSuccessConfirmationKeepsTheAlreadyCommittedAccount() async {
         let session = AuthenticationSession(service: ImmediateService())
         let model = LoginViewModel()
         model.email = "moti@example.com"
@@ -138,13 +138,32 @@ final class LoginViewModelTests: XCTestCase {
         }
         let task = Task { await model.authenticate(using: session, successDuration: .seconds(60)) }
         await fulfillment(of: [succeeded], timeout: 1)
-        model.cancel()
+        model.cancel(using: session)
         task.cancel()
         await task.value
         withExtendedLifetime(subscription) {}
-        XCTAssertNil(session.user)
+        XCTAssertEqual(session.user?.email, "moti@example.com")
         XCTAssertNil(model.request)
         XCTAssertTrue(model.password.isEmpty)
+    }
+
+    func testRegistrationAndLoginUseDifferentPasswordLimits() {
+        let model = LoginViewModel()
+        model.email = "moti@example.com"
+        model.password = "short"
+        model.submit(.register)
+        XCTAssertEqual(model.phase, .failure(.passwordTooShort))
+        XCTAssertNil(model.request)
+        model.submit(.signIn)
+        XCTAssertEqual(model.phase, .loading)
+        let other = LoginViewModel()
+        other.email = model.email
+        other.password = String(repeating: "a", count: 129)
+        other.submit(.signIn)
+        XCTAssertEqual(other.phase, .failure(.passwordTooLong))
+        other.password = String(repeating: "a", count: 128)
+        other.submit(.register)
+        XCTAssertEqual(other.phase, .loading)
     }
 
     func testMascotMorphsKeepMatchingPathTopologyAcrossEveryPose() throws {
@@ -192,30 +211,52 @@ final class LoginViewModelTests: XCTestCase {
 }
 
 @MainActor
-private final class ImmediateService: AuthenticationService {
+private final class ImmediateService: TestAuthenticationService {
     var intents: [AuthenticationIntent] = []
     var receivedPasswords: [String] = []
     var shouldFail = false
 
-    func authenticate(email: String, password: String, intent: AuthenticationIntent) async throws -> AuthenticatedUser {
+    @MainActor func authenticate(email: String, password: String, intent: AuthenticationIntent) async throws -> AuthenticationGrant {
         intents.append(intent)
         receivedPasswords.append(password)
         if shouldFail { throw URLError(.notConnectedToInternet) }
-        return AuthenticatedUser(email: email)
+        return testGrant(email: email)
     }
 }
 
 @MainActor
-private final class SuspendedService: AuthenticationService {
+private final class SuspendedService: TestAuthenticationService {
     let started: XCTestExpectation
-    var continuation: CheckedContinuation<AuthenticatedUser, Error>?
+    var continuation: CheckedContinuation<AuthenticationGrant, Error>?
 
     init(started: XCTestExpectation) { self.started = started }
 
-    func authenticate(email: String, password: String, intent: AuthenticationIntent) async throws -> AuthenticatedUser {
+    @MainActor func authenticate(email: String, password: String, intent: AuthenticationIntent) async throws -> AuthenticationGrant {
         try await withCheckedThrowingContinuation { continuation in
             self.continuation = continuation
             started.fulfill()
         }
     }
+}
+
+@MainActor
+private protocol TestAuthenticationService: AuthenticationService { }
+
+extension TestAuthenticationService {
+    func commit(_ grant: AuthenticationGrant) async throws -> AuthenticatedUser {
+        try Task.checkCancellation()
+        return grant.session.user
+    }
+    func discard(_ grant: AuthenticationGrant) async throws { }
+    func cachedUser() async throws -> AuthenticatedUser? { nil }
+    func currentUser() async throws -> AuthenticatedUser { throw AuthenticationFailure.sessionExpired }
+    func signOut() async throws { }
+}
+
+@MainActor
+private func testGrant(email: String) -> AuthenticationGrant {
+    AuthenticationGrant(generation: UUID(), session: StoredAuthentication(
+        user: AuthenticatedUser(id: UUID(), email: email, role: "user", createdAt: Date()),
+        tokens: AuthenticationTokens(accessToken: "access", refreshToken: "refresh", expiresIn: 1800)
+    ))
 }

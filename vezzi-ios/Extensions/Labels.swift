@@ -126,6 +126,20 @@ final class Texts {
     // MARK: - Authentication and Profile
 
     enum Authentication {
+        static let passwordTooShort = NSLocalizedString("AuthenticationPasswordTooShort", comment: "Use at least 8 characters to create an account")
+        static let passwordTooLong = NSLocalizedString("AuthenticationPasswordTooLong", comment: "Use no more than 128 characters")
+        static let invalidCredentials = NSLocalizedString("AuthenticationInvalidCredentials", comment: "Incorrect email or password")
+        static let emailAlreadyRegistered = NSLocalizedString("AuthenticationEmailAlreadyRegistered", comment: "This email is already registered. Try signing in")
+        static let invalidInput = NSLocalizedString("AuthenticationInvalidInput", comment: "Check your email and password and try again")
+        static let offline = NSLocalizedString("AuthenticationOffline", comment: "Couldn’t connect. Check your internet connection")
+        static let timedOut = NSLocalizedString("AuthenticationTimedOut", comment: "The server took too long to respond. Please try again")
+        static let rateLimited = NSLocalizedString("AuthenticationRateLimited", comment: "Too many attempts. Please try again later")
+        static let sessionExpired = NSLocalizedString("AuthenticationSessionExpired", comment: "Your session has expired. Please sign in again")
+        static let sessionCleanupFailed = NSLocalizedString("AuthenticationSessionCleanupFailed", comment: "Your session has ended, but its saved data couldn’t be cleared. Please try again")
+        static let storageError = NSLocalizedString("AuthenticationStorageError", comment: "Couldn’t securely save or read your session. Please try again")
+        static let errorTitle = NSLocalizedString("AuthenticationErrorTitle", comment: "Couldn’t complete the action")
+        static let dismissError = NSLocalizedString("AuthenticationDismissError", comment: "OK")
+        static let retry = NSLocalizedString("AuthenticationRetry", comment: "Try again")
         static let title = NSLocalizedString("AuthenticationTitle", comment: "Sign in")
         static let greeting = NSLocalizedString("AuthenticationGreeting", comment: "Hi, I’m Moti!")
         static let subtitle = NSLocalizedString("AuthenticationSubtitle", comment: "Sign in to keep shopping and find ideas for dinner")
@@ -143,7 +157,7 @@ final class Texts {
         static let unavailable = NSLocalizedString("AuthenticationUnavailable", comment: "Couldn’t sign in. Please try again.")
         static let signIn = NSLocalizedString("AuthenticationSignIn", comment: "Sign in")
         static let signingIn = NSLocalizedString("AuthenticationSigningIn", comment: "Signing in…")
-        static let signedIn = NSLocalizedString("AuthenticationSignedIn", comment: "You’re signed in")
+        static let successTitle = NSLocalizedString("AuthenticationSuccessTitle", comment: "Welcome")
         static let register = NSLocalizedString("AuthenticationRegister", comment: "Create an account")
         static let close = NSLocalizedString("AuthenticationClose", comment: "Close")
         static let cancel = NSLocalizedString("AuthenticationCancel", comment: "Cancel")
@@ -235,5 +249,28 @@ final class Texts {
         static let title = NSLocalizedString("DemoTitle", comment: "Welcome")
         static let subtitle = NSLocalizedString("DemoSubtitle", comment: "This is demo subtitle")
         static let showSubtitle = NSLocalizedString("DemoShowSubtitle", comment: "Show subtitle")
+    }
+}
+
+// MARK: - Authentication errors
+
+extension AuthenticationFailure {
+    @MainActor var message: String {
+        switch self {
+        case .invalidEmail: return Texts.Authentication.invalidEmail
+        case .missingPassword: return Texts.Authentication.missingPassword
+        case .passwordTooShort: return Texts.Authentication.passwordTooShort
+        case .passwordTooLong: return Texts.Authentication.passwordTooLong
+        case .invalidCredentials: return Texts.Authentication.invalidCredentials
+        case .emailAlreadyRegistered: return Texts.Authentication.emailAlreadyRegistered
+        case .invalidInput: return Texts.Authentication.invalidInput
+        case .offline: return Texts.Authentication.offline
+        case .timedOut: return Texts.Authentication.timedOut
+        case .rateLimited: return Texts.Authentication.rateLimited
+        case .sessionExpired: return Texts.Authentication.sessionExpired
+        case .sessionCleanupFailed: return Texts.Authentication.sessionCleanupFailed
+        case .storage: return Texts.Authentication.storageError
+        case .unavailable: return Texts.Authentication.unavailable
+        }
     }
 }
