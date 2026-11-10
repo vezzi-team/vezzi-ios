@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SearchView: View {
+    @EnvironmentObject private var router: AppRouter
     @StateObject private var viewModel: SearchViewModel
     @ObservedObject private var selection: ProductSelection
     @State private var isSearching = false
@@ -102,8 +103,9 @@ struct SearchView: View {
         .scrollDismissesKeyboard(.immediately)
         .onScrollPhaseChange(dismissSearchFocusOnScroll)
         .overlay {
-            if viewModel.sections.isEmpty && statusMessage == nil {
-                emptyState.transition(resultsTransition)
+            if viewModel.sections.isEmpty && !hasStatusBanner {
+                if viewModel.isRefreshing { ProgressView() }
+                else { emptyState.transition(resultsTransition) }
             }
         }
         .animation(reduceMotion ? nil : .easeOut(duration: Const.resultsTransitionDuration),
@@ -114,7 +116,12 @@ struct SearchView: View {
 
     private var resultsContent: some View {
         LazyVStack(alignment: .leading, spacing: Const.sectionSpacing) {
-            if let message = statusMessage { statusView(message) }
+            if hasStatusBanner {
+                catalogBanner
+                if viewModel.sections.isEmpty && !viewModel.isRefreshing {
+                    emptyState.transition(resultsTransition)
+                }
+            }
             ForEach(viewModel.sections) { section in
                 productSection(section)
                     .transition(resultsTransition)
@@ -169,16 +176,27 @@ struct SearchView: View {
     }
 
     private func sectionTitle(_ section: SearchSection) -> some View {
-        HStack(spacing: Const.storeSpacing) {
+        HStack(alignment: .top, spacing: Const.storeSpacing) {
             if section.storeID != nil {
                 StoreLogoPlaceholder()
                     .frame(width: Const.storeSize, height: Const.storeSize)
             }
+            sectionLabels(section)
+        }
+    }
+
+    private func sectionLabels(_ section: SearchSection) -> some View {
+        VStack(alignment: .leading, spacing: Const.headingSpacing) {
             Text(section.title)
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(Color.Label.primary)
-                .fixedSize(horizontal: false, vertical: true)
+            if let address = section.address, !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text(address)
+                    .appTextStyle(size: Const.addressFontSize, lineHeight: Const.addressLineHeight, relativeTo: .caption)
+                    .foregroundStyle(Color.Label.secondary)
+            }
         }
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     @ViewBuilder private func walkingTime(_ section: SearchSection) -> some View {
@@ -208,20 +226,20 @@ struct SearchView: View {
 
     // MARK: - Repository Status
 
-    private var statusMessage: String? {
-        viewModel.refreshErrorMessage ?? (viewModel.isCacheUnavailable ? Texts.Storage.cacheUnavailable : nil)
+    private var hasStatusBanner: Bool {
+        viewModel.catalogStatus.isOffline || viewModel.catalogStatus.failure != nil
+            || viewModel.catalogStatus.isSynthetic || viewModel.isCacheUnavailable
     }
 
-    private func statusView(_ message: String) -> some View {
-        VStack(spacing: Const.messageSpacing) {
-            Text(message)
-            Button(Texts.Storage.retry) { Task { await viewModel.retry() } }
+    private var catalogBanner: some View {
+        CatalogStatusBanner(status: viewModel.catalogStatus, isCacheUnavailable: viewModel.isCacheUnavailable) {
+            if viewModel.catalogStatus.failure == .authenticationRequired && !viewModel.catalogStatus.isOffline {
+                router.presentAuthentication()
+            } else {
+                Task { await viewModel.retry() }
+            }
         }
-        .font(.callout)
-        .multilineTextAlignment(.center)
-        .padding(Const.contentInset)
-        .frame(maxWidth: .infinity)
-        .background(Color.Background.secondary)
+        .padding(.horizontal, Const.contentInset)
     }
 
     private enum Const {
@@ -232,6 +250,8 @@ struct SearchView: View {
         static let headingSpacing: CGFloat = 4
         static let storeSpacing: CGFloat = 10
         static let storeSize: CGFloat = 24
+        static let addressFontSize: CGFloat = 13
+        static let addressLineHeight: CGFloat = 18
         static let messageSpacing: CGFloat = 8
         static let modeDuration: TimeInterval = 0.2
         static let resultsTransitionDuration: TimeInterval = 0.18
@@ -242,6 +262,7 @@ struct SearchView: View {
     NavigationStack {
         SearchView(repository: MockSearchRepository(), stores: SearchMockData.stores, groupOrder: SearchMockData.groupOrder)
     }
+    .environmentObject(AppRouter())
     .preferredColorScheme(.light)
 }
 
@@ -249,10 +270,19 @@ struct SearchView: View {
     NavigationStack {
         SearchView(repository: MockSearchRepository(), stores: SearchMockData.stores, groupOrder: SearchMockData.groupOrder)
     }
+    .environmentObject(AppRouter())
     .preferredColorScheme(.dark)
     .dynamicTypeSize(.accessibility3)
 }
 
 #Preview("Search — empty catalog") {
     NavigationStack { SearchView(repository: PreviewCatalogRepository()) }
+        .environmentObject(AppRouter())
+}
+
+#Preview("Search — offline, empty catalog") {
+    @Previewable @State var repository = DefaultCatalogRepository()
+    NavigationStack { SearchView(repository: repository) }
+        .environmentObject(AppRouter())
+        .task { repository.updateConnectivity(isConnected: false) }
 }

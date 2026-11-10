@@ -5,14 +5,20 @@ nonisolated struct CatalogSnapshot: Sendable {
     private(set) var products: [String: CatalogProduct] = [:]
     private(set) var stores: [String: CatalogStore] = [:]
     private(set) var offers: [String: StoredCatalogOffer] = [:]
+    private(set) var metadata: CatalogMetadata?
+    private var evaluationDate = Date()
     private var sortedProductIDs: [String] = []
     private var offerIDsByProduct: [String: Set<String>] = [:]
 
     func applying(_ batch: CatalogCacheBatch) throws -> (snapshot: Self, changes: CatalogRecordIDs) {
         try Task.checkCancellation()
         try batch.validate()
-        var result = self
+        var result = batch.replacesCatalog ? Self() : self
         var changes = CatalogRecordIDs()
+        if let metadata = batch.metadata, result.metadata != metadata {
+            result.metadata = metadata
+            changes.metadata = true
+        }
         for product in batch.products where result.products[product.id] != product {
             try Task.checkCancellation()
             result.products[product.id] = product
@@ -44,6 +50,8 @@ nonisolated struct CatalogSnapshot: Sendable {
 
     /// A late cache may add records, but must not roll back newer source results.
     func mergingCache(_ cache: Self) -> Self {
+        // A complete server snapshot is authoritative, including absent records.
+        if metadata != nil { return self }
         var result = cache
         result.products.merge(products) { _, current in current }
         result.stores.merge(stores) { _, current in current }
@@ -62,7 +70,8 @@ nonisolated struct CatalogSnapshot: Sendable {
         CatalogRecordIDs(
             products: Set(products.keys.filter { products[$0] != stored.products[$0] }),
             stores: Set(stores.keys.filter { stores[$0] != stored.stores[$0] }),
-            offers: Set(offers.keys.filter { offers[$0] != stored.offers[$0] })
+            offers: Set(offers.keys.filter { offers[$0] != stored.offers[$0] }),
+            metadata: metadata != stored.metadata
         )
     }
 
@@ -71,8 +80,32 @@ nonisolated struct CatalogSnapshot: Sendable {
         // Include only the referenced parents, so a delta is valid after cache recovery too.
         let productIDs = ids.products.union(records.map { $0.offer.productID })
         let storeIDs = ids.stores.union(records.map { $0.offer.storeID })
-        return CatalogCacheBatch(products: productIDs.compactMap { products[$0] },
-                                 stores: storeIDs.compactMap { stores[$0] }, offers: records)
+        var batch = CatalogCacheBatch(products: productIDs.compactMap { products[$0] },
+                                      stores: storeIDs.compactMap { stores[$0] }, offers: records)
+        batch.metadata = ids.metadata ? metadata : nil
+        return batch
+    }
+
+    func fullCacheBatch() -> CatalogCacheBatch {
+        var batch = CatalogCacheBatch(products: Array(products.values), stores: Array(stores.values), offers: Array(offers.values))
+        batch.metadata = metadata
+        batch.replacesCatalog = true
+        return batch
+    }
+
+    func allItems() -> [CatalogItem] { sortedProductIDs.compactMap { products[$0] }.map(item) }
+
+    func validated(at date: Date) -> Self {
+        var result = self
+        result.metadata?.validatedAt = date
+        result.evaluationDate = date
+        return result
+    }
+
+    func evaluated(at date: Date) -> Self {
+        var result = self
+        result.evaluationDate = date
+        return result
     }
 
     func items(matching query: String) -> [CatalogItem] {
@@ -104,7 +137,10 @@ nonisolated struct CatalogSnapshot: Sendable {
     private func item(for product: CatalogProduct) -> CatalogItem {
         let availableOffers = (offerIDsByProduct[product.id] ?? []).compactMap { id -> CachedOffer? in
             guard let record = offers[id], let store = stores[record.offer.storeID], store.isActive else { return nil }
-            return CachedOffer(offer: record.offer, store: store, cachedAt: record.cachedAt)
+            let fresh = metadata.map { metadata in
+                record.offer.sourceUpdatedAt.map { evaluationDate.timeIntervalSince($0) <= Double(metadata.offerMaxAgeHours) * 3600 } ?? false
+            } ?? true
+            return CachedOffer(offer: record.offer, store: store, cachedAt: record.cachedAt, isFresh: fresh)
         }
         .sorted { $0.store.name == $1.store.name ? $0.id < $1.id : $0.store.name < $1.store.name }
         return CatalogItem(product: product, offers: availableOffers)

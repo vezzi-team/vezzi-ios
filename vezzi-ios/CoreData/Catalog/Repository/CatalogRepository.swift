@@ -5,9 +5,11 @@ import Foundation
 protocol CatalogRepository: AnyObject {
     var canRefresh: Bool { get }
     var cacheState: AnyPublisher<CatalogCacheState, Never> { get }
+    var status: AnyPublisher<CatalogStatus, Never> { get }
 
     /// Each subscription owns its query. Results are delivered on the main queue.
     func observeProducts(matching query: String) -> AnyPublisher<[CatalogItem], Never>
+    func observeAllProducts() -> AnyPublisher<[CatalogItem], Never>
     /// Matches the product's group across the catalog, independently of text search.
     /// A store scope includes only items with an offer not marked out of stock at that active store.
     /// Excludes the product itself and returns at most CatalogSearch.resultLimit items on the main queue.
@@ -19,6 +21,8 @@ protocol CatalogRepository: AnyObject {
 }
 
 extension CatalogRepository {
+    var status: AnyPublisher<CatalogStatus, Never> { Just(CatalogStatus()).eraseToAnyPublisher() }
+    func observeAllProducts() -> AnyPublisher<[CatalogItem], Never> { observeProducts(matching: "") }
     var cacheState: AnyPublisher<CatalogCacheState, Never> {
         Just(.disabled).eraseToAnyPublisher()
     }
@@ -42,7 +46,7 @@ protocol CatalogCache: AnyObject {
 
 /// A future API or file adapter maps its input into the application's import model.
 nonisolated protocol CatalogSource: Sendable {
-    func loadCatalog() async throws -> CatalogImport
+    func loadCatalog(ifNoneMatch: String?) async throws -> CatalogSourceResult
 }
 
 nonisolated enum CatalogError: Error, Equatable {

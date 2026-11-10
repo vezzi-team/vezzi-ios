@@ -90,6 +90,9 @@
 		E26E27F46BEA495EA34F5162 /* HomeAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF6D06B29EF4802974BDFB4 /* HomeAddress.swift */; };
 		E799E4921A6B464C947C82C5 /* SearchSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB5F66F9ECB46AB89854D39 /* SearchSection.swift */; };
 		5350EA6D90CB44768045E092 /* SearchMockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CB5B008C7FC4891B0261D90 /* SearchMockData.swift */; };
+		1589541ECE194A90B32FE741 /* APICatalogSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456C3E101A754CC6BCCE3375 /* APICatalogSource.swift */; };
+		6B0F57CD4E5E4A7EA10DB8C4 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CDD2FAE63444FB98582CC33 /* NetworkMonitor.swift */; };
+		39CC4232CAC54377A986E551 /* CatalogStatusBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E3E7B5C75343698472C449 /* CatalogStatusBanner.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -188,6 +191,10 @@
 		5BF6D06B29EF4802974BDFB4 /* HomeAddress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeAddress.swift; sourceTree = "<group>"; };
 		DFB5F66F9ECB46AB89854D39 /* SearchSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSection.swift; sourceTree = "<group>"; };
 		1CB5B008C7FC4891B0261D90 /* SearchMockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchMockData.swift; sourceTree = "<group>"; };
+		456C3E101A754CC6BCCE3375 /* APICatalogSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APICatalogSource.swift; sourceTree = "<group>"; };
+		8CDD2FAE63444FB98582CC33 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		C8E3E7B5C75343698472C449 /* CatalogStatusBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogStatusBanner.swift; sourceTree = "<group>"; };
+		525FE39292EE4D4093A5BCD2 /* PolkaV3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PolkaV3.xcdatamodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -677,6 +684,8 @@
 		F82863EB9B5E44B59CEB47F2 /* Networking */ = {
 			isa = PBXGroup;
 			children = (
+				8CDD2FAE63444FB98582CC33 /* NetworkMonitor.swift */,
+				75790563560D4FA08AC50B43 /* Catalog */,
 				4423B24AC7F4471FA448674F /* APIClient.swift */,
 			);
 			path = Networking;
@@ -695,6 +704,7 @@
 		4D2B9740C1464FC1A2A845EB /* View */ = {
 			isa = PBXGroup;
 			children = (
+				C8E3E7B5C75343698472C449 /* CatalogStatusBanner.swift */,
 				8E8B8AA9B5924DEDB3AF7C50 /* ProductCard.swift */,
 				3E2C26D836804633B4D34470 /* ProductQuantityControl.swift */,
 				39486FF511284E31A693D851 /* ProductActions.swift */,
@@ -721,6 +731,14 @@
 				1CB5B008C7FC4891B0261D90 /* SearchMockData.swift */,
 			);
 			path = Model;
+			sourceTree = "<group>";
+		};
+		75790563560D4FA08AC50B43 /* Catalog */ = {
+			isa = PBXGroup;
+			children = (
+				456C3E101A754CC6BCCE3375 /* APICatalogSource.swift */,
+			);
+			path = Catalog;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -846,6 +864,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				5350EA6D90CB44768045E092 /* SearchMockData.swift in Sources */,
+				39CC4232CAC54377A986E551 /* CatalogStatusBanner.swift in Sources */,
+				6B0F57CD4E5E4A7EA10DB8C4 /* NetworkMonitor.swift in Sources */,
+				1589541ECE194A90B32FE741 /* APICatalogSource.swift in Sources */,
 				E799E4921A6B464C947C82C5 /* SearchSection.swift in Sources */,
 				E26E27F46BEA495EA34F5162 /* HomeAddress.swift in Sources */,
 				4AD9050872784E80A9054096 /* StoreLogoPlaceholder.swift in Sources */,
@@ -1232,8 +1253,9 @@
 			children = (
 				6840F1EB65E331CB9AACE0A9 /* Polka.xcdatamodel */,
 				EE06BC47A0D741828581AA87 /* PolkaV2.xcdatamodel */,
+				525FE39292EE4D4093A5BCD2 /* PolkaV3.xcdatamodel */,
 			);
-			currentVersion = EE06BC47A0D741828581AA87 /* PolkaV2.xcdatamodel */;
+			currentVersion = 525FE39292EE4D4093A5BCD2 /* PolkaV3.xcdatamodel */;
 			path = Polka.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

@@ -4,6 +4,33 @@ import XCTest
 
 @MainActor
 final class SearchViewModelTests: XCTestCase {
+    func testFasterModeSeparatesAddressesAndKeepsBranchesOfOneChainDistinct() throws {
+        let addresses = ["Санкт-Петербург, Комендантский проспект, 3 лит А", "Санкт-Петербург, Пулковское шоссе, 23"]
+        let batch = CatalogImport(
+            products: [CatalogProduct(id: "p", name: "Молоко", category: "Молочное")],
+            stores: [
+                CatalogStore(id: "s1", name: "METRO — Комендантский проспект, 3 лит А", chainName: "METRO", address: addresses[0]),
+                CatalogStore(id: "s2", name: "METRO — Пулковское шоссе, 23", chainName: "METRO", address: addresses[1])
+            ],
+            offers: [
+                CatalogOffer(id: "o1", productID: "p", storeID: "s1", price: 90, currency: "RUB"),
+                CatalogOffer(id: "o2", productID: "p", storeID: "s2", price: 110, currency: "RUB")
+            ])
+        let model = SearchViewModel(repository: PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(batch)))
+        XCTAssertTrue(model.sections.allSatisfy { $0.address == nil })
+        model.mode = .faster
+        XCTAssertEqual(model.sections.map(\.id), ["s1", "s2"])
+        XCTAssertEqual(model.sections.map(\.title), ["METRO", "METRO"])
+        XCTAssertEqual(model.sections.compactMap(\.address), addresses)
+        XCTAssertEqual(model.sections.compactMap { $0.products.first?.lowestPrice }, [90, 110])
+        for section in model.sections {
+            let offer = try XCTUnwrap(section.products.first?.offers.first)
+            XCTAssertEqual(section.title, offer.storeTitle)
+            XCTAssertEqual(section.address, offer.address)
+            XCTAssertEqual(section.storeID, offer.storeID)
+        }
+    }
+
     func testCheaperModeGroupsProductsAndSortsEachShelfByPrice() {
         let model = mockViewModel()
         XCTAssertEqual(model.sections.map(\.id), SearchMockData.groupOrder)
@@ -82,6 +109,64 @@ final class SearchViewModelTests: XCTestCase {
         XCTAssertTrue(model.sections.isEmpty)
     }
 
+    func testStaleAvailableOffersRemainInSearchAndDetails() throws {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let staleDate = now.addingTimeInterval(-3 * 24 * 60 * 60)
+        let stockStates: [Bool?] = [true, nil]
+        for stock in stockStates {
+            for unavailableDate in [staleDate, now] {
+                var batch = CatalogFixtures.catalog()
+                batch.offers = [
+                    CatalogOffer(id: "available", productID: "p1", storeID: "s1", price: 100, currency: "RUB",
+                                 inStock: stock, sourceUpdatedAt: staleDate),
+                    CatalogOffer(id: "unavailable", productID: "p1", storeID: "s1", price: 50, currency: "RUB",
+                                 inStock: false, sourceUpdatedAt: unavailableDate)
+                ]
+                let snapshot = try CatalogSnapshot().applying(CatalogFixtures.export(batch, date: now)).snapshot.evaluated(at: now)
+                let repository = PreviewCatalogRepository(snapshot: snapshot)
+                let home = HomeViewModel(repository: repository)
+                XCTAssertEqual(home.products.first?.offers.first?.id, "available")
+                let search = SearchViewModel(repository: repository)
+                for mode in ProductSearchMode.allCases {
+                    search.mode = mode
+                    let products = search.sections.flatMap(\.products)
+                    XCTAssertEqual(products.count, 1)
+                    let product = try XCTUnwrap(products.first)
+                    XCTAssertEqual(product.offers.first?.id, "available")
+                    XCTAssertEqual(product.lowestPrice, 100)
+                    XCTAssertEqual(product.offers.first?.isFresh, false)
+                    search.showProduct(product, storeID: mode == .faster ? "s1" : nil)
+                    XCTAssertEqual(search.selectedProduct?.offers.first?.id, "available")
+                    search.dismissProduct()
+                }
+            }
+        }
+    }
+
+    func testAvailableOffersPreferFreshPricesAndStableIDs() throws {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        var batch = CatalogFixtures.catalog()
+        batch.offers = [
+            CatalogOffer(id: "stale", productID: "p1", storeID: "s1", price: 50, currency: "RUB", inStock: true,
+                         sourceUpdatedAt: now.addingTimeInterval(-3 * 24 * 60 * 60)),
+            CatalogOffer(id: "fresh-b", productID: "p1", storeID: "s1", price: 100, currency: "RUB", inStock: true, sourceUpdatedAt: now),
+            CatalogOffer(id: "fresh-a", productID: "p1", storeID: "s1", price: 100, currency: "RUB", inStock: nil, sourceUpdatedAt: now),
+            CatalogOffer(id: "fresh-expensive", productID: "p1", storeID: "s1", price: 150, currency: "RUB", inStock: true, sourceUpdatedAt: now)
+        ]
+        for offers in [batch.offers, Array(batch.offers.reversed())] {
+            batch.offers = offers
+            let snapshot = try CatalogSnapshot().applying(CatalogFixtures.export(batch, date: now)).snapshot.evaluated(at: now)
+            let model = SearchViewModel(repository: PreviewCatalogRepository(snapshot: snapshot))
+            for mode in ProductSearchMode.allCases {
+                model.mode = mode
+                let product = try XCTUnwrap(model.sections.first?.products.first)
+                XCTAssertEqual(product.offers.first?.id, "fresh-a")
+                XCTAssertEqual(product.lowestPrice, 100)
+                XCTAssertEqual(product.offers.first?.isFresh, true)
+            }
+        }
+    }
+
     func testClosingOrReplacingDetailsCancelsPendingAlternatives() throws {
         let repository = ControlledRelatedCatalogRepository()
         let model = SearchViewModel(repository: repository)
@@ -135,7 +220,7 @@ final class SearchViewModelTests: XCTestCase {
 
     func testProductQuantitiesAreSharedWithHomeAndSurviveSearchModeChanges() {
         let selection = ProductSelection()
-        let home = HomeViewModel(selection: selection)
+        let home = HomeViewModel(repository: MockSearchRepository(), selection: selection)
         let search = mockViewModel()
         let product = search.sections[0].products[0]
         selection.setQuantity(2, for: product.id)
@@ -221,6 +306,8 @@ private final class ControlledRelatedCatalogRepository: CatalogRepository {
     let canRefresh = false
     private let catalog = MockSearchRepository()
     private(set) var responses: [PassthroughSubject<[CatalogItem], Never>] = []
+
+    nonisolated deinit {}
 
     func observeProducts(matching query: String) -> AnyPublisher<[CatalogItem], Never> {
         catalog.observeProducts(matching: query)

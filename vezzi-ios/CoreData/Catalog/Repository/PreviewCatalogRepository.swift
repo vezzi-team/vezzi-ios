@@ -22,6 +22,8 @@ final class PreviewCatalogRepository: CatalogRepository {
         Just(snapshot.relatedItems(to: productID, storeID: storeID)).eraseToAnyPublisher()
     }
 
+    func observeAllProducts() -> AnyPublisher<[CatalogItem], Never> { Just(snapshot.allItems()).eraseToAnyPublisher() }
+
     func importCatalog(_ batch: CatalogImport) async throws {}
     func refresh() async throws {}
 

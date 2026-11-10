@@ -51,6 +51,27 @@ final class Texts {
         }
     }
 
+    enum Catalog {
+        static let title = NSLocalizedString("CatalogTitle", comment: "Product catalog")
+        static let offlineTitle = NSLocalizedString("CatalogOfflineTitle", comment: "Offline catalog")
+        static let failedTitle = NSLocalizedString("CatalogFailedTitle", comment: "Refresh failed")
+        static let staleMessage = NSLocalizedString("CatalogStaleMessage", comment: "Saved prices may be outdated")
+        static let noCacheMessage = NSLocalizedString("CatalogNoCacheMessage", comment: "No cached products")
+        static let refreshMessage = NSLocalizedString("CatalogRefreshMessage", comment: "How to refresh")
+        static let refresh = NSLocalizedString("CatalogRefresh", comment: "Refresh")
+        static let updating = NSLocalizedString("CatalogUpdating", comment: "Updating")
+        static let signInTitle = NSLocalizedString("CatalogSignInTitle", comment: "Catalog requires sign-in")
+        static let signInMessage = NSLocalizedString("CatalogSignInMessage", comment: "Sign in to load the catalog")
+        static let signIn = NSLocalizedString("CatalogSignIn", comment: "Sign in")
+        static let syntheticTitle = NSLocalizedString("CatalogSyntheticTitle", comment: "Demo prices")
+        static let syntheticMessage = NSLocalizedString("CatalogSyntheticMessage", comment: "Prices are synthetic")
+        static let cacheTitle = NSLocalizedString("CatalogCacheTitle", comment: "Catalog persistence failed")
+        static let stalePrice = NSLocalizedString("CatalogStalePrice", comment: "Stale price")
+        static func cardPrice(_ price: String) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("CatalogCardPrice", comment: "Loyalty-card price"), price)
+        }
+    }
+
     enum Product {
         static let inStock = NSLocalizedString("SearchInStock", comment: "In stock")
         static let outOfStock = NSLocalizedString("SearchOutOfStock", comment: "Out of stock")
@@ -88,6 +109,7 @@ final class Texts {
         }
 
         enum Unit {
+            static let meter = NSLocalizedString("ProductUnitMeter", comment: "m")
             static let liter = NSLocalizedString("ProductUnitLiter", comment: "L")
             static let milliliter = NSLocalizedString("ProductUnitMilliliter", comment: "ml")
             static let kilogram = NSLocalizedString("ProductUnitKilogram", comment: "kg")

@@ -28,12 +28,13 @@ nonisolated final class StoreEntity: NSManagedObject {
     @NSManaged var latitude: NSNumber?
     @NSManaged var longitude: NSNumber?
     @NSManaged var isActive: Bool
+    @NSManaged var format: String?
     @NSManaged var offers: Set<OfferEntity>
 
     var value: CatalogStore {
         CatalogStore(id: id, name: name, chainName: chainName, address: address,
                      latitude: latitude?.doubleValue, longitude: longitude?.doubleValue,
-                     isActive: isActive)
+                     isActive: isActive, format: format)
     }
 }
 
@@ -55,6 +56,8 @@ nonisolated final class OfferEntity: NSManagedObject {
     @NSManaged var matchStatus: String?
     @NSManaged var dataOrigin: String?
     @NSManaged var priceType: String?
+    @NSManaged var cardPriceText: String?
+    @NSManaged var priceConditions: String?
 
     func cacheValue() throws -> StoredCatalogOffer {
         guard let product, let store else { throw CatalogError.missingReference(offerID: id) }
@@ -66,8 +69,26 @@ nonisolated final class OfferEntity: NSManagedObject {
             price: amount, currency: currency, inStock: inStock?.boolValue,
             sourceUpdatedAt: sourceUpdatedAt, sourceID: sourceID,
             sourceProductID: sourceProductID, sourceURL: sourceURL.flatMap(URL.init(string:)),
-            matchStatus: matchStatus, dataOrigin: dataOrigin, priceType: priceType
+            matchStatus: matchStatus, dataOrigin: dataOrigin, priceType: priceType,
+            cardPrice: try ExactDecimal.decode(cardPriceText, legacy: nil, entity: "Offer", id: id),
+            priceConditions: priceConditions
         )
         return StoredCatalogOffer(offer: offer, cachedAt: cachedAt)
+    }
+}
+
+@objc(CatalogMetadataEntity)
+nonisolated final class CatalogMetadataEntity: NSManagedObject {
+    @NSManaged var id: String
+    @NSManaged var importID: Int64
+    @NSManaged var importedAt: Date
+    @NSManaged var isSynthetic: Bool
+    @NSManaged var offerMaxAgeHours: Int64
+    @NSManaged var etag: String?
+    @NSManaged var validatedAt: Date
+
+    var value: CatalogMetadata {
+        CatalogMetadata(importID: importID, importedAt: importedAt, isSynthetic: isSynthetic,
+                        offerMaxAgeHours: Int(offerMaxAgeHours), etag: etag, validatedAt: validatedAt)
     }
 }

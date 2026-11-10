@@ -12,8 +12,10 @@ enum SearchMockData {
 
     static func snapshot() -> CatalogSnapshot {
         let storeRecords = [
-            CatalogStore(id: "pyaterochka", name: Texts.Product.Mock.pyaterochka),
-            CatalogStore(id: "perekrestok", name: Texts.Search.Mock.perekrestok)
+            CatalogStore(id: "pyaterochka", name: Texts.Product.Mock.pyaterochka,
+                         chainName: Texts.Product.Mock.pyaterochka, address: Texts.Home.Mock.homeAddress),
+            CatalogStore(id: "perekrestok", name: Texts.Search.Mock.perekrestok,
+                         chainName: Texts.Search.Mock.perekrestok, address: Texts.Home.Mock.workAddress)
         ]
         let groupTitles = [Texts.Search.Mock.milk, Texts.Search.Mock.bread, Texts.Product.Mock.apples,
                            Texts.Product.Mock.eggs, Texts.Product.Mock.pasta, Texts.Product.Mock.tomatoes]
@@ -50,6 +52,8 @@ final class MockSearchRepository: CatalogRepository {
     func observeRelatedProducts(to productID: String, storeID: String?) -> AnyPublisher<[CatalogItem], Never> {
         Just(snapshot.relatedItems(to: productID, storeID: storeID)).eraseToAnyPublisher()
     }
+
+    func observeAllProducts() -> AnyPublisher<[CatalogItem], Never> { Just(snapshot.allItems()).eraseToAnyPublisher() }
 
     func importCatalog(_ batch: CatalogImport) async throws {}
     func refresh() async throws {}

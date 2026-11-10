@@ -1,6 +1,6 @@
 import Foundation
 
-actor DefaultAuthenticationService: AuthenticationService {
+actor DefaultAuthenticationService: AuthenticationService, AuthorizedRequestPerforming {
     private let client: APIClient
     private let store: any AuthenticationSessionStore
     private let now: @Sendable () -> Date
@@ -73,19 +73,32 @@ actor DefaultAuthenticationService: AuthenticationService {
     }
 
     func currentUser() async throws -> AuthenticatedUser {
+        let response = try await authorizedResponse(for: APIRequest(path: "users/me"))
+        let user: AuthenticatedUser = try response.decode()
+        // No suspension between the authorized response and committing its user snapshot.
+        if var latest = stored, latest.user != user {
+            latest.user = user
+            stored = latest
+            needsPersistence = true
+            try persistLatest()
+        }
+        return user
+    }
+
+    func authorizedResponse(for request: APIRequest) async throws -> APIResponse {
         try Task.checkCancellation()
         try loadIfNeeded()
         guard let initial = stored else { throw AuthenticationFailure.sessionExpired }
         let epoch = generation
         let active = try await validSession()
-        let user: AuthenticatedUser
+        let response: APIResponse
         do {
-            user = try await client.send("users/me", accessToken: active.tokens.accessToken)
+            response = try await client.response(for: request, accessToken: active.tokens.accessToken)
         } catch let error as APIError where error.status == 401 {
             try checkSession(id: initial.id, generation: epoch)
             let renewed = try await refresh(rejectedToken: active.tokens.accessToken)
             do {
-                user = try await client.send("users/me", accessToken: renewed.tokens.accessToken)
+                response = try await client.response(for: request, accessToken: renewed.tokens.accessToken)
             } catch let error as APIError where error.status == 401 {
                 try checkSession(id: initial.id, generation: epoch)
                 try invalidate()
@@ -94,14 +107,7 @@ actor DefaultAuthenticationService: AuthenticationService {
         }
         try Task.checkCancellation()
         try checkSession(id: initial.id, generation: epoch)
-        // Preserve any tokens rotated by another request while /me was in flight.
-        if var latest = stored, latest.user != user {
-            latest.user = user
-            stored = latest
-            needsPersistence = true
-            try persistLatest()
-        }
-        return user
+        return response
     }
 
     func signOut() throws {

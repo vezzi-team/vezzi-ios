@@ -64,17 +64,22 @@ private struct ProductDetailPage: View {
 
     var body: some View {
         productList
-            .navigationTitle(product.name)
-            .navigationSubtitle(product.brand + " · " + product.package)
+            .navigationTitle(navigationTitle)
+            .navigationSubtitle(product.package)
             .navigationBarTitleDisplayMode(.inline)
             .safeAreaBar(edge: .bottom, spacing: .zero) { bottomActions }
     }
 
     // MARK: - Product
 
+    private var navigationTitle: String {
+        let brand = product.brand.trimmingCharacters(in: .whitespacesAndNewlines)
+        return brand.isEmpty ? product.nameWithoutBrand : brand
+    }
+
     private var productList: some View {
-        List {
-            Section {
+        ScrollView {
+            VStack(alignment: .leading, spacing: Const.rowSpacing) {
                 productSummary
                 offersHeading
                 ForEach(product.offers) { offer in
@@ -87,28 +92,30 @@ private struct ProductDetailPage: View {
                         .padding(.bottom, Const.contentInset)
                 }
             }
-            .listRowInsets(EdgeInsets(top: .zero, leading: Const.contentInset,
-                                      bottom: .zero, trailing: Const.contentInset))
-            .listRowSeparator(.hidden)
-            .listRowBackground(Color.clear)
+            .padding(.horizontal, Const.contentInset)
         }
-        .listStyle(.plain)
         .scrollIndicators(.hidden)
-        .environment(\.defaultMinListRowHeight, .zero)
-        .listRowSpacing(Const.rowSpacing)
-        .contentMargins(.vertical, .zero, for: .scrollContent)
-        .scrollContentBackground(.hidden)
         .background(Color.Background.elevated)
     }
 
     private var productSummary: some View {
-        VStack(alignment: .leading, spacing: .zero) {
+        VStack(alignment: .leading, spacing: Const.summarySpacing) {
             artworkPlaceholder
-                .padding(.bottom, Const.contentInset)
+            productName
             priceSummary
         }
         .padding(.top, Const.rowSpacing)
         .padding(.bottom, Const.sectionSpacing - Const.rowSpacing)
+    }
+
+    private var productName: some View {
+        Text(product.nameWithoutBrand)
+            .appTextStyle(size: Const.nameFontSize, lineHeight: Const.nameLineHeight,
+                           weight: .semibold, relativeTo: .title3)
+            .foregroundStyle(Color.Label.primary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier(AccessibilityID.Product.Detail.name)
     }
 
     private var artworkPlaceholder: some View {
@@ -149,23 +156,36 @@ private struct ProductDetailPage: View {
     }
 
     private func offerRow(_ offer: ProductOffer) -> some View {
-        HStack(spacing: Const.storeSpacing) {
+        HStack(alignment: .top, spacing: Const.storeSpacing) {
             storeIcon
-            ViewThatFits(in: .horizontal) {
-                HStack(alignment: .center, spacing: Const.storeSpacing) {
-                    storeSummary(offer)
-                    Spacer(minLength: .zero)
-                    storePrice(offer)
-                }
-                VStack(alignment: .leading, spacing: Const.rowSpacing) {
-                    storeSummary(offer)
-                    storePrice(offer)
-                }
-            }
+            storeSummary(offer)
         }
         .padding(.vertical, Const.rowVerticalInset)
         .frame(minHeight: Const.storeRowHeight)
         .accessibilityElement(children: .combine)
+    }
+
+    private func storeHeading(_ offer: ProductOffer) -> some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .top, spacing: Const.storeSpacing) {
+                storeName(offer)
+                    .fixedSize(horizontal: true, vertical: true)
+                Spacer(minLength: .zero)
+                storePrice(offer)
+                    .fixedSize(horizontal: true, vertical: true)
+            }
+            VStack(alignment: .leading, spacing: Const.storeTextSpacing) {
+                storeName(offer)
+                storePrice(offer)
+            }
+        }
+    }
+
+    private func storeName(_ offer: ProductOffer) -> some View {
+        Text(offer.storeTitle)
+            .appTextStyle(size: Const.storeFontSize, lineHeight: Const.storeLineHeight,
+                           weight: .semibold, relativeTo: .headline)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     private var storeIcon: some View {
@@ -175,26 +195,45 @@ private struct ProductDetailPage: View {
 
     private func storeSummary(_ offer: ProductOffer) -> some View {
         VStack(alignment: .leading, spacing: Const.storeTextSpacing) {
-            Text(offer.name)
-                .appTextStyle(size: Const.storeFontSize, lineHeight: Const.storeLineHeight,
-                               weight: .semibold, relativeTo: .headline)
+            storeHeading(offer)
+            if let address = offer.address, !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text(address)
+                    .appTextStyle(size: Const.addressFontSize, lineHeight: Const.addressLineHeight, relativeTo: .caption)
+                    .foregroundStyle(Color.Label.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             Text(offerSubtitle(offer))
                 .appTextStyle(size: Const.availabilityFontSize, lineHeight: Const.availabilityLineHeight, relativeTo: .caption)
                 .foregroundStyle(Color.Label.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if let price = offer.cardPrice {
+                Text(Texts.Catalog.cardPrice(price.formatted(.currency(code: offer.currency).locale(locale))))
+                    .font(.caption)
+                    .foregroundStyle(Color.Label.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if let conditions = offer.priceConditions, !conditions.isEmpty {
+                Text(conditions)
+                    .font(.caption)
+                    .foregroundStyle(Color.Label.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func offerSubtitle(_ offer: ProductOffer) -> String {
         let availability = offer.inStock.map { $0 ? Texts.Product.inStock : Texts.Product.outOfStock }
-        let distance = offer.distance?.formatted(.measurement(width: .abbreviated, usage: .asProvided).locale(locale))
-        return [availability, distance].compactMap { $0 }.joined(separator: " · ")
+        let distance = ProductDetailMockDistances.distance(for: offer)
+            .formatted(.measurement(width: .abbreviated, usage: .asProvided).locale(locale))
+        return [availability, distance, offer.isFresh ? nil : Texts.Catalog.stalePrice].compactMap { $0 }.joined(separator: " · ")
     }
 
     private func storePrice(_ offer: ProductOffer) -> some View {
         Text(offer.price, format: .currency(code: offer.currency).precision(.fractionLength(0...2)))
             .appTextStyle(size: Const.storeFontSize, lineHeight: Const.storeLineHeight,
                            weight: .semibold, relativeTo: .headline)
-            .fixedSize(horizontal: true, vertical: false)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     // MARK: - Alternatives
@@ -239,7 +278,8 @@ private struct ProductDetailPage: View {
     private enum Const {
         static let contentInset: CGFloat = 16
         static let rowSpacing: CGFloat = 8
-        static let sectionSpacing: CGFloat = 30
+        static let summarySpacing: CGFloat = 12
+        static let sectionSpacing: CGFloat = 16
         static let headingBottomInset: CGFloat = 2
         static let storeSpacing: CGFloat = 12
         static let storeTextSpacing: CGFloat = 4
@@ -247,9 +287,11 @@ private struct ProductDetailPage: View {
         static let storeSize: CGFloat = 36
         static let storeRowHeight: CGFloat = 51
         static let minimumCardWidth: CGFloat = 150
-        static let artworkHeight: CGFloat = 216
-        static let compactArtworkHeight: CGFloat = 40
-        static let artworkCornerRadius: CGFloat = 16
+        static let artworkHeight: CGFloat = 226
+        static let compactArtworkHeight: CGFloat = 120
+        static let artworkCornerRadius: CGFloat = 10
+        static let nameFontSize: CGFloat = 20
+        static let nameLineHeight: CGFloat = 22
         static let priceFontSize: CGFloat = 28
         static let priceLineHeight: CGFloat = 34
         static let subtitleFontSize: CGFloat = 15
@@ -258,10 +300,23 @@ private struct ProductDetailPage: View {
         static let sectionLineHeight: CGFloat = 25
         static let storeFontSize: CGFloat = 17
         static let storeLineHeight: CGFloat = 22
+        static let addressFontSize: CGFloat = 13
+        static let addressLineHeight: CGFloat = 18
         static let availabilityFontSize: CGFloat = 12
         static let availabilityLineHeight: CGFloat = 16
         static let footerHorizontalInset: CGFloat = 21
         static let footerBottomInset: CGFloat = 4
+    }
+}
+
+/// Temporary presentation-only distances until map integration; stable for each store across detail pages.
+private enum ProductDetailMockDistances {
+    private static let meters: [Double] = [350, 500, 800]
+
+    static func distance(for offer: ProductOffer) -> Measurement<UnitLength> {
+        if let distance = offer.distance { return distance }
+        let index = offer.storeID.utf8.reduce(0) { ($0 + Int($1)) % meters.count }
+        return Measurement(value: meters[index], unit: .meters)
     }
 }
 

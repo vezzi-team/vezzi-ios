@@ -671,6 +671,57 @@ final class AuthenticationServiceTests: XCTestCase {
         XCTAssertTrue(server.requests.isEmpty)
     }
 
+    func testCatalogExportDecodesExactAmountsAndSupportsConditionalRequests() async throws {
+        let (service, server) = makeService { request, _ in
+            if request.value(forHTTPHeaderField: "If-None-Match") == "\"7\"" {
+                return HTTPStubReply(status: 304, headers: ["ETag": "\"7\""])
+            }
+            var reply = HTTPStubReply.json(CatalogAPIFixture.json)
+            reply.headers["ETag"] = "\"7\""
+            return reply
+        }
+        let source = APICatalogSource(client: service)
+        guard case .snapshot(let batch) = try await source.loadCatalog(ifNoneMatch: nil) else { return XCTFail("Expected snapshot") }
+        XCTAssertEqual(batch.products.first?.id, "42")
+        XCTAssertEqual(batch.products.first?.packageQuantity, Decimal(string: "930.5"))
+        XCTAssertEqual(batch.products.first?.packageUnit, "ml")
+        XCTAssertEqual(batch.stores.first?.format, "supermarket")
+        XCTAssertEqual(batch.offers.first?.offer.price, Decimal(string: "89.99"))
+        XCTAssertEqual(batch.offers.first?.offer.cardPrice, Decimal(string: "79.99"))
+        XCTAssertEqual(batch.offers.first?.offer.priceConditions, "With a card")
+        XCTAssertEqual(batch.offers.first?.id, "7-42")
+        XCTAssertEqual(batch.metadata?.etag, "\"7\"")
+        XCTAssertEqual(batch.metadata?.isSynthetic, true)
+        guard case .notModified = try await source.loadCatalog(ifNoneMatch: batch.metadata?.etag) else { return XCTFail("Expected 304") }
+        XCTAssertTrue(server.requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == "Bearer access-1" })
+    }
+
+    func testCatalogAndProfileShareRefreshAndRejectResponsesAfterLogout() async throws {
+        let (service, server) = makeService(store: MemoryAuthenticationStore(AuthFixtures.saved(expired: true))) { request, _ in
+            if request.url!.path.hasSuffix("refresh") { return .json(AuthFixtures.rotatedTokens, delay: 0.05) }
+            if request.url!.path.hasSuffix("catalog/export") { return .json(CatalogAPIFixture.json, delay: 0.05) }
+            return .json(AuthFixtures.userJSON)
+        }
+        async let user = service.currentUser()
+        async let catalog = APICatalogSource(client: service).loadCatalog(ifNoneMatch: nil)
+        _ = try await (user, catalog)
+        XCTAssertEqual(server.count("auth/refresh"), 1)
+        let pending = Task { try await APICatalogSource(client: service).loadCatalog(ifNoneMatch: nil) }
+        await waitUntil { server.count("catalog/export") == 2 }
+        try await service.signOut()
+        do { _ = try await pending.value; XCTFail("Late catalog must be rejected") }
+        catch { XCTAssertTrue(error is CancellationError) }
+    }
+
+    func testInvalidExportCannotBeImportedAndUnexpected304IsRejected() async throws {
+        for response in [HTTPStubReply.json(CatalogAPIFixture.json.replacingOccurrences(of: "\"store_id\":7", with: "\"store_id\":8")),
+                         HTTPStubReply(status: 304)] {
+            let (service, _) = makeService { _, _ in response }
+            do { _ = try await APICatalogSource(client: service).loadCatalog(ifNoneMatch: nil); XCTFail("Expected rejection") }
+            catch { XCTAssertTrue(error is CatalogError || error is APIError) }
+        }
+    }
+
     private func makeService(store: any AuthenticationSessionStore = MemoryAuthenticationStore(AuthFixtures.saved()),
                              handler: @escaping @Sendable (URLRequest, [URLRequest]) -> HTTPStubReply)
         -> (DefaultAuthenticationService, AuthenticationHTTPStub) {
@@ -871,4 +922,8 @@ nonisolated private struct RemovalFailingStore: AuthenticationSessionStore {
     func invalidatedSessionID() throws -> UUID? { try base.invalidatedSessionID() }
     func markInvalidated(_ id: UUID) throws { try base.markInvalidated(id) }
     func clearInvalidation() throws { try base.clearInvalidation() }
+}
+
+nonisolated private enum CatalogAPIFixture {
+    static let json = #"{"import_id":7,"imported_at":"2026-11-08T00:00:00Z","is_synthetic":true,"offer_max_age_hours":48,"products":[{"id":42,"name":"Milk","brand":null,"category":"Dairy","product_type":"milk","package_amount":930.5,"package_unit":"ml"}],"stores":[{"id":7,"chain":"Store","name":"Nearby","address":"Street","latitude":59.9,"longitude":30.3,"format":"supermarket"}],"offers":[{"id":"7-42","product_id":42,"store_id":7,"price_kopecks":8999,"currency":"RUB","card_price_kopecks":7999,"in_stock":null,"price_type":"promo","price_conditions":"With a card","source_product_id":"source-42","source_url":"https://example.com/product","source_updated_at":"2026-11-08T00:00:00Z"}]}"#
 }

@@ -26,6 +26,7 @@ enum AccessibilityID {
         }
 
         enum Detail {
+            static let name = "home.product.detail.name"
             static let close = "home.product.close"
             static let add = "home.product.add"
             static let decrease = "home.product.decrease"
@@ -47,6 +48,10 @@ enum AccessibilityID {
                 "home.quantity.increase.\(productID)"
             }
         }
+    }
+
+    enum Catalog {
+        static let banner = "catalog.status"
     }
 
     enum Search {

@@ -4,6 +4,119 @@ import XCTest
 
 @MainActor
 final class CatalogRepositoryTests: XCTestCase {
+    func testFullSnapshotRemovesMissingRecordsEvenWhenOldCacheArrivesLate() async throws {
+        let cache = ControlledCatalogCache()
+        cache.pauseLoad = true
+        let started = expectation(description: "Cache loading")
+        cache.onLoadStarted = { started.fulfill() }
+        let repository = DefaultCatalogRepository(cache: cache, source: FixedCatalogSource(batch: CatalogFixtures.catalog()))
+        let loading = Task { await repository.prepareCache() }
+        await fulfillment(of: [started], timeout: 5)
+        try await repository.refresh()
+        var obsolete = CatalogFixtures.catalog()
+        obsolete.products.append(CatalogProduct(id: "deleted", name: "Deleted"))
+        cache.finishLoading(try CatalogFixtures.snapshot(obsolete))
+        await loading.value
+        let items = await catalogItems(from: repository)
+        XCTAssertEqual(items.map(\.id), ["p1"])
+        let saved = expectation(description: "Replacement saved")
+        if cache.snapshot.metadata != nil { saved.fulfill() } else { cache.onSaved = { saved.fulfill() } }
+        await fulfillment(of: [saved], timeout: 5)
+        XCTAssertNil(cache.snapshot.products["deleted"])
+        XCTAssertEqual(cache.snapshot.metadata?.importID, 1)
+    }
+
+    func testOfflineRefreshPreservesSnapshotAndSharedStatusRecovers() async throws {
+        let cache = ControlledCatalogCache()
+        cache.snapshot = try CatalogSnapshot().applying(CatalogFixtures.export()).snapshot
+        let source = ControlledCatalogSource()
+        let repository = DefaultCatalogRepository(cache: cache, source: source)
+        let home = HomeViewModel(repository: repository)
+        let search = SearchViewModel(repository: repository)
+        await repository.prepareCache()
+        await home.refresh()
+        XCTAssertEqual(home.catalogStatus.failure, .offline)
+        XCTAssertEqual(search.catalogStatus.failure, .offline)
+        XCTAssertTrue(home.catalogStatus.hasSnapshot)
+        XCTAssertTrue(home.catalogStatus.isOffline)
+        let saved = await catalogItems(from: repository)
+        XCTAssertEqual(saved.map(\.id), ["p1"])
+        await source.succeed(with: CatalogFixtures.catalog(price: 150))
+        await search.refresh()
+        XCTAssertNil(home.catalogStatus.failure)
+        XCTAssertFalse(home.catalogStatus.isOffline)
+        let updated = await catalogItems(from: repository)
+        XCTAssertEqual(updated.first?.offers.first?.offer.price, 150)
+    }
+
+    func testConditionalRefreshSharesOneRequestAndPreservesOfferReceiptTime() async throws {
+        let original = CatalogFixtures.export(date: Date(timeIntervalSince1970: 1234))
+        let cache = ControlledCatalogCache()
+        cache.snapshot = try CatalogSnapshot().applying(original).snapshot
+        let source = ConditionalCatalogSource()
+        let repository = DefaultCatalogRepository(cache: cache, source: source)
+        await repository.prepareCache()
+        async let first: Void = repository.refresh()
+        async let second: Void = repository.refresh()
+        _ = try await (first, second)
+        let headers = await source.headers
+        XCTAssertEqual(headers, ["\"1\""])
+        let items = await catalogItems(from: repository)
+        XCTAssertEqual(items.first?.offers.first?.cachedAt, Date(timeIntervalSince1970: 1234))
+        XCTAssertFalse(items.first?.offers.first?.isFresh ?? true)
+        var status = CatalogStatus()
+        let observation = repository.status.sink { status = $0 }
+        defer { observation.cancel() }
+        XCTAssertGreaterThan(status.validatedAt ?? .distantPast, Date(timeIntervalSince1970: 1234))
+        XCTAssertNil(status.failure)
+    }
+
+    func testFailedReplacementRetriesTheLatestWholeSnapshot() async throws {
+        let cache = ControlledCatalogCache()
+        cache.snapshot = try CatalogFixtures.snapshot(CatalogImport(products: [CatalogProduct(id: "old", name: "Old")]))
+        cache.writeError = URLError(.cannotWriteToFile)
+        let source = ControlledCatalogSource()
+        await source.succeed(with: CatalogFixtures.catalog())
+        let repository = DefaultCatalogRepository(cache: cache, source: source)
+        await repository.prepareCache()
+        let failed = expectation(description: "Write failed")
+        let observation = repository.cacheState.filter { $0 == .unavailable }.prefix(1).sink { _ in failed.fulfill() }
+        defer { observation.cancel() }
+        try await repository.refresh()
+        await fulfillment(of: [failed], timeout: 5)
+        await source.succeed(with: CatalogFixtures.catalog(price: 200))
+        try await repository.refresh()
+        cache.writeError = nil
+        let saved = expectation(description: "Latest replacement saved")
+        cache.onSaved = { saved.fulfill() }
+        await repository.prepareCache()
+        await fulfillment(of: [saved], timeout: 5)
+        XCTAssertNil(cache.snapshot.products["old"])
+        XCTAssertEqual(cache.snapshot.offers["o1"]?.offer.price, 200)
+    }
+
+    func testCancelledRefreshCannotOverwriteTheNextSuccessfulStatus() async throws {
+        let source = LateFailureCatalogSource()
+        let repository = DefaultCatalogRepository(source: source)
+        let old = Task { try await repository.refresh() }
+        for _ in 0..<100 {
+            if await source.hasStarted { break }
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        repository.cancelRefresh()
+        try await repository.refresh()
+        await source.releaseFailure()
+        do { try await old.value; XCTFail("Expected cancellation") }
+        catch { XCTAssertTrue(error is CancellationError) }
+        var status = CatalogStatus()
+        let observation = repository.status.sink { status = $0 }
+        defer { observation.cancel() }
+        XCTAssertNil(status.failure)
+        XCTAssertFalse(status.isOffline)
+        XCTAssertFalse(status.isRefreshing)
+        XCTAssertTrue(status.hasSnapshot)
+    }
+
     func testRelatedProductsAreIndependentOfTheTextSearchLimit() async throws {
         let repository = DefaultCatalogRepository()
         var batch = CatalogImport(products: (0..<CatalogSearch.resultLimit).map {
@@ -371,4 +484,26 @@ final class CatalogRepositoryTests: XCTestCase {
         XCTAssertEqual(stored.offers["o1"]?.cachedAt, CatalogFixtures.cachedAt)
         XCTAssertEqual(items.first?.offers.first?.cachedAt, CatalogFixtures.cachedAt)
     }
+}
+
+private actor ConditionalCatalogSource: CatalogSource {
+    private(set) var headers: [String?] = []
+    func loadCatalog(ifNoneMatch: String?) async throws -> CatalogSourceResult {
+        headers.append(ifNoneMatch)
+        try await Task.sleep(for: .milliseconds(30))
+        return .notModified
+    }
+}
+
+private actor LateFailureCatalogSource: CatalogSource {
+    private var continuation: CheckedContinuation<Void, Never>?
+    private(set) var hasStarted = false
+    func loadCatalog(ifNoneMatch: String?) async throws -> CatalogSourceResult {
+        if !hasStarted {
+            await withCheckedContinuation { continuation = $0; hasStarted = true }
+            throw URLError(.notConnectedToInternet)
+        }
+        return .snapshot(CatalogFixtures.export())
+    }
+    func releaseFailure() { continuation?.resume(); continuation = nil }
 }

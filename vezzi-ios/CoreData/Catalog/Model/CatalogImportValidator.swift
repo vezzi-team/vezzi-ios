@@ -25,6 +25,7 @@ nonisolated enum CatalogImportValidator {
         }
         for offer in batch.offers {
             guard !offer.price.isNaN, offer.price >= 0,
+                  offer.cardPrice.map({ !$0.isNaN && $0 >= 0 }) ?? true,
                   offer.currency.utf8.count == 3,
                   offer.currency.utf8.allSatisfy({ (65...90).contains($0) }),
                   offer.sourceUpdatedAt.map({ $0.timeIntervalSince1970.isFinite }) ?? true else {

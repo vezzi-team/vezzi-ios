@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeCategoryFilterBar: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Binding var selectedCategory: ProductCategory?
+    var categories: [ProductCategory] = ProductCategory.allCases
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -24,7 +25,7 @@ struct HomeCategoryFilterBar: View {
         GlassEffectContainer(spacing: Const.spacing) {
             HStack(spacing: Const.spacing) {
                 filterButton(for: nil, scrollProxy: scrollProxy)
-                ForEach(ProductCategory.allCases) { category in
+                ForEach(categories) { category in
                     filterButton(for: category, scrollProxy: scrollProxy)
                 }
             }
@@ -78,14 +79,7 @@ struct HomeCategoryFilterBar: View {
     }
 
     private func title(for category: ProductCategory?) -> String {
-        switch category {
-        case nil: Texts.Home.Main.forYou
-        case .dairy: Texts.Home.Filters.dairy
-        case .produce: Texts.Home.Filters.produce
-        case .bakery: Texts.Home.Filters.bakery
-        case .pantry: Texts.Home.Filters.pantry
-        case .eggs: Texts.Home.Filters.eggs
-        }
+        category?.title ?? Texts.Home.Main.forYou
     }
 
     private func filterID(_ category: ProductCategory?) -> String {

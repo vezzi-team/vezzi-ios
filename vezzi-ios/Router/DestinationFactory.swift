@@ -8,14 +8,13 @@ enum DestinationFactory {
         Group {
             switch route {
             case .home:
-                HomeView(authentication: authentication, profileTransition: profileTransition, selection: productSelection)
+                HomeView(repository: catalog, authentication: authentication, profileTransition: profileTransition, selection: productSelection)
             case .shoppingList:
                 ShoppingListView()
             case .stores:
                 StoresView()
             case .search:
-                SearchView(repository: catalog, selection: productSelection, stores: SearchMockData.stores,
-                           groupOrder: SearchMockData.groupOrder)
+                SearchView(repository: catalog, selection: productSelection)
             case .profile:
                 ProfileView(session: authentication)
             case .profileDetails(let destination):
