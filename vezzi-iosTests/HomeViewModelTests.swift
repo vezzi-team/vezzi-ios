@@ -33,11 +33,12 @@ final class HomeViewModelTests: XCTestCase {
         let model = HomeViewModel(repository: PreviewCatalogRepository(snapshot: snapshot))
         let product = try XCTUnwrap(model.products.first)
         let offer = try XCTUnwrap(product.offers.first)
-        XCTAssertEqual(product.nameWithoutBrand, "Молоко 2,5%")
+        XCTAssertEqual(product.displayName, "Молоко 2,5%")
         XCTAssertEqual(product.brand, "Простоквашино")
         XCTAssertEqual(product.packageQuantity, 930)
         XCTAssertEqual(offer.storeTitle, "Пятёрочка")
         XCTAssertEqual(offer.address, address)
+        XCTAssertEqual(offer.displayAddress, "Лесная улица, 10")
         XCTAssertEqual(product.name, name)
         XCTAssertEqual(offer.name, storeName)
         XCTAssertEqual(snapshot.products["milk"]?.name, name)
@@ -55,7 +56,7 @@ final class HomeViewModelTests: XCTestCase {
         for (name, brand, expected) in cases {
             let product = Product(id: "p", name: name, brand: brand, packageQuantity: nil,
                                   packageUnit: nil, category: nil, offers: [])
-            XCTAssertEqual(product.nameWithoutBrand, expected)
+            XCTAssertEqual(product.displayName, expected)
         }
         let offer = ProductOffer(id: "o", storeID: "s", name: "Магазин № 10", price: 90)
         XCTAssertEqual(offer.storeTitle, "Магазин № 10")
@@ -76,6 +77,7 @@ final class HomeViewModelTests: XCTestCase {
             XCTAssertEqual(offer.storeTitle, "METRO")
             XCTAssertEqual(offer.name, name)
             XCTAssertEqual(offer.address, address)
+            XCTAssertEqual(offer.displayAddress, "Комендантский проспект, 3 лит А")
             XCTAssertEqual(offer.storeID, "s")
         }
         let fallback = ProductOffer(id: "o", storeID: "s", name: "Магазин — Лесная, 1", price: 90,

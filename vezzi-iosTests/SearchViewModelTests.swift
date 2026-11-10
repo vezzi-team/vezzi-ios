@@ -4,6 +4,18 @@ import XCTest
 
 @MainActor
 final class SearchViewModelTests: XCTestCase {
+    func testProductNameFallbackInSectionTitleOmitsDuplicatedPackage() throws {
+        let name = "4 сезона Картофель фри, 450 г"
+        let batch = CatalogImport(
+            products: [CatalogProduct(id: "p", name: name, brand: "4 сезона", packageQuantity: 450, packageUnit: "g")],
+            stores: [CatalogStore(id: "s", name: "Store")],
+            offers: [CatalogOffer(id: "o", productID: "p", storeID: "s", price: 100, currency: "RUB")])
+        let model = SearchViewModel(repository: PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(batch)))
+        XCTAssertEqual(model.sections.first?.title, "Картофель фри")
+        XCTAssertEqual(model.sections.first?.products.first?.displayName, "Картофель фри")
+        XCTAssertEqual(model.sections.first?.products.first?.name, name)
+    }
+
     func testFasterModeSeparatesAddressesAndKeepsBranchesOfOneChainDistinct() throws {
         let addresses = ["Санкт-Петербург, Комендантский проспект, 3 лит А", "Санкт-Петербург, Пулковское шоссе, 23"]
         let batch = CatalogImport(
@@ -21,12 +33,13 @@ final class SearchViewModelTests: XCTestCase {
         model.mode = .faster
         XCTAssertEqual(model.sections.map(\.id), ["s1", "s2"])
         XCTAssertEqual(model.sections.map(\.title), ["METRO", "METRO"])
-        XCTAssertEqual(model.sections.compactMap(\.address), addresses)
+        XCTAssertEqual(model.sections.compactMap(\.address), ["Комендантский проспект, 3 лит А", "Пулковское шоссе, 23"])
         XCTAssertEqual(model.sections.compactMap { $0.products.first?.lowestPrice }, [90, 110])
         for section in model.sections {
             let offer = try XCTUnwrap(section.products.first?.offers.first)
             XCTAssertEqual(section.title, offer.storeTitle)
-            XCTAssertEqual(section.address, offer.address)
+            XCTAssertEqual(section.address, offer.displayAddress)
+            XCTAssertEqual(offer.address, addresses[section.id == "s1" ? 0 : 1])
             XCTAssertEqual(section.storeID, offer.storeID)
         }
     }
@@ -240,64 +253,27 @@ final class SearchViewModelTests: XCTestCase {
                         groupOrder: SearchMockData.groupOrder)
     }
 
-    func testRefreshErrorSurvivesSearchAndClearsOnlyAfterSuccessfulRefresh() async throws {
+    func testRefreshPreservesResultsOnFailureAndUpdatesThemAfterRecovery() async throws {
         let source = ControlledCatalogSource()
         let repository = DefaultCatalogRepository(source: source)
         try await repository.importCatalog(CatalogFixtures.catalog())
         let viewModel = SearchViewModel(repository: repository)
+        _ = await publishedItems(viewModel.$items.eraseToAnyPublisher(), where: { !$0.isEmpty })
+        var loadingStates: [Bool] = []
+        let observation = viewModel.$isRefreshing.dropFirst().sink { loadingStates.append($0) }
+        defer { observation.cancel() }
+
         await viewModel.refresh()
-        XCTAssertNotNil(viewModel.refreshErrorMessage)
-        viewModel.query = "missing"
-        _ = await publishedItems(viewModel.$items.dropFirst().eraseToAnyPublisher(), where: { $0.isEmpty })
-        XCTAssertNotNil(viewModel.refreshErrorMessage)
-        viewModel.query = "молоко"
-        let items = await publishedItems(viewModel.$items.eraseToAnyPublisher(), where: { !$0.isEmpty })
-        XCTAssertEqual(items.map(\.id), ["p1"])
-        XCTAssertNotNil(viewModel.refreshErrorMessage)
+        XCTAssertFalse(viewModel.isRefreshing)
+        XCTAssertEqual(viewModel.items.map(\.id), ["p1"])
+        XCTAssertEqual(viewModel.items.first?.offers.first?.offer.price, Decimal(string: "99.90"))
+
         await source.succeed(with: CatalogFixtures.catalog(price: 120))
         await viewModel.refresh()
-        XCTAssertNil(viewModel.refreshErrorMessage)
+        XCTAssertFalse(viewModel.isRefreshing)
         let updated = await publishedItems(viewModel.$items.eraseToAnyPublisher(), where: { $0.first?.offers.first?.offer.price == 120 })
         XCTAssertEqual(updated.first?.offers.first?.offer.price, 120)
-    }
-
-    func testCacheFailureAndSourceFailureAreIndependentAndRetryable() async throws {
-        let cache = ControlledCatalogCache()
-        cache.loadError = URLError(.cannotOpenFile)
-        let source = ControlledCatalogSource()
-        let repository = DefaultCatalogRepository(cache: cache, source: source)
-        let viewModel = SearchViewModel(repository: repository)
-        await repository.prepareCache()
-        await viewModel.refresh()
-        XCTAssertTrue(viewModel.isCacheUnavailable)
-        XCTAssertNotNil(viewModel.refreshErrorMessage)
-        await source.succeed(with: CatalogFixtures.catalog())
-        await viewModel.refresh()
-        XCTAssertTrue(viewModel.isCacheUnavailable)
-        XCTAssertNil(viewModel.refreshErrorMessage)
-        cache.loadError = nil
-        await viewModel.retry()
-        XCTAssertFalse(viewModel.isCacheUnavailable)
-        XCTAssertNil(viewModel.refreshErrorMessage)
-        let items = await publishedItems(viewModel.$items.eraseToAnyPublisher(), where: { !$0.isEmpty })
-        XCTAssertEqual(items.map(\.id), ["p1"])
-    }
-
-    func testFailedCacheWriteKeepsSourceResultsAndShowsOnlyCacheFailure() async throws {
-        let cache = ControlledCatalogCache()
-        cache.writeError = URLError(.cannotWriteToFile)
-        let repository = DefaultCatalogRepository(cache: cache, source: FixedCatalogSource(batch: CatalogFixtures.catalog()))
-        let viewModel = SearchViewModel(repository: repository)
-        await repository.prepareCache()
-        let failed = expectation(description: "Cache write failure is shown")
-        let observation = viewModel.$isCacheUnavailable.filter { $0 }.prefix(1).sink { _ in failed.fulfill() }
-        defer { observation.cancel() }
-        await viewModel.refresh()
-        await fulfillment(of: [failed], timeout: 5)
-        let items = await publishedItems(viewModel.$items.eraseToAnyPublisher(), where: { !$0.isEmpty })
-        XCTAssertEqual(items.first?.offers.first?.offer.price, Decimal(string: "99.90"))
-        XCTAssertNil(viewModel.refreshErrorMessage)
-        XCTAssertTrue(cache.snapshot.products.isEmpty)
+        XCTAssertEqual(loadingStates, [true, false, true, false], "Only actual loading changes should be published")
     }
 }
 

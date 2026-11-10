@@ -4,6 +4,94 @@ import XCTest
 
 @MainActor
 final class CatalogRepositoryTests: XCTestCase {
+    func testRefreshErrorSurvivesQueriesAndClearsOnlyAfterSuccessfulRefresh() async throws {
+        let source = ControlledCatalogSource()
+        let repository = DefaultCatalogRepository(source: source)
+        try await repository.importCatalog(CatalogFixtures.catalog())
+        var status = CatalogStatus()
+        let observation = repository.status.sink { status = $0 }
+        defer { observation.cancel() }
+
+        do {
+            try await repository.refresh()
+            XCTFail("An offline source should fail")
+        } catch {
+            XCTAssertEqual((error as? URLError)?.code, .notConnectedToInternet)
+        }
+        XCTAssertEqual(status.failure, .offline)
+        let missing = await catalogItems(from: repository, matching: "missing")
+        XCTAssertTrue(missing.isEmpty)
+        XCTAssertEqual(status.failure, .offline)
+        let items = await catalogItems(from: repository, matching: "молоко")
+        XCTAssertEqual(items.map(\.id), ["p1"])
+        XCTAssertEqual(status.failure, .offline)
+
+        await source.succeed(with: CatalogFixtures.catalog(price: 120))
+        try await repository.refresh()
+        XCTAssertNil(status.failure)
+        let updated = await catalogItems(from: repository)
+        XCTAssertEqual(updated.first?.offers.first?.offer.price, 120)
+    }
+
+    func testCacheFailureAndSourceFailureAreIndependentAndRetryable() async throws {
+        let cache = ControlledCatalogCache()
+        cache.loadError = URLError(.cannotOpenFile)
+        let source = ControlledCatalogSource()
+        let repository = DefaultCatalogRepository(cache: cache, source: source)
+        var status = CatalogStatus()
+        var cacheState = CatalogCacheState.disabled
+        let observation = repository.status.sink { status = $0 }
+        let cacheObservation = repository.cacheState.sink { cacheState = $0 }
+        defer {
+            observation.cancel()
+            cacheObservation.cancel()
+        }
+
+        await repository.prepareCache()
+        do {
+            try await repository.refresh()
+            XCTFail("An offline source should fail")
+        } catch {
+            XCTAssertEqual((error as? URLError)?.code, .notConnectedToInternet)
+        }
+        XCTAssertEqual(cacheState, .unavailable)
+        XCTAssertEqual(status.failure, .offline)
+        await source.succeed(with: CatalogFixtures.catalog())
+        try await repository.refresh()
+        XCTAssertEqual(cacheState, .unavailable)
+        XCTAssertNil(status.failure)
+
+        cache.loadError = nil
+        await repository.prepareCache()
+        XCTAssertEqual(cacheState, .available)
+        XCTAssertNil(status.failure)
+        let items = await catalogItems(from: repository)
+        XCTAssertEqual(items.map(\.id), ["p1"])
+    }
+
+    func testFailedCacheWriteKeepsSourceResultsAndReportsOnlyCacheFailure() async throws {
+        let cache = ControlledCatalogCache()
+        cache.writeError = URLError(.cannotWriteToFile)
+        let repository = DefaultCatalogRepository(cache: cache, source: FixedCatalogSource(batch: CatalogFixtures.catalog()))
+        var status = CatalogStatus()
+        let observation = repository.status.sink { status = $0 }
+        let failed = expectation(description: "Cache write failure is reported")
+        let cacheObservation = repository.cacheState.filter { $0 == .unavailable }.prefix(1).sink { _ in failed.fulfill() }
+        defer {
+            observation.cancel()
+            cacheObservation.cancel()
+        }
+
+        await repository.prepareCache()
+        try await repository.refresh()
+        await fulfillment(of: [failed], timeout: 5)
+        let items = await catalogItems(from: repository)
+        XCTAssertEqual(items.first?.offers.first?.offer.price, Decimal(string: "99.90"))
+        XCTAssertNil(status.failure)
+        XCTAssertFalse(status.isRefreshing)
+        XCTAssertTrue(cache.snapshot.products.isEmpty)
+    }
+
     func testFullSnapshotRemovesMissingRecordsEvenWhenOldCacheArrivesLate() async throws {
         let cache = ControlledCatalogCache()
         cache.pauseLoad = true
@@ -36,7 +124,7 @@ final class CatalogRepositoryTests: XCTestCase {
         await repository.prepareCache()
         await home.refresh()
         XCTAssertEqual(home.catalogStatus.failure, .offline)
-        XCTAssertEqual(search.catalogStatus.failure, .offline)
+        XCTAssertFalse(search.isRefreshing)
         XCTAssertTrue(home.catalogStatus.hasSnapshot)
         XCTAssertTrue(home.catalogStatus.isOffline)
         let saved = await catalogItems(from: repository)

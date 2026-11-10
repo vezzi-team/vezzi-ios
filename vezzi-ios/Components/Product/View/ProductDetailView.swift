@@ -55,6 +55,11 @@ private struct ProductDetailPage: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
     @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var showsAllStores = false
+    @AppStorage(Const.storeSortPreferenceKey) private var storeSort: ProductStoreSort = .priceAscending
+    @State private var productNameBottom: CGFloat = .zero
+    @State private var showsProductNameInNavigationBar = false
 
     let product: Product
     let relatedProducts: [Product]
@@ -65,26 +70,53 @@ private struct ProductDetailPage: View {
     var body: some View {
         productList
             .navigationTitle(navigationTitle)
-            .navigationSubtitle(product.package)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar { navigationHeader }
             .safeAreaBar(edge: .bottom, spacing: .zero) { bottomActions }
     }
 
-    // MARK: - Product
+    // MARK: - Navigation Header
+
+    private var productBrand: String {
+        product.brand.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     private var navigationTitle: String {
-        let brand = product.brand.trimmingCharacters(in: .whitespacesAndNewlines)
-        return brand.isEmpty ? product.nameWithoutBrand : brand
+        if showsProductNameInNavigationBar { return product.displayName }
+        return productBrand.isEmpty ? product.displayName : productBrand
     }
+
+    private var navigationSubtitle: String {
+        let components = showsProductNameInNavigationBar ? [productBrand, product.package] : [product.package]
+        return components.filter { !$0.isEmpty }.joined(separator: " · ")
+    }
+
+    @ToolbarContentBuilder
+    private var navigationHeader: some ToolbarContent {
+        ToolbarItem(placement: .title) {
+            Text(navigationTitle)
+                .font(.headline)
+                .foregroundStyle(Color.Label.primary)
+                .lineLimit(1)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier(AccessibilityID.Product.Detail.navigationTitle)
+        }
+        ToolbarItem(placement: .subtitle) {
+            Text(navigationSubtitle)
+                .font(.caption)
+                .foregroundStyle(Color.Label.secondary)
+                .lineLimit(1, reservesSpace: true)
+                .accessibilityIdentifier(AccessibilityID.Product.Detail.navigationSubtitle)
+        }
+    }
+
+    // MARK: - Product
 
     private var productList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Const.rowSpacing) {
                 productSummary
-                offersHeading
-                ForEach(product.offers) { offer in
-                    offerRow(offer)
-                }
+                storesSection
                 if !alternatives.isEmpty {
                     sectionHeading(Texts.Product.alternatives)
                         .padding(.top, Const.sectionSpacing - Const.rowSpacing)
@@ -93,9 +125,15 @@ private struct ProductDetailPage: View {
                 }
             }
             .padding(.horizontal, Const.contentInset)
+            .coordinateSpace(name: Const.contentCoordinateSpace)
         }
         .scrollIndicators(.hidden)
         .background(Color.Background.elevated)
+        .onScrollGeometryChange(for: Bool.self) { geometry in
+            productNameBottom > .zero && geometry.contentOffset.y + geometry.contentInsets.top >= productNameBottom
+        } action: { _, isAboveVisibleContent in
+            showsProductNameInNavigationBar = isAboveVisibleContent
+        }
     }
 
     private var productSummary: some View {
@@ -109,13 +147,16 @@ private struct ProductDetailPage: View {
     }
 
     private var productName: some View {
-        Text(product.nameWithoutBrand)
+        Text(product.displayName)
             .appTextStyle(size: Const.nameFontSize, lineHeight: Const.nameLineHeight,
                            weight: .semibold, relativeTo: .title3)
             .foregroundStyle(Color.Label.primary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityAddTraits(.isHeader)
             .accessibilityIdentifier(AccessibilityID.Product.Detail.name)
+            .onGeometryChange(for: CGFloat.self) { geometry in
+                geometry.frame(in: .named(Const.contentCoordinateSpace)).maxY
+            } action: { productNameBottom = $0 }
     }
 
     private var artworkPlaceholder: some View {
@@ -142,9 +183,91 @@ private struct ProductDetailPage: View {
 
     // MARK: - Stores
 
+    private var storesSection: some View {
+        VStack(alignment: .leading, spacing: Const.rowSpacing) {
+            offersHeading
+            ForEach(visibleOffers) { offer in
+                offerRow(offer)
+                    .transition(reduceMotion ? .identity : .opacity)
+            }
+            if product.offers.count > Const.initialStoreCount {
+                storesExpansionButton
+            }
+        }
+        .animation(reduceMotion ? nil : .smooth(duration: Const.storeSortDuration), value: storeSort)
+    }
+
+    private var visibleOffers: ArraySlice<ProductOffer> {
+        storeSort.sorted(product.offers, distance: ProductDetailMockDistances.distance)
+            .prefix(showsAllStores ? product.offers.count : Const.initialStoreCount)
+    }
+
+    private var storesExpansionButton: some View {
+        Button {
+            withAnimation(reduceMotion ? nil : .smooth(duration: Const.storeExpansionDuration)) {
+                showsAllStores.toggle()
+            }
+        } label: {
+            Label {
+                Text(showsAllStores ? Texts.Product.Stores.showLess : Texts.Product.Stores.showMore)
+                    .contentTransition(.opacity)
+            } icon: {
+                Image.System.chevronDown
+                    .rotationEffect(.degrees(showsAllStores ? Const.expandedChevronRotation : .zero))
+            }
+            .font(.subheadline.weight(.semibold))
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.glass)
+        .controlSize(.large)
+        .sensoryFeedback(.impact(weight: .light), trigger: showsAllStores)
+        .accessibilityIdentifier(AccessibilityID.Product.Detail.toggleStores)
+    }
+
     private var offersHeading: some View {
-        sectionHeading(Texts.Product.availableNearby)
-            .padding(.bottom, Const.headingBottomInset)
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: Const.storeSpacing) {
+                sectionHeading(Texts.Product.availableNearby)
+                    .fixedSize()
+                Spacer(minLength: .zero)
+                storeSortMenu
+            }
+            VStack(alignment: .leading, spacing: Const.rowSpacing) {
+                sectionHeading(Texts.Product.availableNearby)
+                    .fixedSize(horizontal: false, vertical: true)
+                storeSortMenu
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+        }
+        .padding(.bottom, Const.headingBottomInset)
+    }
+
+    private var storeSortMenu: some View {
+        Menu {
+            Picker(Texts.Product.Stores.Sort.title, selection: $storeSort) {
+                ForEach(ProductStoreSort.allCases, id: \.self) { sort in
+                    Label { Text(sort.title) } icon: { sort.image }
+                        .tag(sort)
+                        .accessibilityIdentifier(AccessibilityID.Product.Detail.sortOption(sort.rawValue))
+                }
+            }
+        } label: {
+            HStack(spacing: Const.sortLabelSpacing) {
+                Image.System.arrowUpArrowDown
+                Text(storeSort.title)
+                    .contentTransition(.opacity)
+            }
+            .font(.subheadline.weight(.medium))
+        }
+        .buttonStyle(.glass)
+        .buttonBorderShape(.capsule)
+        .controlSize(.large)
+        .fixedSize()
+        .tint(Color.Label.primary)
+        .disabled(product.offers.count < Const.minimumSortableStoreCount)
+        .accessibilityLabel(Texts.Product.Stores.Sort.title)
+        .accessibilityValue(storeSort.title)
+        .accessibilityIdentifier(AccessibilityID.Product.Detail.sortStores)
     }
 
     private func sectionHeading(_ title: String) -> some View {
@@ -163,6 +286,7 @@ private struct ProductDetailPage: View {
         .padding(.vertical, Const.rowVerticalInset)
         .frame(minHeight: Const.storeRowHeight)
         .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(AccessibilityID.Product.Detail.store(offer.storeID))
     }
 
     private func storeHeading(_ offer: ProductOffer) -> some View {
@@ -196,7 +320,7 @@ private struct ProductDetailPage: View {
     private func storeSummary(_ offer: ProductOffer) -> some View {
         VStack(alignment: .leading, spacing: Const.storeTextSpacing) {
             storeHeading(offer)
-            if let address = offer.address, !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if let address = offer.displayAddress {
                 Text(address)
                     .appTextStyle(size: Const.addressFontSize, lineHeight: Const.addressLineHeight, relativeTo: .caption)
                     .foregroundStyle(Color.Label.secondary)
@@ -276,6 +400,14 @@ private struct ProductDetailPage: View {
     }
 
     private enum Const {
+        static let contentCoordinateSpace = "product.detail.content"
+        static let storeSortPreferenceKey = "product.storeSort"
+        static let initialStoreCount = 3
+        static let minimumSortableStoreCount = 2
+        static let storeExpansionDuration: TimeInterval = 0.35
+        static let storeSortDuration: TimeInterval = 0.3
+        static let sortLabelSpacing: CGFloat = 6
+        static let expandedChevronRotation: Double = 180
         static let contentInset: CGFloat = 16
         static let rowSpacing: CGFloat = 8
         static let summarySpacing: CGFloat = 12
@@ -309,8 +441,28 @@ private struct ProductDetailPage: View {
     }
 }
 
+private extension ProductStoreSort {
+    var image: Image {
+        switch self {
+        case .priceAscending: Image.System.priceDecrease
+        case .priceDescending: Image.System.priceIncrease
+        case .distanceAscending: Image.System.arrowsInward
+        case .distanceDescending: Image.System.arrowsOutward
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .priceAscending: Texts.Product.Stores.Sort.priceAscending
+        case .priceDescending: Texts.Product.Stores.Sort.priceDescending
+        case .distanceAscending: Texts.Product.Stores.Sort.distanceAscending
+        case .distanceDescending: Texts.Product.Stores.Sort.distanceDescending
+        }
+    }
+}
+
 /// Temporary presentation-only distances until map integration; stable for each store across detail pages.
-private enum ProductDetailMockDistances {
+nonisolated private enum ProductDetailMockDistances {
     private static let meters: [Double] = [350, 500, 800]
 
     static func distance(for offer: ProductOffer) -> Measurement<UnitLength> {
@@ -343,4 +495,14 @@ private enum ProductDetailMockDistances {
     }
     ProductDetailView(product: products[0], relatedProducts: Array(products.dropFirst()),
                       selection: selection, showsPricePrefix: false)
+}
+
+#Preview("Product — more stores") {
+    @Previewable @StateObject var selection = ProductSelection()
+    var product = ProductMockData.products[0]
+    product.offers.append(ProductOffer(id: "preview.extra.offer", storeID: "preview.extra.store",
+                                       name: Texts.Search.Mock.perekrestok, price: 109,
+                                       address: Texts.Home.Mock.workAddress))
+    return ProductDetailView(product: product, relatedProducts: ProductMockData.alternatives(for: product.id),
+                             selection: selection)
 }

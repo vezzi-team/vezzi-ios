@@ -1,11 +1,11 @@
 import SwiftUI
 
 struct SearchView: View {
-    @EnvironmentObject private var router: AppRouter
     @StateObject private var viewModel: SearchViewModel
     @ObservedObject private var selection: ProductSelection
     @State private var isSearching = false
     @State private var scrollPosition = ScrollPosition(edge: .top)
+    @State private var isPastScrollTopThreshold = false
     @FocusState private var isSearchFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -94,6 +94,11 @@ struct SearchView: View {
         }
         .scrollIndicators(.hidden)
         .scrollPosition($scrollPosition)
+        .onScrollGeometryChange(for: Bool.self) { geometry in
+            geometry.contentOffset.y + geometry.contentInsets.top > Const.scrollTopThreshold
+        } action: { _, isPastThreshold in
+            isPastScrollTopThreshold = isPastThreshold
+        }
         .onChange(of: viewModel.mode) { _, _ in
             isSearchFocused = false
             withTransaction(Transaction(animation: nil)) {
@@ -102,26 +107,21 @@ struct SearchView: View {
         }
         .scrollDismissesKeyboard(.immediately)
         .onScrollPhaseChange(dismissSearchFocusOnScroll)
+        .accessibilityIdentifier(AccessibilityID.Search.results)
         .overlay {
-            if viewModel.sections.isEmpty && !hasStatusBanner {
+            if viewModel.sections.isEmpty {
                 if viewModel.isRefreshing { ProgressView() }
                 else { emptyState.transition(resultsTransition) }
             }
         }
+        .overlay(alignment: .bottomTrailing) { scrollToTopButton }
         .animation(reduceMotion ? nil : .easeOut(duration: Const.resultsTransitionDuration),
                    value: viewModel.items.map(\.id))
         .environment(\.isShimmerEnabled, viewModel.selectedProduct == nil)
-        .accessibilityIdentifier(AccessibilityID.Search.results)
     }
 
     private var resultsContent: some View {
         LazyVStack(alignment: .leading, spacing: Const.sectionSpacing) {
-            if hasStatusBanner {
-                catalogBanner
-                if viewModel.sections.isEmpty && !viewModel.isRefreshing {
-                    emptyState.transition(resultsTransition)
-                }
-            }
             ForEach(viewModel.sections) { section in
                 productSection(section)
                     .transition(resultsTransition)
@@ -134,6 +134,15 @@ struct SearchView: View {
             }
         }
         .padding(.bottom, Const.contentInset)
+    }
+
+    private var scrollToTopButton: some View {
+        ScrollToTopButton(isVisible: isPastScrollTopThreshold && !viewModel.sections.isEmpty,
+                          accessibilityIdentifier: AccessibilityID.Search.scrollToTop) {
+            isSearchFocused = false
+            scrollPosition.scrollTo(edge: .top)
+        }
+        .padding(Const.contentInset)
     }
 
     private var resultsTransition: AnyTransition {
@@ -224,25 +233,8 @@ struct SearchView: View {
         .accessibilityIdentifier(AccessibilityID.Search.empty)
     }
 
-    // MARK: - Repository Status
-
-    private var hasStatusBanner: Bool {
-        viewModel.catalogStatus.isOffline || viewModel.catalogStatus.failure != nil
-            || viewModel.catalogStatus.isSynthetic || viewModel.isCacheUnavailable
-    }
-
-    private var catalogBanner: some View {
-        CatalogStatusBanner(status: viewModel.catalogStatus, isCacheUnavailable: viewModel.isCacheUnavailable) {
-            if viewModel.catalogStatus.failure == .authenticationRequired && !viewModel.catalogStatus.isOffline {
-                router.presentAuthentication()
-            } else {
-                Task { await viewModel.retry() }
-            }
-        }
-        .padding(.horizontal, Const.contentInset)
-    }
-
     private enum Const {
+        static let scrollTopThreshold: CGFloat = 200
         static let contentInset: CGFloat = 16
         static let pickerTopInset: CGFloat = 8
         static let pickerBottomInset: CGFloat = 16
@@ -252,7 +244,6 @@ struct SearchView: View {
         static let storeSize: CGFloat = 24
         static let addressFontSize: CGFloat = 13
         static let addressLineHeight: CGFloat = 18
-        static let messageSpacing: CGFloat = 8
         static let modeDuration: TimeInterval = 0.2
         static let resultsTransitionDuration: TimeInterval = 0.18
     }
@@ -262,7 +253,6 @@ struct SearchView: View {
     NavigationStack {
         SearchView(repository: MockSearchRepository(), stores: SearchMockData.stores, groupOrder: SearchMockData.groupOrder)
     }
-    .environmentObject(AppRouter())
     .preferredColorScheme(.light)
 }
 
@@ -270,19 +260,16 @@ struct SearchView: View {
     NavigationStack {
         SearchView(repository: MockSearchRepository(), stores: SearchMockData.stores, groupOrder: SearchMockData.groupOrder)
     }
-    .environmentObject(AppRouter())
     .preferredColorScheme(.dark)
     .dynamicTypeSize(.accessibility3)
 }
 
 #Preview("Search — empty catalog") {
     NavigationStack { SearchView(repository: PreviewCatalogRepository()) }
-        .environmentObject(AppRouter())
 }
 
 #Preview("Search — offline, empty catalog") {
     @Previewable @State var repository = DefaultCatalogRepository()
     NavigationStack { SearchView(repository: repository) }
-        .environmentObject(AppRouter())
         .task { repository.updateConnectivity(isConnected: false) }
 }

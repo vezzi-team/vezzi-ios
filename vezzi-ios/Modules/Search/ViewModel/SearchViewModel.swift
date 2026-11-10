@@ -12,13 +12,10 @@ final class SearchViewModel: ObservableObject {
     @Published private(set) var selectedProduct: Product?
     @Published private(set) var selectedProductStoreID: String?
     @Published private(set) var relatedProducts: [Product] = []
-    @Published private(set) var isCacheUnavailable = false
-    @Published private(set) var catalogStatus = CatalogStatus()
+    @Published private(set) var isRefreshing = false
 
     var canRefresh: Bool { repository.canRefresh }
     var isResultLimitReached: Bool { items.count == CatalogSearch.resultLimit }
-    var isRefreshing: Bool { catalogStatus.isRefreshing }
-    var refreshErrorMessage: String? { catalogStatus.failure.map { _ in Texts.Search.refreshError } }
 
     private let stores: [String: SearchStoreInfo]
     private let groupRanks: [String: Int]
@@ -26,7 +23,6 @@ final class SearchViewModel: ObservableObject {
     private let repository: any CatalogRepository
     private var querySubscription: AnyCancellable?
     private var resultsSubscription: AnyCancellable?
-    private var cacheSubscription: AnyCancellable?
     private var relatedSubscription: AnyCancellable?
     private var statusSubscription: AnyCancellable?
 
@@ -34,12 +30,10 @@ final class SearchViewModel: ObservableObject {
         self.repository = repository
         self.stores = stores
         groupRanks = Dictionary(groupOrder.enumerated().map { ($0.element, $0.offset) }, uniquingKeysWith: min)
-        cacheSubscription = repository.cacheState.sink { [weak self] state in
-            self?.isCacheUnavailable = state == .unavailable
-        }
-        statusSubscription = repository.status.sink { [weak self] status in
-            self?.catalogStatus = status
-        }
+        statusSubscription = repository.status
+            .map(\.isRefreshing)
+            .removeDuplicates()
+            .sink { [weak self] in self?.isRefreshing = $0 }
         observe(query: "")
         querySubscription = $query
             .dropFirst()
@@ -50,12 +44,6 @@ final class SearchViewModel: ObservableObject {
     }
 
     nonisolated deinit {}
-
-    func retry() async {
-        async let cacheRetry: Void = repository.prepareCache()
-        await refresh()
-        await cacheRetry
-    }
 
     func refresh() async {
         guard canRefresh else { return }
@@ -113,9 +101,10 @@ final class SearchViewModel: ObservableObject {
     private func cheaperSections() -> [SearchSection] {
         let productsByID = Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0) })
         return Dictionary(grouping: items, by: { $0.product.groupID }).map { id, items in
-            SearchSection(id: id, title: items.first?.product.category ?? items.first?.product.name ?? "",
-                          address: nil, storeID: nil, walkingMinutes: nil,
-                          products: items.compactMap { productsByID[$0.id] }.sorted(by: priceOrder))
+            let firstProduct = items.first.flatMap { productsByID[$0.id] }
+            return SearchSection(id: id, title: items.first?.product.category ?? firstProduct?.displayName ?? "",
+                                 address: nil, storeID: nil, walkingMinutes: nil,
+                                 products: items.compactMap { productsByID[$0.id] }.sorted(by: priceOrder))
         }.sorted {
             let lhsRank = groupRanks[$0.id, default: Int.max]
             let rhsRank = groupRanks[$1.id, default: Int.max]
@@ -134,7 +123,7 @@ final class SearchViewModel: ObservableObject {
         }
         return byStore.map { id, products in
             let offer = products.first?.offers.first
-            return SearchSection(id: id, title: offer?.storeTitle ?? "", address: offer?.address, storeID: id,
+            return SearchSection(id: id, title: offer?.storeTitle ?? "", address: offer?.displayAddress, storeID: id,
                                  walkingMinutes: stores[id]?.walkingMinutes,
                                  products: products.sorted(by: priceOrder))
         }.sorted {

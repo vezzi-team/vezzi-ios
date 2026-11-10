@@ -29,6 +29,9 @@ struct HomeView: View {
                     .onScrollPhaseChange { _, phase in
                         if phase == .idle { applySelectedCategory(using: proxy) }
                     }
+                    .overlay(alignment: .bottom) {
+                        scrollToTopButton(using: proxy)
+                    }
             }
         }
         .background(Color.Background.primary.ignoresSafeArea())
@@ -42,6 +45,15 @@ struct HomeView: View {
     }
 
     // MARK: - Content
+
+    private func scrollToTopButton(using proxy: ScrollViewProxy) -> some View {
+        ScrollToTopButton(isVisible: isPastResultsTop, accessibilityIdentifier: AccessibilityID.Home.scrollToTop) {
+            proxy.scrollTo(Const.scrollTopID, anchor: .top)
+        }
+        .padding(Const.contentInset)
+        .frame(maxWidth: Const.maximumWidth, alignment: .trailing)
+        .frame(maxWidth: .infinity)
+    }
 
     private func showSelectedCategory(using proxy: ScrollViewProxy) {
         let displayedCount = viewModel.products(in: displayedCategory).count
@@ -76,6 +88,7 @@ struct HomeView: View {
         }
         .frame(maxWidth: Const.maximumWidth)
         .frame(maxWidth: .infinity)
+        .id(Const.scrollTopID)
         .environment(\.isShimmerEnabled, viewModel.selectedProduct == nil && router.presentedSheet == nil)
     }
 
@@ -233,6 +246,7 @@ struct HomeView: View {
     }
 
     private enum Const {
+        static let scrollTopID = "home.top"
         static let resultsTopID = "home.results.top"
         static let scrollTopTolerance: CGFloat = 1
         static let contentInset: CGFloat = 16

@@ -2127,6 +2127,23 @@
         }
       }
     },
+    "ScrollToTop" : {
+      "comment" : "Scroll to top",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scroll to top"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Наверх"
+          }
+        }
+      }
+    },
     "HomeSecondGradeEggs" : {
       "comment" : "C2 eggs",
       "extractionState" : "manual",
@@ -2176,6 +2193,125 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Томаты"
+          }
+        }
+      }
+    },
+    "ProductShowLessStores" : {
+      "comment" : "Show less",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show less"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скрыть"
+          }
+        }
+      }
+    },
+    "ProductShowMoreStores" : {
+      "comment" : "Show more",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show more"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать больше"
+          }
+        }
+      }
+    },
+    "ProductStoreSort" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sort stores"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сортировка магазинов"
+          }
+        }
+      }
+    },
+    "ProductStoreSortDistanceAscending" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Closer"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ближе"
+          }
+        }
+      }
+    },
+    "ProductStoreSortDistanceDescending" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farther"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дальше"
+          }
+        }
+      }
+    },
+    "ProductStoreSortPriceAscending" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cheaper"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дешевле"
+          }
+        }
+      }
+    },
+    "ProductStoreSortPriceDescending" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pricier"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дороже"
           }
         }
       }
@@ -2720,23 +2856,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Найти товары"
-          }
-        }
-      }
-    },
-    "SearchRefreshError" : {
-      "comment" : "Unable to update prices. Saved data is still available.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unable to update prices. Saved data is still available."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось обновить цены. Сохранённые данные остаются доступны."
           }
         }
       }

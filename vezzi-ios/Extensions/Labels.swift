@@ -15,6 +15,12 @@ final class Texts {
         static let title = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Planzo"
     }
     
+    // MARK: - Shared Controls
+
+    enum Common {
+        static let scrollToTop = NSLocalizedString("ScrollToTop", comment: "Scroll to top")
+    }
+
     // MARK: - Tab Bar
 
     enum Tabbar {
@@ -115,6 +121,19 @@ final class Texts {
             static let kilogram = NSLocalizedString("ProductUnitKilogram", comment: "kg")
             static let gram = NSLocalizedString("ProductUnitGram", comment: "g")
             static let piece = NSLocalizedString("ProductUnitPiece", comment: "pcs")
+        }
+
+        enum Stores {
+            static let showMore = NSLocalizedString("ProductShowMoreStores", comment: "Show more")
+            static let showLess = NSLocalizedString("ProductShowLessStores", comment: "Show less")
+
+            enum Sort {
+                static let title = NSLocalizedString("ProductStoreSort", comment: "Sort stores")
+                static let priceAscending = NSLocalizedString("ProductStoreSortPriceAscending", comment: "Cheaper")
+                static let priceDescending = NSLocalizedString("ProductStoreSortPriceDescending", comment: "Pricier")
+                static let distanceAscending = NSLocalizedString("ProductStoreSortDistanceAscending", comment: "Closer")
+                static let distanceDescending = NSLocalizedString("ProductStoreSortDistanceDescending", comment: "Farther")
+            }
         }
 
         static let priceFrom = NSLocalizedString("HomePriceFrom", comment: "from")
@@ -278,7 +297,6 @@ final class Texts {
         static let noResultsDescription = NSLocalizedString("SearchNoResultsDescription", comment: "Try another name, brand or category.")
         static let noOffers = NSLocalizedString("SearchNoOffers", comment: "No store offers available")
         static let unknownPriceDate = NSLocalizedString("SearchUnknownPriceDate", comment: "Price update date unknown")
-        static let refreshError = NSLocalizedString("SearchRefreshError", comment: "Unable to update prices. Saved data is still available.")
         static let resultLimit = NSLocalizedString("SearchResultLimit", comment: "Up to 50 products are shown. Refine your search to find more.")
     }
 

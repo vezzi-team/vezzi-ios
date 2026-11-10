@@ -95,7 +95,7 @@ struct ProductCard: View {
     }
 
     private var nameLabel: some View {
-        Text(product.nameWithoutBrand)
+        Text(product.displayName)
             .appTextStyle(size: Const.nameFontSize, lineHeight: Const.nameLineHeight,
                            weight: .semibold, relativeTo: .caption)
             .foregroundStyle(Color.Label.primary)

@@ -9,8 +9,9 @@ struct Product: Identifiable {
     let category: ProductCategory?
     var offers: [ProductOffer]
 
-    var nameWithoutBrand: String {
-        ProductDisplayText.removing(brand, from: name)
+    var displayName: String {
+        let unpackaged = ProductDisplayText.removingPackage(quantity: packageQuantity, unit: packageUnit, from: name)
+        return ProductDisplayText.removing(brand, from: unpackaged)
     }
 
     var package: String {
@@ -84,6 +85,15 @@ struct ProductOffer: Identifiable {
         }
         return ProductDisplayText.removing(address, from: name)
     }
+
+    var displayAddress: String? {
+        guard let address = address?.trimmingCharacters(in: .whitespacesAndNewlines), !address.isEmpty else { return nil }
+        // Strip only the known city prefix; keep the complete address for maps and catalog data.
+        let shortened = address.replacingOccurrences(
+            of: #"^(?:(?:г\.?\s*|город\s+)?Санкт-Петербург|Saint Petersburg|St\.?\s+Petersburg)\s*,\s*"#,
+            with: "", options: [.regularExpression, .caseInsensitive])
+        return shortened.isEmpty ? address : shortened
+    }
 }
 
 extension Product {
@@ -113,6 +123,36 @@ extension Product {
 }
 
 private enum ProductDisplayText {
+    private static let packageSuffix = try? NSRegularExpression(
+        pattern: #"(?:,\s+|(?<![0-9]),\s*)([0-9]+(?:[.,][0-9]+)?)\s*([\p{L}]+)\.?\s*$"#)
+
+    /// Remove a trailing package only when it duplicates the structured mass or volume.
+    static func removingPackage(quantity: Decimal?, unit: String?, from name: String) -> String {
+        guard let quantity, let unit,
+              let package = normalizedPackage(quantity: quantity, unit: unit),
+              let match = packageSuffix?.firstMatch(in: name, range: NSRange(name.startIndex..., in: name)),
+              let suffixRange = Range(match.range, in: name),
+              let quantityRange = Range(match.range(at: 1), in: name),
+              let unitRange = Range(match.range(at: 2), in: name),
+              let suffixQuantity = Decimal(string: name[quantityRange].replacingOccurrences(of: ",", with: "."),
+                                           locale: Locale(identifier: "en_US_POSIX")),
+              let suffix = normalizedPackage(quantity: suffixQuantity, unit: String(name[unitRange])),
+              suffix == package else { return name }
+        let result = name[..<suffixRange.lowerBound].trimmingCharacters(in: .whitespacesAndNewlines)
+        return result.isEmpty ? name : result
+    }
+
+    private static func normalizedPackage(quantity: Decimal, unit: String) -> (unit: String, amount: Decimal)? {
+        guard !quantity.isNaN, quantity > 0 else { return nil }
+        switch unit.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "g", "г", "гр": return ("g", quantity)
+        case "kg", "кг": return ("g", quantity * 1_000)
+        case "ml", "мл": return ("ml", quantity)
+        case "l", "л": return ("ml", quantity * 1_000)
+        default: return nil
+        }
+    }
+
     /// Removes only a known, whole field value; the original catalog name stays intact.
     static func removing(_ detail: String?, from name: String) -> String {
         guard let detail = detail?.trimmingCharacters(in: .whitespacesAndNewlines), !detail.isEmpty else { return name }
