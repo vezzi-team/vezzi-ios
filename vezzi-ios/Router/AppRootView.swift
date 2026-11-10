@@ -3,7 +3,8 @@ import SwiftUI
 /// Composes the app's modules and owns state shared across tabs.
 struct AppRootView: View {
     @StateObject private var appRouter: AppRouter
-    @StateObject private var productSelection = ProductSelection()
+    @ObservedObject private var productSelection: ProductSelection
+    private let shoppingList: ShoppingListRepository
     @ObservedObject private var authentication: AuthenticationSession
     @Namespace private var profileTransition
     private let catalog: any CatalogRepository
@@ -12,11 +13,15 @@ struct AppRootView: View {
     init(
         catalog: any CatalogRepository,
         authentication: AuthenticationSession,
+        shoppingList: ShoppingListRepository? = nil,
         initialTab: AppRouter.Tab = .home,
         contentScale: CGFloat = Const.defaultContentScale
     ) {
         self.catalog = catalog
         self.authentication = authentication
+        let list = shoppingList ?? ShoppingListRepository()
+        self.shoppingList = list
+        self.productSelection = list.selection
         self.contentScale = contentScale
         _appRouter = StateObject(wrappedValue: AppRouter(selectedTab: initialTab))
     }
@@ -51,7 +56,10 @@ struct AppRootView: View {
         .tabViewSearchActivation(.searchTabSelection)
         .tint(.accentColor)
         .environmentObject(appRouter)
-        .sensoryFeedback(.selection, trigger: productSelection.quantities)
+        .sensoryFeedback(.selection, trigger: productSelection.feedbackRevision)
+        .alert(Texts.ShoppingList.limitTitle, isPresented: $productSelection.showsLimitAlert) {
+            Button(Texts.ShoppingList.understood, role: .cancel) {}
+        } message: { Text(Texts.ShoppingList.limitDescription) }
         .sheet(item: presentedSheet) { sheet in
             DestinationFactory.sheet(for: sheet, authentication: authentication)
                 .navigationTransition(.zoom(sourceID: sheet, in: profileTransition))
@@ -84,10 +92,10 @@ struct AppRootView: View {
     private func navigationStack(for tab: AppRouter.Tab) -> some View {
         NavigationStack(path: pathBinding(for: tab)) {
             DestinationFactory.view(for: tab.rootRoute, catalog: catalog, authentication: authentication,
-                                    profileTransition: profileTransition, productSelection: productSelection)
+                                    profileTransition: profileTransition, productSelection: productSelection, shoppingList: shoppingList)
                 .navigationDestination(for: AppRouter.Route.self) { route in
                     DestinationFactory.view(for: route, catalog: catalog, authentication: authentication,
-                                            profileTransition: profileTransition, productSelection: productSelection)
+                                            profileTransition: profileTransition, productSelection: productSelection, shoppingList: shoppingList)
                 }
         }
         .scaleEffect(contentScale, anchor: .top)

@@ -13,6 +13,8 @@ extension Image {
 
     enum System {
         static let person = Image(systemName: "person.crop.circle")
+        static let walk = Image(systemName: "figure.walk")
+        static let chevronRight = Image(systemName: "chevron.right")
         static let chevronDown = Image(systemName: "chevron.down")
         static let xmark = Image(systemName: "xmark")
         static let arrowRight = Image(systemName: "arrow.right")

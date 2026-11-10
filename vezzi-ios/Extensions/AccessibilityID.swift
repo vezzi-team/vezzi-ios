@@ -67,6 +67,22 @@ enum AccessibilityID {
         static let banner = "catalog.status"
     }
 
+    enum ShoppingList {
+        static let address = "shoppingList.address"
+        static let mode = "shoppingList.mode"
+        static let summary = "shoppingList.summary"
+        static let totalPrice = "shoppingList.totalPrice"
+        static let comparisonPrice = "shoppingList.comparisonPrice"
+        static let planStatus = "shoppingList.planStatus"
+        static let loading = "shoppingList.loading"
+        static let stores = "shoppingList.stores"
+        static let storePopover = "shoppingList.storePopover"
+        static let feedback = "shoppingList.feedback"
+        static let route = "shoppingList.route"
+        static let routePreview = "shoppingList.routePreview"
+        static let empty = "shoppingList.empty"
+    }
+
     enum Search {
         static let scrollToTop = "search.scrollToTop"
         static let mode = "search.mode"

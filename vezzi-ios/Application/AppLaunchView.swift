@@ -8,6 +8,7 @@ struct AppLaunchView: View {
 
     let catalog: any CatalogRepository
     let authentication: AuthenticationSession
+    var shoppingList: ShoppingListRepository = ShoppingListRepository()
 
     private var showsSplash: Bool { splash.isPresented && !reduceMotion }
 
@@ -18,6 +19,7 @@ struct AppLaunchView: View {
             AppRootView(
                 catalog: catalog,
                 authentication: authentication,
+                shoppingList: shoppingList,
                 contentScale: showsSplash ? Const.initialContentScale : Const.restingContentScale
             )
                 .allowsHitTesting(!showsSplash)

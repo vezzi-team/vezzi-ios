@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProductCard: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let product: Product
     var showsStoreBadges = true
     var showsPricePrefix = true
@@ -165,9 +166,12 @@ struct ProductCard: View {
                 StoreLogoPlaceholder(style: .lighter)
                     .frame(width: Const.storeSize, height: Const.storeSize)
                     .overlay(Circle().strokeBorder(Color.Background.elevated, lineWidth: Const.borderWidth))
+                    .transition(reduceMotion ? .identity : .opacity)
                     .zIndex(-Double(index))
             }
         }
+        .animation(reduceMotion ? nil : .easeInOut(duration: Const.offerTransitionDuration),
+                   value: offers.map(\.storeID))
     }
 
     private var quantityControl: some View {
@@ -204,10 +208,12 @@ struct ProductCard: View {
         static let shadowOpacity: Double = 0.05
         static let shadowRadius: CGFloat = 4
         static let shadowOffset: CGFloat = 2
+        static let offerTransitionDuration: TimeInterval = 0.2
     }
 }
 
 struct ProductPriceLabel: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let price: Decimal
     var currency = "RUB"
     var showsPrefix = true
@@ -215,18 +221,23 @@ struct ProductPriceLabel: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Const.spacing) {
-            if showsPrefix { Text(Texts.Product.priceFrom) }
+            if showsPrefix { Text(Texts.Product.priceFrom).transition(.opacity) }
             priceText
         }
         .foregroundStyle(Color.Label.primary)
+        .animation(reduceMotion ? nil : .easeInOut(duration: Const.transitionDuration), value: showsPrefix)
+        .animation(reduceMotion ? nil : .easeInOut(duration: Const.transitionDuration), value: isStale)
         .accessibilityElement(children: .combine)
     }
 
     private var priceText: some View {
         HStack(alignment: .firstTextBaseline, spacing: .zero) {
             Text(price, format: .currency(code: currency).precision(.fractionLength(0...2)))
+                .contentTransition(reduceMotion ? .identity : .opacity)
+                .animation(reduceMotion ? nil : .easeInOut(duration: Const.transitionDuration), value: price)
             if isStale {
                 Text(verbatim: Const.staleMarker)
+                    .transition(.opacity)
                     .accessibilityLabel(Texts.Catalog.stalePrice)
             }
         }
@@ -235,6 +246,7 @@ struct ProductPriceLabel: View {
     private enum Const {
         static let spacing: CGFloat = 4
         static let staleMarker = "*"
+        static let transitionDuration: TimeInterval = 0.2
     }
 }
 
@@ -275,6 +287,23 @@ struct ProductPriceLabel: View {
         .frame(width: ProductCardPreviewConst.narrowWidth)
         .fixedSize(horizontal: false, vertical: true)
         .padding()
+}
+
+#Preview("Product — price and store transitions") {
+    @Previewable @State var quantity = 1
+    @Previewable @State var singleStore = false
+    let product: Product = {
+        var product = ProductMockData.products[0]
+        if singleStore { product.offers = Array(product.offers.suffix(1)) }
+        return product
+    }()
+    VStack {
+        ProductCard(product: product, showsPricePrefix: !singleStore, quantity: $quantity, open: {})
+            .frame(width: ProductCardPreviewConst.narrowWidth)
+            .fixedSize(horizontal: false, vertical: true)
+        Toggle(Texts.Search.faster, isOn: $singleStore)
+    }
+    .padding()
 }
 
 private enum ProductCardPreviewConst {

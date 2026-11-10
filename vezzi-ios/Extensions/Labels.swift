@@ -300,6 +300,66 @@ final class Texts {
         static let resultLimit = NSLocalizedString("SearchResultLimit", comment: "Up to 50 products are shown. Refine your search to find more.")
     }
 
+    // MARK: - Shopping List
+
+    enum ShoppingList {
+        static let title = NSLocalizedString("ShoppingListTitle", comment: "My list")
+        static let mockAddress = NSLocalizedString("ShoppingListMockAddress", comment: "Komendantsky Avenue")
+        static let walking = NSLocalizedString("ShoppingListWalking", comment: "Walking")
+        static let bestTotal = NSLocalizedString("ShoppingListBestTotal", comment: "Best price for the whole list")
+        static let fastTotal = NSLocalizedString("ShoppingListFastTotal", comment: "Fastest calculated option")
+        static let singleStore = NSLocalizedString("ShoppingListSingleStore", comment: "In one store")
+        static let cheapestVariant = NSLocalizedString("ShoppingListCheapestVariant", comment: "Best price")
+        static let updating = NSLocalizedString("ShoppingListUpdating", comment: "Updating your list and calculating options…")
+        static let cart = NSLocalizedString("ShoppingListCart", comment: "Basket")
+        static let showRoute = NSLocalizedString("ShoppingListShowRoute", comment: "View routes")
+        static let routeTitle = NSLocalizedString("ShoppingListRouteTitle", comment: "Walking route")
+        static let start = NSLocalizedString("ShoppingListStart", comment: "Starting point")
+        static let close = NSLocalizedString("ShoppingListClose", comment: "Close")
+        static let emptyTitle = NSLocalizedString("ShoppingListEmptyTitle", comment: "Your list is empty")
+        static let emptyDescription = NSLocalizedString("ShoppingListEmptyDescription", comment: "Add products from Home or Search to compare your shopping options.")
+        static let findProducts = NSLocalizedString("ShoppingListFindProducts", comment: "Find products")
+        static let signIn = NSLocalizedString("ShoppingListSignIn", comment: "Sign in")
+        static let signInDescription = NSLocalizedString("ShoppingListSignInDescription", comment: "Sign in to save your list and calculate prices and routes.")
+        static let retry = NSLocalizedString("ShoppingListRetry", comment: "Try again")
+        static let offline = NSLocalizedString("ShoppingListOffline", comment: "Changes have not been saved to the server. Check your connection and try again before closing the app.")
+        static let loadError = NSLocalizedString("ShoppingListLoadError", comment: "Could not update your list or calculate a route. Your changes are still on this screen; try again.")
+        static let limitTitle = NSLocalizedString("ShoppingListLimitTitle", comment: "List limit reached")
+        static let limitDescription = NSLocalizedString("ShoppingListLimitDescription", comment: "A list can contain up to 30 different products. Remove a product before adding another.")
+        static let understood = NSLocalizedString("ShoppingListUnderstood", comment: "OK")
+        static let addressTitle = NSLocalizedString("ShoppingListAddressTitle", comment: "Starting address")
+        static let addressDescription = NSLocalizedString("ShoppingListAddressDescription", comment: "For now, calculations use a fixed starting point on Komendantsky Avenue. Address selection will be available with map integration.")
+        static let itemsUnavailable = NSLocalizedString("ShoppingListItemsUnavailable", comment: "Some products have no confirmed fresh offers. Change your list or try again later.")
+        static let storeLimit = NSLocalizedString("ShoppingListStoreLimit", comment: "This list requires more than three stores. Try reducing the list.")
+        static let timeLimit = NSLocalizedString("ShoppingListTimeLimit", comment: "No complete route fits the current 60-minute limit. Try reducing the list.")
+        static let radiusLimit = NSLocalizedString("ShoppingListRadiusLimit", comment: "Not all products are available in the selected area.")
+        static let routeUnavailable = NSLocalizedString("ShoppingListRouteUnavailable", comment: "A walking route is currently unavailable. Try again later.")
+        static let noPlans = NSLocalizedString("ShoppingListNoPlans", comment: "No complete shopping option was found for this list.")
+        static let unavailableProduct = NSLocalizedString("ShoppingListUnavailableProduct", comment: "Product unavailable in the catalog")
+        static let routeApproximation = NSLocalizedString("ShoppingListRouteApproximation", comment: "This route connects stores with straight lines and is not a walking navigation route.")
+
+        static func products(_ count: Int) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("ShoppingListProductCount", comment: "Count"), Int64(count))
+        }
+
+        static func stores(_ count: Int) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("ShoppingListStoreCount", comment: "Count"), Int64(count))
+        }
+
+        static func minutes(_ count: Int) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("ShoppingListMinutes", comment: "Count"), Int64(count))
+        }
+
+        static func faster(_ count: Int) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("ShoppingListFaster", comment: "Count"), Int64(count))
+        }
+
+        static func savings(_ price: Decimal) -> String {
+            String(format: NSLocalizedString("ShoppingListSavings", comment: "Savings"),
+                   price.formatted(.currency(code: "RUB").precision(.fractionLength(0...2))))
+        }
+    }
+
     // MARK: - Demo Module
     
     enum Demo {
@@ -330,4 +390,5 @@ extension AuthenticationFailure {
         case .unavailable: return Texts.Authentication.unavailable
         }
     }
+
 }

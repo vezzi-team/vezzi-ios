@@ -4,13 +4,13 @@ import SwiftUI
 enum DestinationFactory {
     static func view(for route: AppRouter.Route, catalog: any CatalogRepository,
                      authentication: AuthenticationSession, profileTransition: Namespace.ID,
-                     productSelection: ProductSelection) -> some View {
+                     productSelection: ProductSelection, shoppingList: ShoppingListRepository) -> some View {
         Group {
             switch route {
             case .home:
                 HomeView(repository: catalog, authentication: authentication, profileTransition: profileTransition, selection: productSelection)
             case .shoppingList:
-                ShoppingListView()
+                ShoppingListView(catalog: catalog, list: shoppingList)
             case .stores:
                 StoresView()
             case .search:
@@ -23,8 +23,8 @@ enum DestinationFactory {
                 MotiDebugView()
             }
         }
-        .navigationTitle(route == .search ? "" : route.title)
-        .navigationBarTitleDisplayMode(route == .search ? .inline : .large)
+        .navigationTitle(route == .search ? "" : route == .shoppingList ? Texts.ShoppingList.title : route.title)
+        .toolbarTitleDisplayMode(route == .search ? .inline : route == .shoppingList ? .inlineLarge : .large)
     }
 
     @ViewBuilder
