@@ -9,6 +9,8 @@ struct ShoppingListView: View {
     @State private var showsAddress = false
     @State private var summaryHeight: CGFloat = .zero
     @State private var viewportHeight: CGFloat = .zero
+    @State private var summaryTop: CGFloat = .zero
+    @State private var isPastSummaryTop = false
     @ScaledMetric(relativeTo: .subheadline) private var metricTextHeight = Const.metricTextHeight
 
     init(catalog: any CatalogRepository, list: ShoppingListRepository) {
@@ -16,30 +18,19 @@ struct ShoppingListView: View {
     }
 
     var body: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: Const.sectionSpacing, pinnedViews: pinsSummary ? [.sectionHeaders] : []) {
-                addressButton.padding(.horizontal, Const.contentInset)
-                modePicker.padding(.horizontal, Const.contentInset)
-                Section {
-                    VStack(alignment: .leading, spacing: Const.sectionSpacing) {
-                        planStatus
-                        feedback
-                        productSection
-                    }
-                    .padding(.horizontal, Const.contentInset)
-                } header: {
-                    summary
-                }
-            }
-            .padding(.vertical, Const.contentInset)
-            .frame(maxWidth: Const.maximumWidth)
-            .frame(maxWidth: .infinity)
-        }
+        ScrollView { content }
         .scrollIndicators(.hidden)
         .onScrollGeometryChange(for: CGFloat.self) { geometry in
-            max(.zero, geometry.containerSize.height - geometry.contentInsets.top - geometry.contentInsets.bottom)
+            // The container already excludes the native top and bottom bars.
+            geometry.containerSize.height
         } action: { _, height in
             viewportHeight = height
+        }
+        .onScrollGeometryChange(for: Bool.self) { geometry in
+            let threshold = summaryTop + (isPastSummaryTop ? -Const.summaryPinTolerance : Const.summaryPinTolerance)
+            return summaryTop > .zero && geometry.contentOffset.y + geometry.contentInsets.top > threshold
+        } action: { _, isPastTop in
+            isPastSummaryTop = isPastTop
         }
         .environment(\.isShimmerEnabled, viewModel.selectedProduct == nil && viewModel.routePlan == nil && !showsStores)
         .background(Color.Background.iOSPrimary.ignoresSafeArea())
@@ -50,7 +41,8 @@ struct ShoppingListView: View {
         .onAppear { viewModel.list.setPresented(true) }
         .onDisappear { viewModel.list.setPresented(false) }
         .sheet(item: selectedProduct) { product in
-            ProductDetailView(product: product, relatedProducts: viewModel.relatedProducts, selection: viewModel.list.selection)
+            ProductDetailView(product: product, relatedProducts: viewModel.relatedProducts, selection: viewModel.list.selection,
+                              selectedOffer: viewModel.selectedProductOffer)
         }
         .sheet(item: $viewModel.routePlan) { plan in ShoppingRouteView(plan: plan) }
         .alert(Texts.ShoppingList.addressTitle, isPresented: $showsAddress) {
@@ -59,6 +51,40 @@ struct ShoppingListView: View {
     }
 
     // MARK: - Header
+
+    private var content: some View {
+        // A lazy root preserves the native inline-large title's spacing at accessibility text sizes.
+        LazyVStack(alignment: .leading, spacing: Const.sectionSpacing) {
+            addressButton.padding(.horizontal, Const.contentInset)
+            modePicker.padding(.horizontal, Const.contentInset)
+            summarySection
+        }
+        .padding(.vertical, Const.contentInset)
+        .frame(maxWidth: Const.maximumWidth)
+        .frame(maxWidth: .infinity)
+        .coordinateSpace(name: Const.contentCoordinateSpace)
+    }
+
+    private var summarySection: some View {
+        LazyVStack(alignment: .leading, spacing: Const.sectionSpacing, pinnedViews: pinsSummary ? [.sectionHeaders] : []) {
+            Section {
+                VStack(alignment: .leading, spacing: Const.sectionSpacing) {
+                    planStatus
+                    feedback
+                    productSection
+                }
+                .padding(.horizontal, Const.contentInset)
+                // Let short lists reach the summary's pinned position.
+                .frame(minHeight: max(.zero, viewportHeight - summaryHeight), alignment: .top)
+            } header: {
+                summary
+            }
+        }
+        .onGeometryChange(for: CGFloat.self) { geometry in
+            // This anchor stays at the section's start, independently of the pinned header's height.
+            geometry.frame(in: .named(Const.contentCoordinateSpace)).minY
+        } action: { summaryTop = $0 }
+    }
 
     private var addressButton: some View {
         Button { showsAddress = true } label: {
@@ -97,11 +123,27 @@ struct ShoppingListView: View {
     }
 
     private var summary: some View {
-        ShoppingListPriceSummary(total: viewModel.plan?.total, comparison: viewModel.comparisonPrice,
-                                 mode: viewModel.mode, isLoading: viewModel.list.isBusy)
+        // Keep the section's layout height expanded while only the visible panel collapses.
+        priceSummary(isCompact: false)
+            .hidden()
+            .accessibilityHidden(true)
+            .environment(\.isShimmerEnabled, false)
+            .transaction { transaction in
+                transaction.animation = nil
+                transaction.disablesAnimations = true
+            }
+            .overlay(alignment: .top) {
+                priceSummary(isCompact: pinsSummary && isPastSummaryTop)
+            }
             .padding(.horizontal, Const.contentInset)
             .padding(.vertical, Const.summaryVerticalInset)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { summaryHeight = $0 }
+    }
+
+    private func priceSummary(isCompact: Bool) -> some View {
+        ShoppingListPriceSummary(total: viewModel.plan?.total, comparison: viewModel.comparisonPrice,
+                                 mode: viewModel.mode, isLoading: viewModel.list.isBusy,
+                                 isCompact: isCompact)
     }
 
     private var pinsSummary: Bool {
@@ -153,7 +195,7 @@ struct ShoppingListView: View {
     private func planMetrics(_ plan: ShoppingPlan) -> some View {
         ScrollView(.horizontal) {
             HStack(spacing: Const.metricSpacing) {
-                if viewModel.mode == .cheaper, let savings = plan.savings, savings > 0 {
+                if viewModel.mode == .cheaper, let savings = viewModel.priceSavings, savings > 0 {
                     metric(Texts.ShoppingList.savings(savings), highlighted: true)
                         .transition(modeTransition)
                 } else if viewModel.mode == .faster, viewModel.savedMinutes > 0 {
@@ -273,6 +315,7 @@ struct ShoppingListView: View {
     }
 
     private enum Const {
+        static let contentCoordinateSpace = "shoppingList.content"
         static let contentInset: CGFloat = 16
         static let sectionSpacing: CGFloat = 16
         static let maximumWidth: CGFloat = 760
@@ -283,6 +326,7 @@ struct ShoppingListView: View {
         static let summarySpacing: CGFloat = 8
         static let summaryVerticalInset: CGFloat = 8
         static let maximumPinnedHeightFraction: CGFloat = 0.5
+        static let summaryPinTolerance: CGFloat = 4
         static let metricSpacing: CGFloat = 8
         static let metricTextHeight: CGFloat = 20
         static let metricHorizontalInset: CGFloat = 10

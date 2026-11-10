@@ -86,19 +86,19 @@
         }
       }
     },
-    "ShoppingListSingleStore": {
+    "ShoppingListFastestVariant": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "In one store"
+            "value": "Fastest"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "В одном магазине"
+            "value": "Самый быстрый"
           }
         }
       }
@@ -3034,6 +3034,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Показать больше"
+          }
+        }
+      }
+    },
+    "ProductSelectedStore" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected store"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбранный магазин"
           }
         }
       }

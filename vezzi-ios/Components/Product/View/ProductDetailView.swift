@@ -7,6 +7,7 @@ struct ProductDetailView: View {
     let relatedProducts: [Product]
     let selection: ProductSelection
     var showsPricePrefix = true
+    var selectedOffer: ProductOffer? = nil
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -27,7 +28,8 @@ struct ProductDetailView: View {
 
     private func productPage(for product: Product) -> some View {
         ProductDetailPage(product: product, relatedProducts: [self.product] + relatedProducts,
-                          selection: selection, showsPricePrefix: showsPricePrefix) { alternative in
+                          selection: selection, showsPricePrefix: showsPricePrefix,
+                          selectedOffer: product.id == self.product.id ? selectedOffer : nil) { alternative in
             path.append(alternative.id)
         }
     }
@@ -65,6 +67,7 @@ private struct ProductDetailPage: View {
     let relatedProducts: [Product]
     @ObservedObject var selection: ProductSelection
     let showsPricePrefix: Bool
+    let selectedOffer: ProductOffer?
     let selectProduct: (Product) -> Void
 
     var body: some View {
@@ -116,7 +119,12 @@ private struct ProductDetailPage: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Const.rowSpacing) {
                 productSummary
-                storesSection
+                if let selectedOffer {
+                    selectedStoreSection(selectedOffer)
+                }
+                if !nearbyOffers.isEmpty {
+                    storesSection
+                }
                 if !alternatives.isEmpty {
                     sectionHeading(Texts.Product.alternatives)
                         .padding(.top, Const.sectionSpacing - Const.rowSpacing)
@@ -170,18 +178,39 @@ private struct ProductDetailPage: View {
 
     private var priceSummary: some View {
         VStack(alignment: .leading, spacing: .zero) {
-            if let offer = product.lowestOffer {
-                ProductPriceLabel(price: offer.price, currency: offer.currency, showsPrefix: showsPricePrefix)
+            if let offer = selectedOffer ?? product.lowestOffer {
+                ProductPriceLabel(price: offer.price, currency: offer.currency,
+                                  showsPrefix: selectedOffer == nil && showsPricePrefix)
                     .appTextStyle(size: Const.priceFontSize, lineHeight: Const.priceLineHeight,
                                    weight: .bold, relativeTo: .title)
+                    .accessibilityIdentifier(AccessibilityID.Product.Detail.price)
             }
-            Text(Texts.Product.inStores(product.offers.count))
+            Text(Texts.Product.inStores(nearbyOffers.count + (selectedOffer == nil ? 0 : 1)))
                 .appTextStyle(size: Const.subtitleFontSize, lineHeight: Const.subtitleLineHeight, relativeTo: .subheadline)
                 .foregroundStyle(Color.Label.secondary)
         }
     }
 
     // MARK: - Stores
+
+    private func selectedStoreSection(_ offer: ProductOffer) -> some View {
+        VStack(alignment: .leading, spacing: Const.rowSpacing) {
+            sectionHeading(Texts.Product.Stores.selected)
+            offerRow(offer)
+                .padding(Const.selectedStoreInset)
+                .overlay {
+                    RoundedRectangle(cornerRadius: Const.selectedStoreRadius)
+                        .strokeBorder(Color.accentColor, lineWidth: Const.selectedStoreBorderWidth)
+                }
+        }
+        .padding(.bottom, Const.sectionSpacing - Const.rowSpacing)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Product.Detail.selectedStore)
+    }
+
+    private var nearbyOffers: [ProductOffer] {
+        product.offers.filter { $0.storeID != selectedOffer?.storeID }
+    }
 
     private var storesSection: some View {
         VStack(alignment: .leading, spacing: Const.rowSpacing) {
@@ -190,7 +219,7 @@ private struct ProductDetailPage: View {
                 offerRow(offer)
                     .transition(reduceMotion ? .identity : .opacity)
             }
-            if product.offers.count > Const.initialStoreCount {
+            if nearbyOffers.count > Const.initialStoreCount {
                 storesExpansionButton
             }
         }
@@ -198,8 +227,8 @@ private struct ProductDetailPage: View {
     }
 
     private var visibleOffers: ArraySlice<ProductOffer> {
-        storeSort.sorted(product.offers, distance: ProductDetailMockDistances.distance)
-            .prefix(showsAllStores ? product.offers.count : Const.initialStoreCount)
+        storeSort.sorted(nearbyOffers, distance: ProductDetailMockDistances.distance)
+            .prefix(showsAllStores ? nearbyOffers.count : Const.initialStoreCount)
     }
 
     private var storesExpansionButton: some View {
@@ -261,10 +290,9 @@ private struct ProductDetailPage: View {
         }
         .buttonStyle(.glass)
         .buttonBorderShape(.capsule)
-        .controlSize(.large)
         .fixedSize()
         .tint(Color.Label.primary)
-        .disabled(product.offers.count < Const.minimumSortableStoreCount)
+        .disabled(nearbyOffers.count < Const.minimumSortableStoreCount)
         .accessibilityLabel(Texts.Product.Stores.Sort.title)
         .accessibilityValue(storeSort.title)
         .accessibilityIdentifier(AccessibilityID.Product.Detail.sortStores)
@@ -406,7 +434,7 @@ private struct ProductDetailPage: View {
         static let minimumSortableStoreCount = 2
         static let storeExpansionDuration: TimeInterval = 0.35
         static let storeSortDuration: TimeInterval = 0.3
-        static let sortLabelSpacing: CGFloat = 6
+        static let sortLabelSpacing: CGFloat = 2
         static let expandedChevronRotation: Double = 180
         static let contentInset: CGFloat = 16
         static let rowSpacing: CGFloat = 8
@@ -418,6 +446,9 @@ private struct ProductDetailPage: View {
         static let rowVerticalInset: CGFloat = 4
         static let storeSize: CGFloat = 36
         static let storeRowHeight: CGFloat = 51
+        static let selectedStoreInset: CGFloat = 12
+        static let selectedStoreRadius: CGFloat = 16
+        static let selectedStoreBorderWidth: CGFloat = 1.5
         static let minimumCardWidth: CGFloat = 150
         static let artworkHeight: CGFloat = 226
         static let compactArtworkHeight: CGFloat = 120
@@ -495,6 +526,22 @@ nonisolated private enum ProductDetailMockDistances {
     }
     ProductDetailView(product: products[0], relatedProducts: Array(products.dropFirst()),
                       selection: selection, showsPricePrefix: false)
+}
+
+#Preview("Product — selected store") {
+    @Previewable @StateObject var selection = ProductSelection()
+    let product = ProductMockData.products[0]
+    ProductDetailView(product: product, relatedProducts: ProductMockData.alternatives(for: product.id),
+                      selection: selection, selectedOffer: product.offers[1])
+}
+
+#Preview("Product — selected store, large text") {
+    @Previewable @StateObject var selection = ProductSelection()
+    let product = ProductMockData.products[0]
+    ProductDetailView(product: product, relatedProducts: ProductMockData.alternatives(for: product.id),
+                      selection: selection, selectedOffer: product.offers[1])
+        .preferredColorScheme(.dark)
+        .dynamicTypeSize(.accessibility3)
 }
 
 #Preview("Product — more stores") {

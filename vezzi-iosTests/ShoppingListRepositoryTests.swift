@@ -150,26 +150,46 @@ final class ShoppingListRepositoryTests: XCTestCase {
         XCTAssertEqual(repository.planResult?.problem, "items_unavailable")
         XCTAssertEqual(model.message, Texts.ShoppingList.itemsUnavailable)
         XCTAssertNil(model.plan)
+        XCTAssertNil(model.comparisonPrice)
+        XCTAssertNil(model.priceSavings)
         XCTAssertEqual(model.products.first?.name, "Product 1", "Cart records remain usable without a catalog cache")
     }
 
-    func testModeSwitchUsesServerOptionsWithoutAnotherRequest() async {
-        let service = ControlledShoppingService(quantities: ["1": 2])
+    func testModeSwitchComparesServerOptionsInsteadOfBaselineWithoutAnotherRequest() async {
+        let service = ControlledShoppingService(quantities: ["1": 2], baselinePrice: 300)
         let repository = ShoppingListRepository(service: service)
         let model = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: repository)
         repository.setAccount("account")
         repository.setPresented(true)
         await repository.refresh()
+        XCTAssertEqual(repository.planResult?.baselinePrice, 300)
         XCTAssertEqual(model.plan?.total, 200)
         XCTAssertEqual(model.comparisonPrice, 220)
+        XCTAssertEqual(model.plan?.savings, 0)
+        XCTAssertEqual(model.priceSavings, 20, "Compare the displayed plans, independently of server savings and the baseline")
         XCTAssertEqual(model.products.first?.lowestPrice, 100)
         model.mode = .faster
         XCTAssertEqual(model.plan?.total, 220)
         XCTAssertEqual(model.comparisonPrice, 200)
+        XCTAssertEqual(model.priceSavings, 20)
         XCTAssertEqual(model.products.first?.lowestPrice, 110)
         XCTAssertEqual(model.savedMinutes, 5)
         let count = await service.planRequests
         XCTAssertEqual(count, 1)
+    }
+
+    func testPriceSavingsHandleEqualAndFractionalTotals() async {
+        let cases: [(Decimal, Decimal)] = [(100, 0), (Decimal(10001) / 100, Decimal(2) / 100)]
+        for (unitPrice, expectedSavings) in cases {
+            let service = ControlledShoppingService(quantities: ["1": 2], fastUnitPrice: unitPrice)
+            let repository = ShoppingListRepository(service: service)
+            let model = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: repository)
+            repository.setAccount("account")
+            repository.setPresented(true)
+            await repository.refresh()
+
+            XCTAssertEqual(model.priceSavings, expectedSavings)
+        }
     }
 
     func testLogoutClearsPresentedRouteSynchronously() async throws {
@@ -179,11 +199,15 @@ final class ShoppingListRepositoryTests: XCTestCase {
         repository.setPresented(true)
         await repository.refresh()
         model.routePlan = try XCTUnwrap(model.plan)
+        model.showProduct(try XCTUnwrap(model.products.first))
+        XCTAssertNotNil(model.selectedProductOffer)
 
         repository.setAccount(nil)
 
         XCTAssertNil(model.routePlan)
         XCTAssertNil(repository.planResult)
+        XCTAssertNil(model.selectedProduct)
+        XCTAssertNil(model.selectedProductOffer)
     }
 
     func testAccountSwitchClearsPresentedRouteBeforeLoadingTheNewAccount() async throws {
@@ -195,11 +219,14 @@ final class ShoppingListRepositoryTests: XCTestCase {
         // The view model may be created after the account has already been restored.
         let model = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: repository)
         model.routePlan = try XCTUnwrap(model.plan)
+        model.showProduct(try XCTUnwrap(model.products.first))
 
         await service.replaceCart(quantities: ["2": 1])
         repository.setAccount("second")
 
         XCTAssertNil(model.routePlan)
+        XCTAssertNil(model.selectedProduct)
+        XCTAssertNil(model.selectedProductOffer)
         await repository.refresh()
         XCTAssertNil(model.routePlan, "New plans must not reopen the previous account's sheet")
         XCTAssertEqual(model.products.map(\.id), ["2"])
@@ -243,6 +270,8 @@ final class ShoppingListRepositoryTests: XCTestCase {
         XCTAssertEqual(card.name, "First")
         XCTAssertEqual(card.lowestPrice, 100, "List cards use the plan's assigned price")
         model.showProduct(card)
+        XCTAssertEqual(model.selectedProductOffer?.price, 100)
+        XCTAssertEqual(model.selectedProductOffer?.storeID, "1")
         XCTAssertEqual(Set(model.selectedProduct?.offers.map(\.id) ?? []), ["o1", "o2"])
         XCTAssertEqual(model.selectedProduct?.lowestPrice, 85)
         model.dismissProduct()
@@ -257,6 +286,44 @@ final class ShoppingListRepositoryTests: XCTestCase {
         model.showProduct(replacement)
         XCTAssertEqual(model.selectedProduct?.offers.map(\.id), ["o3"])
         XCTAssertEqual(model.selectedProduct?.lowestPrice, 80)
+    }
+
+    func testDetailOfferCapturesTheCurrentPlanUntilTheNextPresentation() async throws {
+        let repository = ShoppingListRepository(service: ControlledShoppingService(quantities: ["1": 1]))
+        let model = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: repository)
+        repository.setAccount("account")
+        repository.setPresented(true)
+        await repository.refresh()
+        let card = try XCTUnwrap(model.products.first)
+
+        model.mode = .faster
+        model.showProduct(card)
+        XCTAssertEqual(model.selectedProductOffer?.price, 110, "Use the active plan, not a previously rendered card")
+        model.mode = .cheaper
+        repository.selection.setQuantity(2, for: "1")
+        XCTAssertNil(model.plan)
+        XCTAssertEqual(model.selectedProductOffer?.price, 110, "An open detail sheet keeps its offer snapshot")
+        model.dismissProduct()
+        XCTAssertEqual(model.selectedProductOffer?.price, 110, "Dismissing must not change the visible price")
+
+        model.showProduct(card)
+        XCTAssertNil(model.selectedProductOffer, "Do not reuse a previous selection while a plan is unavailable")
+        model.dismissProduct()
+        await repository.refresh()
+        model.showProduct(try XCTUnwrap(model.products.first))
+        XCTAssertEqual(model.selectedProductOffer?.price, 100)
+    }
+
+    func testDetailsWithoutAPlanDoNotSelectAnArbitraryCatalogStore() throws {
+        let repository = ShoppingListRepository()
+        let catalog = PreviewCatalogRepository.sample
+        let model = ShoppingListViewModel(catalog: catalog, list: repository)
+        repository.selection.setQuantity(1, for: "preview-product")
+
+        model.showProduct(try XCTUnwrap(model.products.first))
+
+        XCTAssertNotNil(model.selectedProduct?.lowestOffer)
+        XCTAssertNil(model.selectedProductOffer)
     }
 
     func testSelectionEnforcesProductLimitWithoutBlockingRemovals() {
@@ -280,6 +347,8 @@ private actor ControlledShoppingService: ShoppingListService {
         let exists: Bool
     }
     private var value: ShoppingCart
+    private let baselinePrice: Decimal?
+    private let fastUnitPrice: Decimal
     private var hasCart = true
     private var failCreate = false
     private(set) var creates = 0
@@ -295,7 +364,11 @@ private actor ControlledShoppingService: ShoppingListService {
     private(set) var maximumActivePlans = 0
     private(set) var planRequests = 0
 
-    init(quantities: [String: Int] = [:]) { value = Self.cart(quantities) }
+    init(quantities: [String: Int] = [:], baselinePrice: Decimal? = nil, fastUnitPrice: Decimal = 110) {
+        value = Self.cart(quantities)
+        self.baselinePrice = baselinePrice
+        self.fastUnitPrice = fastUnitPrice
+    }
     func activeCart() -> ShoppingCart? { hasCart ? value : nil }
     func cart(id: UUID) -> ShoppingCart { value }
     func createCart(name: String) throws -> ShoppingCart {
@@ -345,8 +418,8 @@ private actor ControlledShoppingService: ShoppingListService {
         if pausePlan { pausePlan = false; await suspend() }
         if noPlans { return ShoppingPlanResult(plans: [], baselinePrice: nil, problem: "items_unavailable", isSynthetic: false) }
         let cheap = Self.plan(captured, price: 100, seconds: 1080)
-        let fast = Self.plan(captured, price: 110, seconds: 780)
-        return ShoppingPlanResult(plans: [cheap, fast], baselinePrice: fast.total, problem: nil, isSynthetic: false)
+        let fast = Self.plan(captured, price: fastUnitPrice, seconds: 780)
+        return ShoppingPlanResult(plans: [cheap, fast], baselinePrice: baselinePrice ?? fast.total, problem: nil, isSynthetic: false)
     }
 
     private static func cart(_ quantities: [String: Int], id: UUID = UUID()) -> ShoppingCart {

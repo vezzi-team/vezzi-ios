@@ -124,6 +124,7 @@ final class Texts {
         }
 
         enum Stores {
+            static let selected = NSLocalizedString("ProductSelectedStore", comment: "Selected store")
             static let showMore = NSLocalizedString("ProductShowMoreStores", comment: "Show more")
             static let showLess = NSLocalizedString("ProductShowLessStores", comment: "Show less")
 
@@ -308,7 +309,7 @@ final class Texts {
         static let walking = NSLocalizedString("ShoppingListWalking", comment: "Walking")
         static let bestTotal = NSLocalizedString("ShoppingListBestTotal", comment: "Best price for the whole list")
         static let fastTotal = NSLocalizedString("ShoppingListFastTotal", comment: "Fastest calculated option")
-        static let singleStore = NSLocalizedString("ShoppingListSingleStore", comment: "In one store")
+        static let fastestVariant = NSLocalizedString("ShoppingListFastestVariant", comment: "Fastest option")
         static let cheapestVariant = NSLocalizedString("ShoppingListCheapestVariant", comment: "Best price")
         static let updating = NSLocalizedString("ShoppingListUpdating", comment: "Updating your list and calculating options…")
         static let cart = NSLocalizedString("ShoppingListCart", comment: "Basket")

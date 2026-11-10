@@ -27,6 +27,8 @@ enum AccessibilityID {
         }
 
         enum Detail {
+            static let price = "home.product.detail.price"
+            static let selectedStore = "home.product.detail.selectedStore"
             static let name = "home.product.detail.name"
             static let navigationTitle = "home.product.detail.navigationTitle"
             static let navigationSubtitle = "home.product.detail.navigationSubtitle"
