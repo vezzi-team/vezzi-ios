@@ -45,6 +45,7 @@ nonisolated enum CatalogImporter {
                 object.latitude = value.latitude.map(NSNumber.init(value:))
                 object.longitude = value.longitude.map(NSNumber.init(value:))
                 object.isActive = value.isActive
+                object.format = value.format
                 storeByID[value.id] = object
             }
 
@@ -56,7 +57,7 @@ nonisolated enum CatalogImporter {
                 }
                 let existingOffer = offers[value.id]
                 // An undated or older price must not replace a dated, newer price.
-                guard value.canReplace(sourceDate: existingOffer?.sourceUpdatedAt) else { continue }
+                guard records.replacesCatalog || value.canReplace(sourceDate: existingOffer?.sourceUpdatedAt) else { continue }
                 let object = existingOffer ?? NSEntityDescription.insertNewObject(
                     forEntityName: "OfferEntity", into: context
                 ) as! OfferEntity
@@ -75,6 +76,30 @@ nonisolated enum CatalogImporter {
                 object.matchStatus = value.matchStatus
                 object.dataOrigin = value.dataOrigin
                 object.priceType = value.priceType
+                object.cardPriceText = value.cardPrice.map(ExactDecimal.encode)
+                object.priceConditions = value.priceConditions
+            }
+
+            if records.replacesCatalog {
+                // Delete children first because the parent relationships use Deny.
+                try removeMissing("OfferEntity", keeping: Set(batch.offers.map(\.id)), in: context)
+                try removeMissing("ProductEntity", keeping: Set(batch.products.map(\.id)), in: context)
+                try removeMissing("StoreEntity", keeping: Set(batch.stores.map(\.id)), in: context)
+            }
+            if let metadata = records.metadata {
+                let request = NSFetchRequest<CatalogMetadataEntity>(entityName: "CatalogMetadataEntity")
+                let object = try context.fetch(request).first ?? NSEntityDescription.insertNewObject(
+                    forEntityName: "CatalogMetadataEntity", into: context
+                ) as! CatalogMetadataEntity
+                object.id = "active"
+                object.importID = metadata.importID
+                object.importedAt = metadata.importedAt
+                object.isSynthetic = metadata.isSynthetic
+                object.offerMaxAgeHours = Int64(metadata.offerMaxAgeHours)
+                object.etag = metadata.etag
+                object.validatedAt = metadata.validatedAt
+            } else if records.replacesCatalog {
+                try removeMissing("CatalogMetadataEntity", keeping: [], in: context)
             }
 
             try Task.checkCancellation()
@@ -84,6 +109,14 @@ nonisolated enum CatalogImporter {
         } catch {
             context.rollback()
             throw error
+        }
+    }
+
+    private static func removeMissing(_ entity: String, keeping ids: Set<String>, in context: NSManagedObjectContext) throws {
+        let request = NSFetchRequest<NSManagedObject>(entityName: entity)
+        for object in try context.fetch(request) where !ids.contains(object.value(forKey: "id") as! String) {
+            try Task.checkCancellation()
+            context.delete(object)
         }
     }
 

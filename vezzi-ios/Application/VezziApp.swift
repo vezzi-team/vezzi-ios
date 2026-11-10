@@ -14,11 +14,14 @@ struct VezziApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppLaunchView(catalog: dependencies.searchCatalog, authentication: dependencies.authentication)
+            AppLaunchView(catalog: dependencies.catalog, authentication: dependencies.authentication)
                 .task { await dependencies.load() }
+                .onChange(of: dependencies.authentication.user?.id) { _, _ in
+                    Task { await dependencies.accountChanged() }
+                }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active {
-                        Task { await dependencies.authentication.restore(force: true) }
+                        Task { await dependencies.becameActive() }
                     }
                 }
         }

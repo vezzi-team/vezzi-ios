@@ -4,6 +4,37 @@ import XCTest
 
 @MainActor
 final class CoreDataCatalogCacheTests: XCTestCase {
+    func testVersionedSnapshotReplacementIsAtomicAndSurvivesReopening() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("Snapshot.sqlite")
+        let persistence = PersistenceController(storeURL: url)
+        let cache = CoreDataCatalogCache(persistence: persistence)
+        var first = CatalogFixtures.catalog()
+        first.products.append(CatalogProduct(id: "removed", name: "Removed"))
+        try await cache.save(CatalogFixtures.export(first))
+        var second = CatalogFixtures.catalog(price: Decimal(string: "89.99")!, date: Date(timeIntervalSince1970: 50))
+        second.offers[0].cardPrice = Decimal(string: "79.99")!
+        second.offers[0].priceConditions = "With card"
+        second.stores[0].format = "supermarket"
+        let replacement = CatalogFixtures.export(second, version: 2)
+        try await cache.save(replacement)
+        var invalid = replacement
+        invalid.offers[0] = StoredCatalogOffer(offer: CatalogOffer(id: "bad", productID: "missing", storeID: "s1", price: 1, currency: "RUB"), cachedAt: Date())
+        do { try await cache.save(invalid); XCTFail("Expected rollback") } catch { }
+        try closeStore(persistence)
+        let reopened = PersistenceController(storeURL: url)
+        let snapshot = try await CoreDataCatalogCache(persistence: reopened).loadSnapshot()
+        XCTAssertEqual(snapshot.metadata, replacement.metadata)
+        XCTAssertEqual(snapshot.products.count, 1)
+        XCTAssertNil(snapshot.products["removed"])
+        XCTAssertEqual(snapshot.offers["o1"]?.offer.price, Decimal(string: "89.99"))
+        XCTAssertEqual(snapshot.offers["o1"]?.offer.cardPrice, Decimal(string: "79.99"))
+        XCTAssertEqual(snapshot.offers["o1"]?.offer.priceConditions, "With card")
+        XCTAssertEqual(snapshot.stores["s1"]?.format, "supermarket")
+        try closeStore(reopened)
+    }
+
     func testSQLitePreservesExactDecimalsAndMetadataAfterReopening() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -89,12 +120,20 @@ final class CoreDataCatalogCacheTests: XCTestCase {
     }
 
     func testVersionOneStoreMigratesWithoutLosingValuesOrLinks() async throws {
+        try await assertLegacyMigration(from: "Polka")
+    }
+
+    func testVersionTwoStoreMigratesWithExactDecimals() async throws {
+        try await assertLegacyMigration(from: "PolkaV2")
+    }
+
+    private func assertLegacyMigration(from version: String) async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let url = directory.appendingPathComponent("Legacy.sqlite")
         let modelURL = try XCTUnwrap(Bundle.main.url(forResource: "Polka", withExtension: "momd"))
-            .appendingPathComponent("Polka.mom")
+            .appendingPathComponent("\(version).mom")
         let oldModel = try XCTUnwrap(NSManagedObjectModel(contentsOf: modelURL))
         // Use generic objects to seed the historical schema, independently of current subclasses.
         for entity in oldModel.entities { entity.managedObjectClassName = "NSManagedObject" }
@@ -120,6 +159,10 @@ final class CoreDataCatalogCacheTests: XCTestCase {
             offer.setValue(product, forKey: "product")
             offer.setValue(store, forKey: "store")
             offer.setValue(NSDecimalNumber(string: "99.90"), forKey: "price")
+            if version == "PolkaV2" {
+                offer.setValue("99.900000000000000001", forKey: "priceText")
+                product.setValue("900", forKey: "packageQuantityText")
+            }
             offer.setValue("RUB", forKey: "currency")
             offer.setValue(CatalogFixtures.cachedAt, forKey: "cachedAt")
             offer.setValue(Date(timeIntervalSince1970: 100), forKey: "sourceUpdatedAt")
@@ -131,7 +174,8 @@ final class CoreDataCatalogCacheTests: XCTestCase {
         let cache = CoreDataCatalogCache(persistence: persistence)
         let migrated = try await cache.loadSnapshot()
         XCTAssertEqual(migrated.products["p1"]?.packageQuantity, 900)
-        XCTAssertEqual(migrated.offers["o1"]?.offer.price, Decimal(string: "99.90"))
+        XCTAssertEqual(migrated.offers["o1"]?.offer.price, Decimal(string: version == "PolkaV2" ? "99.900000000000000001" : "99.90"))
+        XCTAssertNil(migrated.metadata)
         XCTAssertEqual(migrated.offers["o1"]?.cachedAt, CatalogFixtures.cachedAt)
         XCTAssertEqual(migrated.offers["o1"]?.offer.sourceID, "legacy-source")
         XCTAssertEqual(migrated.items(matching: "").first?.offers.first?.store.name, "Legacy store")

@@ -5,6 +5,7 @@ enum AccessibilityID {
     enum Home {
         static let profile = "home.profile"
         static let address = "home.address"
+        static let scrollToTop = "home.scrollToTop"
         static let addDinner = "home.dinner.add"
 
         enum Filters {
@@ -26,12 +27,25 @@ enum AccessibilityID {
         }
 
         enum Detail {
+            static let name = "home.product.detail.name"
+            static let navigationTitle = "home.product.detail.navigationTitle"
+            static let navigationSubtitle = "home.product.detail.navigationSubtitle"
             static let close = "home.product.close"
             static let add = "home.product.add"
             static let decrease = "home.product.decrease"
             static let increase = "home.product.increase"
             static let quantity = "home.product.quantity"
             static let hint = "home.product.hint"
+            static let toggleStores = "home.product.detail.toggleStores"
+            static let sortStores = "home.product.detail.sortStores"
+
+            static func sortOption(_ order: String) -> String {
+                "home.product.detail.sort.\(order)"
+            }
+
+            static func store(_ storeID: String) -> String {
+                "home.product.detail.store.\(storeID)"
+            }
         }
 
         enum Quantity {
@@ -49,7 +63,12 @@ enum AccessibilityID {
         }
     }
 
+    enum Catalog {
+        static let banner = "catalog.status"
+    }
+
     enum Search {
+        static let scrollToTop = "search.scrollToTop"
         static let mode = "search.mode"
         static let cancel = "search.cancel"
         static let results = "search.results"

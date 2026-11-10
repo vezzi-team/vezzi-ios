@@ -5,29 +5,32 @@ struct HomeView: View {
     @ObservedObject var authentication: AuthenticationSession
     let profileTransition: Namespace.ID
     @EnvironmentObject private var router: AppRouter
-    @State private var selectedProduct: Product?
     @State private var displayedCategory: ProductCategory?
     @State private var isPastResultsTop = false
     @State private var filterBarHeight: CGFloat = .zero
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    init(authentication: AuthenticationSession, profileTransition: Namespace.ID,
+    init(repository: any CatalogRepository, authentication: AuthenticationSession, profileTransition: Namespace.ID,
          selection: ProductSelection? = nil) {
         self.authentication = authentication
         self.profileTransition = profileTransition
-        _viewModel = StateObject(wrappedValue: HomeViewModel(selection: selection))
+        _viewModel = StateObject(wrappedValue: HomeViewModel(repository: repository, selection: selection))
     }
 
     var body: some View {
         GeometryReader { geometry in
             ScrollViewReader { proxy in
                 ScrollView { content(viewportHeight: geometry.size.height) }
+                    .refreshable { await viewModel.refresh() }
                     .onChange(of: viewModel.selectedCategory) { _, _ in
                         showSelectedCategory(using: proxy)
                     }
                     .onScrollPhaseChange { _, phase in
                         if phase == .idle { applySelectedCategory(using: proxy) }
+                    }
+                    .overlay(alignment: .bottom) {
+                        scrollToTopButton(using: proxy)
                     }
             }
         }
@@ -35,13 +38,22 @@ struct HomeView: View {
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { navigationToolbar }
-        .sheet(item: $selectedProduct) { product in
-            ProductDetailView(product: product, relatedProducts: viewModel.alternatives(for: product.id),
+        .sheet(item: selectedProduct) { product in
+            ProductDetailView(product: product, relatedProducts: viewModel.relatedProducts,
                               selection: viewModel.selection)
         }
     }
 
     // MARK: - Content
+
+    private func scrollToTopButton(using proxy: ScrollViewProxy) -> some View {
+        ScrollToTopButton(isVisible: isPastResultsTop, accessibilityIdentifier: AccessibilityID.Home.scrollToTop) {
+            proxy.scrollTo(Const.scrollTopID, anchor: .top)
+        }
+        .padding(Const.contentInset)
+        .frame(maxWidth: Const.maximumWidth, alignment: .trailing)
+        .frame(maxWidth: .infinity)
+    }
 
     private func showSelectedCategory(using proxy: ScrollViewProxy) {
         let displayedCount = viewModel.products(in: displayedCategory).count
@@ -69,20 +81,21 @@ struct HomeView: View {
         VStack(spacing: .zero) {
             // Let a large accessibility header scroll so the catalog remains reachable.
             if dynamicTypeSize.isAccessibilitySize { addressHeader }
-            dinnerCard
+            catalogBanner
                 .padding(.horizontal, Const.contentInset)
                 .padding(.bottom, Const.sectionSpacing)
             productSection(viewportHeight: viewportHeight)
         }
         .frame(maxWidth: Const.maximumWidth)
         .frame(maxWidth: .infinity)
-        .environment(\.isShimmerEnabled, selectedProduct == nil && router.presentedSheet == nil)
+        .id(Const.scrollTopID)
+        .environment(\.isShimmerEnabled, viewModel.selectedProduct == nil && router.presentedSheet == nil)
     }
 
     private func productSection(viewportHeight: CGFloat) -> some View {
         LazyVStack(spacing: .zero, pinnedViews: [.sectionHeaders]) {
             Section {
-                productGrid
+                catalogContent
                     .padding(.horizontal, Const.contentInset)
                     .padding(.bottom, Const.contentInset)
                     // A short filtered feed must still leave enough room to pin its header.
@@ -108,7 +121,7 @@ struct HomeView: View {
     }
 
     private var categoryFilters: some View {
-        HomeCategoryFilterBar(selectedCategory: $viewModel.selectedCategory)
+        HomeCategoryFilterBar(selectedCategory: $viewModel.selectedCategory, categories: viewModel.categories)
             .padding(.bottom, Const.gridHeaderSpacing)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { filterBarHeight = $0 }
     }
@@ -117,7 +130,7 @@ struct HomeView: View {
         LazyVGrid(columns: columns, alignment: .leading, spacing: Const.gridSpacing) {
             ForEach(viewModel.products(in: displayedCategory)) { product in
                 ProductCard(product: product, quantity: quantityBinding(for: product.id)) {
-                    selectedProduct = product
+                    viewModel.showProduct(product)
                 }
                 .transition(reduceMotion ? .identity : AnyTransition(.blurReplace))
             }
@@ -195,47 +208,35 @@ struct HomeView: View {
         .contentShape(.rect)
     }
 
-    private var dinnerCard: some View {
-        Button(action: viewModel.addDinnerProducts) {
-            dinnerContent
-                .padding(.horizontal, Const.dinnerHorizontalInset)
-                .padding(.vertical, Const.dinnerVerticalInset)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.Background.elevated, in: .rect(cornerRadius: Const.dinnerCornerRadius))
-                .overlay(RoundedRectangle(cornerRadius: Const.dinnerCornerRadius)
-                    .strokeBorder(Color.Border.primary, lineWidth: Const.borderWidth))
-                .shadow(color: Color.Shadow.primary.opacity(Const.shadowOpacity), radius: Const.shadowRadius, y: Const.shadowOffset)
+    private var catalogBanner: some View {
+        CatalogStatusBanner(status: viewModel.catalogStatus, isCacheUnavailable: viewModel.isCacheUnavailable) {
+            if viewModel.catalogStatus.failure == .authenticationRequired && !viewModel.catalogStatus.isOffline {
+                router.presentAuthentication()
+            } else {
+                Task { await viewModel.refresh() }
+            }
         }
-        .pressScaleEffect()
-        .disabled(viewModel.hasDinnerProducts)
-        .accessibilityIdentifier(AccessibilityID.Home.addDinner)
     }
 
-    private var dinnerContent: some View {
-        VStack(alignment: .leading, spacing: Const.dinnerSpacing) {
-            Text(Texts.Home.Main.dinnerTitle)
-                .appTextStyle(size: Const.headingFontSize, lineHeight: Const.headingLineHeight,
-                               weight: .semibold, relativeTo: .headline)
-                .foregroundStyle(Color.Label.primary)
-            Text(Texts.Home.Main.dinnerSubtitle)
-                .appTextStyle(size: Const.captionFontSize, lineHeight: Const.captionLineHeight, relativeTo: .footnote)
-                .foregroundStyle(Color.Label.secondary)
-            dinnerActionLabel
+    @ViewBuilder private var catalogContent: some View {
+        if viewModel.products.isEmpty {
+            if viewModel.catalogStatus.isRefreshing {
+                ProgressView().frame(maxWidth: .infinity).padding()
+            } else {
+                ContentUnavailableView {
+                    Label { Text(Texts.Search.emptyTitle) } icon: { Image.System.magnifyingGlass }
+                } description: { Text(Texts.Search.emptyDescription) }
+            }
+        } else {
+            productGrid
         }
-        .multilineTextAlignment(.leading)
-    }
-
-    private var dinnerActionLabel: some View {
-        HStack(spacing: Const.actionSpacing) {
-            Text(viewModel.hasDinnerProducts ? Texts.Home.Main.dinnerAdded : Texts.Home.Main.collectProducts)
-            viewModel.hasDinnerProducts ? Image.System.checkmark : Image.System.arrowRight
-        }
-        .appTextStyle(size: Const.captionFontSize, lineHeight: Const.captionLineHeight,
-                       weight: .semibold, relativeTo: .footnote)
-        .foregroundStyle(Color.accentColor)
     }
 
     // MARK: - Bindings
+
+    private var selectedProduct: Binding<Product?> {
+        Binding(get: { viewModel.selectedProduct }, set: { _ in viewModel.dismissProduct() })
+    }
 
     private func quantityBinding(for productID: String) -> Binding<Int> {
         Binding(
@@ -245,6 +246,7 @@ struct HomeView: View {
     }
 
     private enum Const {
+        static let scrollTopID = "home.top"
         static let resultsTopID = "home.results.top"
         static let scrollTopTolerance: CGFloat = 1
         static let contentInset: CGFloat = 16
@@ -262,22 +264,13 @@ struct HomeView: View {
         static let headingLineHeight: CGFloat = 22
         static let captionFontSize: CGFloat = 13
         static let captionLineHeight: CGFloat = 18
-        static let dinnerSpacing: CGFloat = 4
-        static let dinnerHorizontalInset: CGFloat = 16
-        static let dinnerVerticalInset: CGFloat = 16
-        static let dinnerCornerRadius: CGFloat = 16
-        static let actionSpacing: CGFloat = 8
-        static let borderWidth: CGFloat = 1
-        static let shadowOpacity: Double = 0.05
-        static let shadowRadius: CGFloat = 6
-        static let shadowOffset: CGFloat = 4
     }
 }
 
 #Preview("Home — light") {
     @Previewable @Namespace var profileTransition
     NavigationStack {
-        HomeView(authentication: AuthenticationSession.preview(), profileTransition: profileTransition)
+        HomeView(repository: MockSearchRepository(), authentication: AuthenticationSession.preview(), profileTransition: profileTransition)
             .environmentObject(AppRouter())
     }
         .preferredColorScheme(.light)
@@ -286,7 +279,7 @@ struct HomeView: View {
 #Preview("Home — dark, large text") {
     @Previewable @Namespace var profileTransition
     NavigationStack {
-        HomeView(authentication: AuthenticationSession.preview(), profileTransition: profileTransition)
+        HomeView(repository: MockSearchRepository(), authentication: AuthenticationSession.preview(), profileTransition: profileTransition)
             .environmentObject(AppRouter())
     }
         .preferredColorScheme(.dark)

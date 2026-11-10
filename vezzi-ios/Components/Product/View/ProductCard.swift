@@ -49,9 +49,10 @@ struct ProductCard: View {
 
     private var productInfo: some View {
         VStack(alignment: .leading, spacing: .zero) {
-            nameAndPackage
+            productDescription
             if let offer = product.lowestOffer {
-                ProductPriceLabel(price: offer.price, currency: offer.currency, showsPrefix: showsPricePrefix)
+                ProductPriceLabel(price: offer.price, currency: offer.currency, showsPrefix: showsPricePrefix,
+                                  isStale: !offer.isFresh)
                     .appTextStyle(size: Const.priceFontSize, lineHeight: Const.priceLineHeight,
                                    weight: .semibold, relativeTo: .headline)
             }
@@ -61,13 +62,24 @@ struct ProductCard: View {
         .padding(.bottom, Const.bottomInset)
     }
 
-    private var nameAndPackage: some View {
-        VStack(alignment: .leading, spacing: Const.namePackageSpacing) {
+    private var productDescription: some View {
+        VStack(alignment: .leading, spacing: Const.descriptionSpacing) {
             productName
+            brandLabel
             Text(product.package)
                 .appTextStyle(size: Const.packageFontSize, lineHeight: Const.packageLineHeight,
                                relativeTo: .caption2)
                 .foregroundStyle(Color.Label.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    @ViewBuilder private var brandLabel: some View {
+        if !product.brand.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            Text(product.brand)
+                .appTextStyle(size: Const.brandFontSize, lineHeight: Const.brandLineHeight, relativeTo: .caption)
+                .foregroundStyle(Color.Label.secondary)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : Const.brandLineLimit)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -83,7 +95,7 @@ struct ProductCard: View {
     }
 
     private var nameLabel: some View {
-        Text(product.name)
+        Text(product.displayName)
             .appTextStyle(size: Const.nameFontSize, lineHeight: Const.nameLineHeight,
                            weight: .semibold, relativeTo: .caption)
             .foregroundStyle(Color.Label.primary)
@@ -97,17 +109,31 @@ struct ProductCard: View {
             .aspectRatio(Const.artworkAspectRatio, contentMode: .fit)
             .allowsHitTesting(false)
             .overlay(alignment: .bottom) {
-                HStack(alignment: .bottom, spacing: Const.controlsSpacing) {
-                    if showsStoreBadges {
-                        storeBadges.padding(.bottom, Const.storeBottomInset)
-                    }
-                    Spacer(minLength: .zero)
-                    quantityControl
-                        .layoutPriority(1)
+                ViewThatFits(in: .horizontal) {
+                    artworkControlsRow
+                    artworkControlsColumn
                 }
                 .padding(.horizontal, Const.artworkControlsInset)
                 .padding(.bottom, Const.artworkControlsInset)
             }
+    }
+
+    private var artworkControlsRow: some View {
+        HStack(alignment: .bottom, spacing: Const.controlsSpacing) {
+            if showsStoreBadges {
+                storeBadges.padding(.bottom, Const.storeBottomInset)
+            }
+            Spacer(minLength: .zero)
+            quantityControl
+                .layoutPriority(1)
+        }
+    }
+
+    private var artworkControlsColumn: some View {
+        VStack(alignment: .leading, spacing: Const.controlsSpacing) {
+            if showsStoreBadges { storeBadges }
+            quantityControl.frame(maxWidth: .infinity, alignment: .trailing)
+        }
     }
 
     private var accessibleControls: some View {
@@ -120,18 +146,22 @@ struct ProductCard: View {
     }
 
     private var storeBadges: some View {
-        ViewThatFits(in: .horizontal) {
-            storeIcons(product.offers)
-            storeIcons(Array(product.offers.prefix(Const.compactStoreCount)))
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Texts.Product.offeredAtStores)
-        .accessibilityValue(product.offers.map(\.name).joined(separator: ", "))
+        storeIcons(Array(availableStores.prefix(Const.maximumStoreCount)))
+            .fixedSize()
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Texts.Product.offeredAtStores)
+            .accessibilityValue(availableStores.map(\.name).joined(separator: ", "))
+            .accessibilityHidden(availableStores.isEmpty)
+    }
+
+    private var availableStores: [ProductOffer] {
+        // The shared catalog mapper keeps one representative offer per store ID.
+        product.offers.filter { $0.inStock != false }
     }
 
     private func storeIcons(_ offers: [ProductOffer]) -> some View {
         HStack(spacing: Const.storeOverlap) {
-            ForEach(Array(offers.enumerated()), id: \.element.id) { index, _ in
+            ForEach(Array(offers.enumerated()), id: \.element.storeID) { index, _ in
                 StoreLogoPlaceholder(style: .lighter)
                     .frame(width: Const.storeSize, height: Const.storeSize)
                     .overlay(Circle().strokeBorder(Color.Background.elevated, lineWidth: Const.borderWidth))
@@ -149,7 +179,7 @@ struct ProductCard: View {
         static let contentSpacing: CGFloat = 4
         static let imageSpacing: CGFloat = 10
         static let controlsSpacing: CGFloat = 8
-        static let namePackageSpacing: CGFloat = 2
+        static let descriptionSpacing: CGFloat = 2
         static let artworkControlsInset: CGFloat = 6
         static let storeBottomInset: CGFloat = 5
         static let contentInset: CGFloat = 10
@@ -159,11 +189,14 @@ struct ProductCard: View {
         static let artworkAspectRatio: CGFloat = 1
         static let storeSize: CGFloat = 24
         static let storeOverlap: CGFloat = -4
-        static let compactStoreCount = 1
+        static let maximumStoreCount = 3
         static let borderWidth: CGFloat = 1
         static let nameLineLimit = 2
         static let nameFontSize: CGFloat = 14
         static let nameLineHeight: CGFloat = 18
+        static let brandLineLimit = 1
+        static let brandFontSize: CGFloat = 12
+        static let brandLineHeight: CGFloat = 16
         static let packageFontSize: CGFloat = 11
         static let packageLineHeight: CGFloat = 13
         static let priceFontSize: CGFloat = 17
@@ -178,18 +211,30 @@ struct ProductPriceLabel: View {
     let price: Decimal
     var currency = "RUB"
     var showsPrefix = true
+    var isStale = false
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Const.spacing) {
             if showsPrefix { Text(Texts.Product.priceFrom) }
-            Text(price, format: .currency(code: currency).precision(.fractionLength(0...2)))
+            priceText
         }
         .foregroundStyle(Color.Label.primary)
         .accessibilityElement(children: .combine)
     }
 
+    private var priceText: some View {
+        HStack(alignment: .firstTextBaseline, spacing: .zero) {
+            Text(price, format: .currency(code: currency).precision(.fractionLength(0...2)))
+            if isStale {
+                Text(verbatim: Const.staleMarker)
+                    .accessibilityLabel(Texts.Catalog.stalePrice)
+            }
+        }
+    }
+
     private enum Const {
         static let spacing: CGFloat = 4
+        static let staleMarker = "*"
     }
 }
 
@@ -213,4 +258,25 @@ struct ProductPriceLabel: View {
     }
     .preferredColorScheme(.dark)
     .dynamicTypeSize(.accessibility3)
+}
+
+#Preview("Product — stale price, narrow card") {
+    @Previewable @State var quantity = 1
+    let product: Product = {
+        var product = ProductMockData.products[0]
+        product.offers = product.offers.map { offer in
+            var staleOffer = offer
+            staleOffer.isFresh = false
+            return staleOffer
+        }
+        return product
+    }()
+    ProductCard(product: product, quantity: $quantity, open: {})
+        .frame(width: ProductCardPreviewConst.narrowWidth)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding()
+}
+
+private enum ProductCardPreviewConst {
+    static let narrowWidth: CGFloat = 150
 }

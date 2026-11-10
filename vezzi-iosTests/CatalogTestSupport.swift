@@ -21,6 +21,14 @@ nonisolated enum CatalogFixtures {
         try CatalogSnapshot().applying(cached(batch)).snapshot
     }
 
+    static func export(_ batch: CatalogImport = catalog(), version: Int64 = 1, date: Date = Date()) -> CatalogCacheBatch {
+        var result = cached(batch, at: date)
+        result.metadata = CatalogMetadata(importID: version, importedAt: date, isSynthetic: true,
+                                          offerMaxAgeHours: 48, etag: "\"\(version)\"", validatedAt: date)
+        result.replacesCatalog = true
+        return result
+    }
+
     static func largeCatalog() -> CatalogImport {
         CatalogImport(
             products: (0..<1000).map { CatalogProduct(id: "p\($0)", name: "Product \($0)", brand: "Brand", category: "Food") },
@@ -66,7 +74,7 @@ extension XCTestCase {
 
 nonisolated struct FixedCatalogSource: CatalogSource {
     let batch: CatalogImport
-    func loadCatalog() async throws -> CatalogImport { batch }
+    func loadCatalog(ifNoneMatch: String?) async throws -> CatalogSourceResult { .snapshot(CatalogFixtures.export(batch)) }
 }
 
 actor ControlledCatalogSource: CatalogSource {
@@ -74,9 +82,9 @@ actor ControlledCatalogSource: CatalogSource {
 
     func succeed(with batch: CatalogImport) { self.batch = batch }
 
-    func loadCatalog() async throws -> CatalogImport {
+    func loadCatalog(ifNoneMatch: String?) async throws -> CatalogSourceResult {
         guard let batch else { throw URLError(.notConnectedToInternet) }
-        return batch
+        return .snapshot(CatalogFixtures.export(batch))
     }
 }
 

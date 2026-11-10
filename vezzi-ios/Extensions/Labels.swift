@@ -15,6 +15,12 @@ final class Texts {
         static let title = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Planzo"
     }
     
+    // MARK: - Shared Controls
+
+    enum Common {
+        static let scrollToTop = NSLocalizedString("ScrollToTop", comment: "Scroll to top")
+    }
+
     // MARK: - Tab Bar
 
     enum Tabbar {
@@ -48,6 +54,27 @@ final class Texts {
         enum Mock {
             static let homeAddress = NSLocalizedString("HomeAddressHome", comment: "6 Leninsky Prospekt")
             static let workAddress = NSLocalizedString("HomeAddressWork", comment: "28 Nevsky Prospekt")
+        }
+    }
+
+    enum Catalog {
+        static let title = NSLocalizedString("CatalogTitle", comment: "Product catalog")
+        static let offlineTitle = NSLocalizedString("CatalogOfflineTitle", comment: "Offline catalog")
+        static let failedTitle = NSLocalizedString("CatalogFailedTitle", comment: "Refresh failed")
+        static let staleMessage = NSLocalizedString("CatalogStaleMessage", comment: "Saved prices may be outdated")
+        static let noCacheMessage = NSLocalizedString("CatalogNoCacheMessage", comment: "No cached products")
+        static let refreshMessage = NSLocalizedString("CatalogRefreshMessage", comment: "How to refresh")
+        static let refresh = NSLocalizedString("CatalogRefresh", comment: "Refresh")
+        static let updating = NSLocalizedString("CatalogUpdating", comment: "Updating")
+        static let signInTitle = NSLocalizedString("CatalogSignInTitle", comment: "Catalog requires sign-in")
+        static let signInMessage = NSLocalizedString("CatalogSignInMessage", comment: "Sign in to load the catalog")
+        static let signIn = NSLocalizedString("CatalogSignIn", comment: "Sign in")
+        static let syntheticTitle = NSLocalizedString("CatalogSyntheticTitle", comment: "Demo prices")
+        static let syntheticMessage = NSLocalizedString("CatalogSyntheticMessage", comment: "Prices are synthetic")
+        static let cacheTitle = NSLocalizedString("CatalogCacheTitle", comment: "Catalog persistence failed")
+        static let stalePrice = NSLocalizedString("CatalogStalePrice", comment: "Stale price")
+        static func cardPrice(_ price: String) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("CatalogCardPrice", comment: "Loyalty-card price"), price)
         }
     }
 
@@ -88,11 +115,25 @@ final class Texts {
         }
 
         enum Unit {
+            static let meter = NSLocalizedString("ProductUnitMeter", comment: "m")
             static let liter = NSLocalizedString("ProductUnitLiter", comment: "L")
             static let milliliter = NSLocalizedString("ProductUnitMilliliter", comment: "ml")
             static let kilogram = NSLocalizedString("ProductUnitKilogram", comment: "kg")
             static let gram = NSLocalizedString("ProductUnitGram", comment: "g")
             static let piece = NSLocalizedString("ProductUnitPiece", comment: "pcs")
+        }
+
+        enum Stores {
+            static let showMore = NSLocalizedString("ProductShowMoreStores", comment: "Show more")
+            static let showLess = NSLocalizedString("ProductShowLessStores", comment: "Show less")
+
+            enum Sort {
+                static let title = NSLocalizedString("ProductStoreSort", comment: "Sort stores")
+                static let priceAscending = NSLocalizedString("ProductStoreSortPriceAscending", comment: "Cheaper")
+                static let priceDescending = NSLocalizedString("ProductStoreSortPriceDescending", comment: "Pricier")
+                static let distanceAscending = NSLocalizedString("ProductStoreSortDistanceAscending", comment: "Closer")
+                static let distanceDescending = NSLocalizedString("ProductStoreSortDistanceDescending", comment: "Farther")
+            }
         }
 
         static let priceFrom = NSLocalizedString("HomePriceFrom", comment: "from")
@@ -256,7 +297,6 @@ final class Texts {
         static let noResultsDescription = NSLocalizedString("SearchNoResultsDescription", comment: "Try another name, brand or category.")
         static let noOffers = NSLocalizedString("SearchNoOffers", comment: "No store offers available")
         static let unknownPriceDate = NSLocalizedString("SearchUnknownPriceDate", comment: "Price update date unknown")
-        static let refreshError = NSLocalizedString("SearchRefreshError", comment: "Unable to update prices. Saved data is still available.")
         static let resultLimit = NSLocalizedString("SearchResultLimit", comment: "Up to 50 products are shown. Refine your search to find more.")
     }
 

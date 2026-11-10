@@ -5,6 +5,7 @@ struct SearchView: View {
     @ObservedObject private var selection: ProductSelection
     @State private var isSearching = false
     @State private var scrollPosition = ScrollPosition(edge: .top)
+    @State private var isPastScrollTopThreshold = false
     @FocusState private var isSearchFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -93,6 +94,11 @@ struct SearchView: View {
         }
         .scrollIndicators(.hidden)
         .scrollPosition($scrollPosition)
+        .onScrollGeometryChange(for: Bool.self) { geometry in
+            geometry.contentOffset.y + geometry.contentInsets.top > Const.scrollTopThreshold
+        } action: { _, isPastThreshold in
+            isPastScrollTopThreshold = isPastThreshold
+        }
         .onChange(of: viewModel.mode) { _, _ in
             isSearchFocused = false
             withTransaction(Transaction(animation: nil)) {
@@ -101,20 +107,21 @@ struct SearchView: View {
         }
         .scrollDismissesKeyboard(.immediately)
         .onScrollPhaseChange(dismissSearchFocusOnScroll)
+        .accessibilityIdentifier(AccessibilityID.Search.results)
         .overlay {
-            if viewModel.sections.isEmpty && statusMessage == nil {
-                emptyState.transition(resultsTransition)
+            if viewModel.sections.isEmpty {
+                if viewModel.isRefreshing { ProgressView() }
+                else { emptyState.transition(resultsTransition) }
             }
         }
+        .overlay(alignment: .bottomTrailing) { scrollToTopButton }
         .animation(reduceMotion ? nil : .easeOut(duration: Const.resultsTransitionDuration),
                    value: viewModel.items.map(\.id))
         .environment(\.isShimmerEnabled, viewModel.selectedProduct == nil)
-        .accessibilityIdentifier(AccessibilityID.Search.results)
     }
 
     private var resultsContent: some View {
         LazyVStack(alignment: .leading, spacing: Const.sectionSpacing) {
-            if let message = statusMessage { statusView(message) }
             ForEach(viewModel.sections) { section in
                 productSection(section)
                     .transition(resultsTransition)
@@ -127,6 +134,15 @@ struct SearchView: View {
             }
         }
         .padding(.bottom, Const.contentInset)
+    }
+
+    private var scrollToTopButton: some View {
+        ScrollToTopButton(isVisible: isPastScrollTopThreshold && !viewModel.sections.isEmpty,
+                          accessibilityIdentifier: AccessibilityID.Search.scrollToTop) {
+            isSearchFocused = false
+            scrollPosition.scrollTo(edge: .top)
+        }
+        .padding(Const.contentInset)
     }
 
     private var resultsTransition: AnyTransition {
@@ -169,16 +185,27 @@ struct SearchView: View {
     }
 
     private func sectionTitle(_ section: SearchSection) -> some View {
-        HStack(spacing: Const.storeSpacing) {
+        HStack(alignment: .top, spacing: Const.storeSpacing) {
             if section.storeID != nil {
                 StoreLogoPlaceholder()
                     .frame(width: Const.storeSize, height: Const.storeSize)
             }
+            sectionLabels(section)
+        }
+    }
+
+    private func sectionLabels(_ section: SearchSection) -> some View {
+        VStack(alignment: .leading, spacing: Const.headingSpacing) {
             Text(section.title)
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(Color.Label.primary)
-                .fixedSize(horizontal: false, vertical: true)
+            if let address = section.address, !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text(address)
+                    .appTextStyle(size: Const.addressFontSize, lineHeight: Const.addressLineHeight, relativeTo: .caption)
+                    .foregroundStyle(Color.Label.secondary)
+            }
         }
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     @ViewBuilder private func walkingTime(_ section: SearchSection) -> some View {
@@ -206,25 +233,8 @@ struct SearchView: View {
         .accessibilityIdentifier(AccessibilityID.Search.empty)
     }
 
-    // MARK: - Repository Status
-
-    private var statusMessage: String? {
-        viewModel.refreshErrorMessage ?? (viewModel.isCacheUnavailable ? Texts.Storage.cacheUnavailable : nil)
-    }
-
-    private func statusView(_ message: String) -> some View {
-        VStack(spacing: Const.messageSpacing) {
-            Text(message)
-            Button(Texts.Storage.retry) { Task { await viewModel.retry() } }
-        }
-        .font(.callout)
-        .multilineTextAlignment(.center)
-        .padding(Const.contentInset)
-        .frame(maxWidth: .infinity)
-        .background(Color.Background.secondary)
-    }
-
     private enum Const {
+        static let scrollTopThreshold: CGFloat = 200
         static let contentInset: CGFloat = 16
         static let pickerTopInset: CGFloat = 8
         static let pickerBottomInset: CGFloat = 16
@@ -232,7 +242,8 @@ struct SearchView: View {
         static let headingSpacing: CGFloat = 4
         static let storeSpacing: CGFloat = 10
         static let storeSize: CGFloat = 24
-        static let messageSpacing: CGFloat = 8
+        static let addressFontSize: CGFloat = 13
+        static let addressLineHeight: CGFloat = 18
         static let modeDuration: TimeInterval = 0.2
         static let resultsTransitionDuration: TimeInterval = 0.18
     }
@@ -255,4 +266,10 @@ struct SearchView: View {
 
 #Preview("Search — empty catalog") {
     NavigationStack { SearchView(repository: PreviewCatalogRepository()) }
+}
+
+#Preview("Search — offline, empty catalog") {
+    @Previewable @State var repository = DefaultCatalogRepository()
+    NavigationStack { SearchView(repository: repository) }
+        .task { repository.updateConnectivity(isConnected: false) }
 }

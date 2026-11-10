@@ -70,12 +70,12 @@ enum ProductMockData {
 
     private static func offers(for productID: String, prices: [Decimal]) -> [ProductOffer] {
         zip([
-            ("pyaterochka", Texts.Product.Mock.pyaterochka, 350.0),
-            ("magnit", Texts.Product.Mock.magnit, 500.0),
-            ("lenta", Texts.Product.Mock.lenta, 800.0)
+            ("pyaterochka", Texts.Product.Mock.pyaterochka, 350.0, Texts.Home.Mock.homeAddress as String?),
+            ("magnit", Texts.Product.Mock.magnit, 500.0, Texts.Home.Mock.workAddress as String?),
+            ("lenta", Texts.Product.Mock.lenta, 800.0, nil)
         ], prices).map { store, price in
             ProductOffer(id: productID + "." + store.0, storeID: store.0, name: store.1, price: price,
-                           distance: Measurement(value: store.2, unit: .meters))
+                           distance: Measurement(value: store.2, unit: .meters), address: store.3)
         }
     }
 }

@@ -20,9 +20,10 @@ final class CoreDataCatalogCache: CatalogCache {
             let request = NSFetchRequest<OfferEntity>(entityName: "OfferEntity")
             request.relationshipKeyPathsForPrefetching = ["product", "store"]
             let offers = try context.fetch(request)
-            let batch = try CatalogCacheBatch(products: products.map { try $0.catalogValue() },
+            var batch = try CatalogCacheBatch(products: products.map { try $0.catalogValue() },
                                               stores: stores.map(\.value),
                                               offers: offers.map { try $0.cacheValue() })
+            batch.metadata = try context.fetch(NSFetchRequest<CatalogMetadataEntity>(entityName: "CatalogMetadataEntity")).first?.value
             return try CatalogSnapshot().applying(batch).snapshot
         }
     }

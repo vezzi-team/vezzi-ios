@@ -10,6 +10,7 @@ enum ProductSearchMode: String, CaseIterable, Identifiable {
 struct SearchSection: Identifiable {
     let id: String
     let title: String
+    let address: String?
     let storeID: String?
     let walkingMinutes: Int?
     let products: [Product]

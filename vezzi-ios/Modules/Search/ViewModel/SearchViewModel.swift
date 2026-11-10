@@ -12,9 +12,7 @@ final class SearchViewModel: ObservableObject {
     @Published private(set) var selectedProduct: Product?
     @Published private(set) var selectedProductStoreID: String?
     @Published private(set) var relatedProducts: [Product] = []
-    @Published private(set) var refreshErrorMessage: String?
     @Published private(set) var isRefreshing = false
-    @Published private(set) var isCacheUnavailable = false
 
     var canRefresh: Bool { repository.canRefresh }
     var isResultLimitReached: Bool { items.count == CatalogSearch.resultLimit }
@@ -25,16 +23,17 @@ final class SearchViewModel: ObservableObject {
     private let repository: any CatalogRepository
     private var querySubscription: AnyCancellable?
     private var resultsSubscription: AnyCancellable?
-    private var cacheSubscription: AnyCancellable?
     private var relatedSubscription: AnyCancellable?
+    private var statusSubscription: AnyCancellable?
 
     init(repository: any CatalogRepository, stores: [String: SearchStoreInfo] = [:], groupOrder: [String] = []) {
         self.repository = repository
         self.stores = stores
         groupRanks = Dictionary(groupOrder.enumerated().map { ($0.element, $0.offset) }, uniquingKeysWith: min)
-        cacheSubscription = repository.cacheState.sink { [weak self] state in
-            self?.isCacheUnavailable = state == .unavailable
-        }
+        statusSubscription = repository.status
+            .map(\.isRefreshing)
+            .removeDuplicates()
+            .sink { [weak self] in self?.isRefreshing = $0 }
         observe(query: "")
         querySubscription = $query
             .dropFirst()
@@ -46,25 +45,10 @@ final class SearchViewModel: ObservableObject {
 
     nonisolated deinit {}
 
-    func retry() async {
-        async let cacheRetry: Void = repository.prepareCache()
-        await refresh()
-        await cacheRetry
-    }
-
     func refresh() async {
-        guard canRefresh, !isRefreshing else { return }
-        isRefreshing = true
-        defer { isRefreshing = false }
-        do {
-            try await repository.refresh()
-            refreshErrorMessage = nil
-        } catch is CancellationError {
-            return
-        } catch {
-            // Existing results remain available when the source cannot be reached.
-            refreshErrorMessage = Texts.Search.refreshError
-        }
+        guard canRefresh else { return }
+        // Shared status and single-flight requests belong to the repository.
+        try? await repository.refresh()
     }
 
     private func observe(query: String) {
@@ -117,9 +101,10 @@ final class SearchViewModel: ObservableObject {
     private func cheaperSections() -> [SearchSection] {
         let productsByID = Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0) })
         return Dictionary(grouping: items, by: { $0.product.groupID }).map { id, items in
-            SearchSection(id: id, title: items.first?.product.category ?? items.first?.product.name ?? "",
-                          storeID: nil, walkingMinutes: nil,
-                          products: items.compactMap { productsByID[$0.id] }.sorted(by: priceOrder))
+            let firstProduct = items.first.flatMap { productsByID[$0.id] }
+            return SearchSection(id: id, title: items.first?.product.category ?? firstProduct?.displayName ?? "",
+                                 address: nil, storeID: nil, walkingMinutes: nil,
+                                 products: items.compactMap { productsByID[$0.id] }.sorted(by: priceOrder))
         }.sorted {
             let lhsRank = groupRanks[$0.id, default: Int.max]
             let rhsRank = groupRanks[$1.id, default: Int.max]
@@ -129,19 +114,18 @@ final class SearchViewModel: ObservableObject {
 
     private func fasterSections() -> [SearchSection] {
         var byStore: [String: [Product]] = [:]
-        var names: [String: String] = [:]
         for product in products {
             for offer in product.offers where offer.inStock != false {
                 var scoped = product
                 scoped.offers = [offer]
                 byStore[offer.storeID, default: []].append(scoped)
-                names[offer.storeID] = offer.name
             }
         }
         return byStore.map { id, products in
-            SearchSection(id: id, title: names[id] ?? "", storeID: id,
-                          walkingMinutes: stores[id]?.walkingMinutes,
-                          products: products.sorted(by: priceOrder))
+            let offer = products.first?.offers.first
+            return SearchSection(id: id, title: offer?.storeTitle ?? "", address: offer?.displayAddress, storeID: id,
+                                 walkingMinutes: stores[id]?.walkingMinutes,
+                                 products: products.sorted(by: priceOrder))
         }.sorted {
             let lhsTime = $0.walkingMinutes ?? Int.max
             let rhsTime = $1.walkingMinutes ?? Int.max
@@ -159,24 +143,7 @@ final class SearchViewModel: ObservableObject {
     }
 
     private func product(_ item: CatalogItem) -> Product {
-        let offers = Dictionary(grouping: item.offers, by: { $0.store.id }).values
-            .compactMap { $0.min(by: preferredOffer) }
-            .sorted { $0.store.name == $1.store.name ? $0.store.id < $1.store.id : $0.store.name < $1.store.name }
-        return Product(id: item.id, name: item.product.name, brand: item.product.brand ?? "",
-                       packageQuantity: item.product.packageQuantity, packageUnit: item.product.packageUnit,
-                       category: nil, offers: offers.map { cached in
-                           ProductOffer(id: cached.id, storeID: cached.store.id, name: cached.store.name,
-                                        price: cached.offer.price, currency: cached.offer.currency,
-                                        inStock: cached.offer.inStock, distance: stores[cached.store.id]?.distance)
-                       })
-    }
-
-    private func preferredOffer(_ lhs: CachedOffer, _ rhs: CachedOffer) -> Bool {
-        // Prefer purchasable offers, then the lowest price. IDs break ties deterministically.
-        let lhsAvailable = lhs.offer.inStock != false
-        let rhsAvailable = rhs.offer.inStock != false
-        if lhsAvailable != rhsAvailable { return lhsAvailable }
-        return lhs.offer.price == rhs.offer.price ? lhs.id < rhs.id : lhs.offer.price < rhs.offer.price
+        Product(catalog: item, distances: stores.mapValues(\.distance))
     }
 
     private enum Const {
