@@ -4,6 +4,44 @@ import XCTest
 
 @MainActor
 final class ShoppingListRepositoryTests: XCTestCase {
+    func testEmptyListAndOfflineFeedbackPreserveGuestEdits() async {
+        let service = ControlledShoppingService()
+        await service.setOffline(true)
+        let repository = ShoppingListRepository(service: service)
+        let model = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: repository)
+        XCTAssertEqual(model.contentState, .empty)
+        XCTAssertNil(model.message, "An untouched guest list needs no warning")
+        repository.setAccount(ShoppingListTestAccount.make("account"))
+        XCTAssertEqual(model.contentState, .loading)
+        await repository.refresh()
+        XCTAssertEqual(model.contentState, .offline)
+
+        repository.selection.setQuantity(1, for: "1")
+        XCTAssertEqual(model.contentState, .products, "A local item stays usable without a server cart")
+        await repository.refresh()
+        XCTAssertEqual(model.contentState, .products)
+        repository.setAccount(nil)
+        XCTAssertEqual(model.contentState, .empty, "Offline account feedback must not leak into guest mode")
+    }
+
+    func testSavedEmptyCartShowsEmptyListWhenOffline() async {
+        let service = ControlledShoppingService()
+        let cache = MemoryShoppingListCache()
+        let first = ShoppingListRepository(service: service, cache: cache)
+        first.setAccount(ShoppingListTestAccount.make("account"))
+        await first.refresh()
+        await service.setOffline(true)
+
+        let restored = ShoppingListRepository(service: service, cache: cache)
+        let model = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: restored)
+        restored.setAccount(ShoppingListTestAccount.make("account"))
+        await restored.refresh()
+        XCTAssertNotNil(restored.cart)
+        XCTAssertTrue(restored.selection.quantities.isEmpty)
+        XCTAssertEqual(restored.failure, .offline)
+        XCTAssertEqual(model.contentState, .empty)
+    }
+
     func testEmptyAccountCreatesCartOnlyOnFirstEditAndRecoversLostCreateResponse() async {
         let service = ControlledShoppingService()
         await service.startWithoutCart()
@@ -21,6 +59,93 @@ final class ShoppingListRepositoryTests: XCTestCase {
         XCTAssertEqual(repository.selection.quantities, ["1": 2])
         let creates = await service.creates
         XCTAssertEqual(creates, 1, "Reload active carts before retrying a lost create response")
+    }
+
+    func testConfirmedAbsenceOfCartRemainsEmptyOfflineAndAfterRestart() async {
+        let service = ControlledShoppingService()
+        await service.startWithoutCart()
+        let cache = MemoryShoppingListCache()
+        let original = ShoppingListRepository(service: service, cache: cache)
+        let model = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: original)
+        original.setAccount(ShoppingListTestAccount.make("account"))
+        await original.refresh()
+        XCTAssertNil(original.cart)
+        XCTAssertTrue(original.hasResolvedCart)
+        let saved = await cache.snapshot("account")
+        XCTAssertEqual(saved?.hasResolvedCart, true)
+
+        await service.setOffline(true)
+        await original.refresh()
+        XCTAssertEqual(original.failure, .offline)
+        XCTAssertEqual(model.contentState, .empty)
+        XCTAssertNil(model.message)
+
+        let restored = ShoppingListRepository(service: service, cache: cache)
+        let restoredModel = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: restored)
+        restored.setAccount(ShoppingListTestAccount.make("account"))
+        await restored.refresh()
+        XCTAssertNil(restored.cart)
+        XCTAssertEqual(restored.failure, .offline)
+        XCTAssertEqual(restoredModel.contentState, .empty)
+
+        restored.setAccount(ShoppingListTestAccount.make("other"))
+        XCTAssertFalse(restored.hasResolvedCart, "Confirmed absence belongs only to its account/session")
+        await restored.refresh()
+        XCTAssertEqual(restoredModel.contentState, .offline)
+    }
+
+    func testFailedFirstLookupDoesNotCacheAConfirmedEmptyList() async {
+        let service = ControlledShoppingService()
+        await service.setOffline(true)
+        let cache = MemoryShoppingListCache()
+        let original = ShoppingListRepository(service: service, cache: cache)
+        original.setAccount(ShoppingListTestAccount.make("account"))
+        await original.refresh()
+        let saved = await cache.snapshot("account")
+        XCTAssertEqual(saved?.hasResolvedCart, false)
+
+        let restored = ShoppingListRepository(service: service, cache: cache)
+        let model = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: restored)
+        restored.setAccount(ShoppingListTestAccount.make("account"))
+        await restored.refresh()
+        XCTAssertFalse(restored.hasResolvedCart)
+        XCTAssertEqual(model.contentState, .offline)
+    }
+
+    func testDeletingLastItemRetainsCacheFailureUntilStorageRecovers() async {
+        let service = ControlledShoppingService(quantities: ["1": 1])
+        let cache = MemoryShoppingListCache()
+        let repository = ShoppingListRepository(service: service, cache: cache)
+        let model = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: repository)
+        repository.setAccount(ShoppingListTestAccount.make("account"))
+        await repository.refresh()
+        await service.setOffline(true)
+        await cache.setFailing(true)
+        repository.selection.setQuantity(0, for: "1")
+        await repository.refresh()
+        XCTAssertEqual(model.contentState, .empty)
+        XCTAssertEqual(model.message, Texts.ShoppingList.cacheError)
+        let oldSnapshot = await cache.snapshot("account")
+        XCTAssertEqual(oldSnapshot?.cart?.quantities, ["1": 1], "The deletion has not reached disk or server")
+
+        await cache.setFailing(false)
+        await repository.refresh()
+        XCTAssertEqual(model.contentState, .empty)
+        XCTAssertNil(model.message, "Successful local persistence clears the warning even while offline")
+    }
+
+    func testDeletingLastItemRetainsServerRejectionFeedback() async throws {
+        let service = ControlledShoppingService(quantities: ["1": 1])
+        let repository = ShoppingListRepository(service: service)
+        let model = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: repository)
+        repository.setAccount(ShoppingListTestAccount.make("account"))
+        await repository.refresh()
+        let cart = try XCTUnwrap(repository.cart)
+        await service.rejectWrites(in: cart.id, with: APIError.http(status: 500, code: nil, requestID: nil, retryAfter: nil))
+        repository.selection.setQuantity(0, for: "1")
+        await repository.refresh()
+        XCTAssertEqual(model.contentState, .empty)
+        XCTAssertEqual(model.message, Texts.ShoppingList.loadError)
     }
 
     func testRestoreMergesGuestEditsWithoutClearingServerProductsOrHaptics() async {

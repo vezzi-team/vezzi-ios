@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EB6D1914B6FA4B7884F81E9B /* CatalogEmptyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01F337F928B46F7968B1918 /* CatalogEmptyState.swift */; };
+		3CC68591BE1244CBAE397909 /* MotiEmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FC4DE1043DA49BDB6E8C570 /* MotiEmptyStateView.swift */; };
 		03C2DB445D8723AB81251191 /* AppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2F65272448A03EEEFEFCDDD /* AppDependencies.swift */; };
 		05DCAD64ED5D48FCA23594FF /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AE3A3009B9C241658C3C9EDA /* PrivacyInfo.xcprivacy */; };
 		064631660337493BA6298C05 /* MotiDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E85001FA9CD4EF7AFECCB8E /* MotiDebugView.swift */; };
@@ -126,6 +128,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C01F337F928B46F7968B1918 /* CatalogEmptyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogEmptyState.swift; sourceTree = "<group>"; };
+		8FC4DE1043DA49BDB6E8C570 /* MotiEmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotiEmptyStateView.swift; sourceTree = "<group>"; };
 		04C2A8D27FF14DF8AA2D5C25 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		05DE0C07445C48EDBD5DBCA5 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		05FBFDF795B14F9DBD1563FD /* CatalogRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogRepositoryTests.swift; sourceTree = "<group>"; };
@@ -358,6 +362,7 @@
 			isa = PBXGroup;
 			children = (
 				06230B146B154DE68133123D /* Product.swift */,
+				C01F337F928B46F7968B1918 /* CatalogEmptyState.swift */,
 				EA3AFC2F746B40F79D664E59 /* ProductStoreSort.swift */,
 				373A8419DF674800ABADE81E /* ProductMockData.swift */,
 				C89D6FA56791477796A077AA /* ProductSelection.swift */,
@@ -430,6 +435,7 @@
 				F4C87B391EFA4D6B8CADB7F8 /* MotiMotion.swift */,
 				74489B575A254779A2832B68 /* MotiFaceGeometry.swift */,
 				F128376C6B5C4549916BDA3C /* MotiMascotView.swift */,
+				8FC4DE1043DA49BDB6E8C570 /* MotiEmptyStateView.swift */,
 			);
 			path = Moti;
 			sourceTree = "<group>";
@@ -1024,6 +1030,7 @@
 				847A5D21DDE14B9088F9ED00 /* LoginViewModel.swift in Sources */,
 				1ECC9449D5604A7D8059703E /* AuthenticationSession.swift in Sources */,
 				EDAC3F3121444F6CB20B5495 /* MotiMascotView.swift in Sources */,
+				3CC68591BE1244CBAE397909 /* MotiEmptyStateView.swift in Sources */,
 				BA873B096E0442DD9DC6D580 /* LoginView.swift in Sources */,
 				56E329FCF3E640C197CE217F /* AuthenticationModels.swift in Sources */,
 				5DE1CA07720144E9B9FB7F9E /* KeychainSessionStore.swift in Sources */,
@@ -1054,6 +1061,7 @@
 				C0DE00000000000000000012 /* AppRootView.swift in Sources */,
 				C0DE00000000000000000013 /* DestinationFactory.swift in Sources */,
 				A572598AA874414899F5CD48 /* Product.swift in Sources */,
+				EB6D1914B6FA4B7884F81E9B /* CatalogEmptyState.swift in Sources */,
 				1859C6EA68E648FFBE559182 /* ProductStoreSort.swift in Sources */,
 				E213B653F2B04CFB9C6FD4B6 /* ProductMockData.swift in Sources */,
 				A812D324791641149E3D7831 /* HomeViewModel.swift in Sources */,

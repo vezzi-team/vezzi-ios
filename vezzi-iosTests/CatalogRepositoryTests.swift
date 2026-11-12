@@ -124,7 +124,7 @@ final class CatalogRepositoryTests: XCTestCase {
         await repository.prepareCache()
         await home.refresh()
         XCTAssertEqual(home.catalogStatus.failure, .offline)
-        XCTAssertFalse(search.isRefreshing)
+        XCTAssertEqual(search.emptyState, .empty)
         XCTAssertTrue(home.catalogStatus.hasSnapshot)
         XCTAssertTrue(home.catalogStatus.isOffline)
         let saved = await catalogItems(from: repository)

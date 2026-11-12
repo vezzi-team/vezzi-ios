@@ -6,6 +6,7 @@ struct SearchView: View {
     @State private var isSearching = false
     @State private var scrollPosition = ScrollPosition(edge: .top)
     @State private var isPastScrollTopThreshold = false
+    @State private var viewportHeight: CGFloat = .zero
     @FocusState private var isSearchFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -24,10 +25,12 @@ struct SearchView: View {
                 results
             }
         }
-        .background(Color.Background.primary)
+        .background(viewModel.items.isEmpty ? Color.Background.iOSPrimary : Color.Background.primary)
         .toolbar(horizontalSizeClass == .compact ? .hidden : .automatic, for: .navigationBar)
         .toolbar { searchToolbar }
-        .safeAreaBar(edge: .top, spacing: .zero) { modePicker }
+        .safeAreaBar(edge: .top, spacing: .zero) {
+            if viewModel.showsModePicker { modePicker }
+        }
         .contentShape(.rect)
         .simultaneousGesture(TapGesture().onEnded { isSearchFocused = false })
         .searchable(text: $viewModel.query, isPresented: $isSearching, prompt: Texts.Search.prompt)
@@ -87,13 +90,21 @@ struct SearchView: View {
     private var results: some View {
         ScrollView {
             ZStack(alignment: .topLeading) {
-                resultsContent
-                    .id(viewModel.mode)
-                    .transition(resultsTransition)
+                if viewModel.sections.isEmpty {
+                    emptyContent
+                        .frame(maxWidth: .infinity, minHeight: viewportHeight)
+                } else {
+                    resultsContent
+                        .id(viewModel.mode)
+                        .transition(resultsTransition)
+                }
             }
         }
         .scrollIndicators(.hidden)
         .scrollPosition($scrollPosition)
+        .onScrollGeometryChange(for: CGFloat.self) { $0.containerSize.height } action: { _, height in
+            viewportHeight = height
+        }
         .onScrollGeometryChange(for: Bool.self) { geometry in
             geometry.contentOffset.y + geometry.contentInsets.top > Const.scrollTopThreshold
         } action: { _, isPastThreshold in
@@ -108,12 +119,6 @@ struct SearchView: View {
         .scrollDismissesKeyboard(.immediately)
         .onScrollPhaseChange(dismissSearchFocusOnScroll)
         .accessibilityIdentifier(AccessibilityID.Search.results)
-        .overlay {
-            if viewModel.sections.isEmpty {
-                if viewModel.isRefreshing { ProgressView() }
-                else { emptyState.transition(resultsTransition) }
-            }
-        }
         .overlay(alignment: .bottomTrailing) { scrollToTopButton }
         .animation(reduceMotion ? nil : .easeOut(duration: Const.resultsTransitionDuration),
                    value: viewModel.items.map(\.id))
@@ -217,20 +222,26 @@ struct SearchView: View {
         }
     }
 
-    private var emptyState: some View {
-        ContentUnavailableView {
-            Label {
-                Text(viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                     ? Texts.Search.emptyTitle : Texts.Search.noResultsTitle)
-            } icon: {
-                Image.System.magnifyingGlass
-            }
-        } description: {
-            Text(viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                 ? Texts.Search.emptyDescription : Texts.Search.noResultsDescription)
+    @ViewBuilder private var emptyContent: some View {
+        switch viewModel.emptyState {
+        case .loading:
+            ProgressView()
+        case .offline:
+            MotiEmptyStateView.offline
+                .accessibilityIdentifier(AccessibilityID.Search.offline)
+        case .empty:
+            MotiEmptyStateView(
+                title: emptyTitle,
+                description: viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    ? Texts.Search.emptyDescription : Texts.Search.noResultsDescription)
+                .accessibilityIdentifier(AccessibilityID.Search.empty)
         }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier(AccessibilityID.Search.empty)
+    }
+
+    private var emptyTitle: String {
+        if !viewModel.items.isEmpty { return Texts.Search.noOffers }
+        return viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? Texts.Search.emptyTitle : Texts.Search.noResultsTitle
     }
 
     private enum Const {

@@ -11,10 +11,31 @@ nonisolated struct ShoppingListCacheSnapshot: Codable, Sendable {
     var cart: ShoppingCart?
     var pending: [ShoppingCartEditTarget: [String: Int]]
     var plan: CachedShoppingPlan?
+    /// A successful lookup can confirm that the account has no active cart.
+    var hasResolvedCart: Bool
+
+    init(cart: ShoppingCart?, pending: [ShoppingCartEditTarget: [String: Int]], plan: CachedShoppingPlan?,
+         hasResolvedCart: Bool = false) {
+        self.cart = cart
+        self.pending = pending
+        self.plan = plan
+        self.hasResolvedCart = hasResolvedCart || cart != nil
+    }
+
+    private enum CodingKeys: String, CodingKey { case cart, pending, plan, hasResolvedCart }
+
+    init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        cart = try values.decodeIfPresent(ShoppingCart.self, forKey: .cart)
+        pending = try values.decode([ShoppingCartEditTarget: [String: Int]].self, forKey: .pending)
+        plan = try values.decodeIfPresent(CachedShoppingPlan.self, forKey: .plan)
+        // Older snapshots also saved nil after a failed first request; only an actual cart is proof.
+        hasResolvedCart = try values.decodeIfPresent(Bool.self, forKey: .hasResolvedCart) ?? (cart != nil)
+    }
 
     func validate() throws {
         if let cart {
-            guard cart.status == "active", cart.items.count <= 30,
+            guard hasResolvedCart, cart.status == "active", cart.items.count <= 30,
                   Set(cart.items.map { $0.product.id }).count == cart.items.count,
                   cart.items.allSatisfy({ !$0.product.id.isEmpty && (1...99).contains($0.quantity) }) else {
                 throw ShoppingListCacheError.invalidSnapshot

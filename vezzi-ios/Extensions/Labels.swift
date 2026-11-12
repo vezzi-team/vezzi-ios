@@ -274,6 +274,11 @@ final class Texts {
         static let retry = NSLocalizedString("StorageRetry", comment: "Try again")
     }
 
+    enum EmptyState {
+        static let offlineTitle = NSLocalizedString("EmptyStateOfflineTitle", comment: "No internet connection")
+        static let offlineDescription = NSLocalizedString("EmptyStateOfflineDescription", comment: "Connect to the internet to load data.")
+    }
+
     // MARK: - Search
 
     enum Search {
@@ -294,8 +299,8 @@ final class Texts {
         static let prompt = NSLocalizedString("SearchPrompt", comment: "Find products")
         static let emptyTitle = NSLocalizedString("SearchEmptyTitle", comment: "No products yet")
         static let emptyDescription = NSLocalizedString("SearchEmptyDescription", comment: "Products will appear here when the catalog is available.")
-        static let noResultsTitle = NSLocalizedString("SearchNoResultsTitle", comment: "No products found")
-        static let noResultsDescription = NSLocalizedString("SearchNoResultsDescription", comment: "Try another name, brand or category.")
+        static let noResultsTitle = NSLocalizedString("SearchNoResultsTitle", comment: "Nothing found")
+        static let noResultsDescription = NSLocalizedString("SearchNoResultsDescription", comment: "Try another name or check your search for typos.")
         static let noOffers = NSLocalizedString("SearchNoOffers", comment: "No store offers available")
         static let unknownPriceDate = NSLocalizedString("SearchUnknownPriceDate", comment: "Price update date unknown")
         static let resultLimit = NSLocalizedString("SearchResultLimit", comment: "Up to 50 products are shown. Refine your search to find more.")
@@ -318,8 +323,9 @@ final class Texts {
         static let start = NSLocalizedString("ShoppingListStart", comment: "Starting point")
         static let close = NSLocalizedString("ShoppingListClose", comment: "Close")
         static let emptyTitle = NSLocalizedString("ShoppingListEmptyTitle", comment: "Your list is empty")
-        static let emptyDescription = NSLocalizedString("ShoppingListEmptyDescription", comment: "Add products from Home or Search to compare your shopping options.")
-        static let findProducts = NSLocalizedString("ShoppingListFindProducts", comment: "Find products")
+        static let emptyDescription = NSLocalizedString("ShoppingListEmptyDescription", comment: "Add products — we’ll compare prices and shopping time.")
+        static let findProducts = NSLocalizedString("ShoppingListFindProducts", comment: "Add products")
+        static let loadErrorTitle = NSLocalizedString("ShoppingListLoadErrorTitle", comment: "Couldn’t load your list")
         static let signIn = NSLocalizedString("ShoppingListSignIn", comment: "Sign in")
         static let signInDescription = NSLocalizedString("ShoppingListSignInDescription", comment: "Sign in to save your list and calculate prices and routes.")
         static let loadError = NSLocalizedString("ShoppingListLoadError", comment: "Could not update your list or calculate a route. Try again.")

@@ -5,6 +5,7 @@ import Foundation
 @MainActor
 final class ShoppingListRepository: ObservableObject {
     @Published private(set) var cart: ShoppingCart?
+    @Published private(set) var hasResolvedCart = false
     @Published private(set) var planResult: ShoppingPlanResult?
     @Published private(set) var isBusy = false
     @Published private(set) var failure: ShoppingListFailure?
@@ -65,6 +66,7 @@ final class ShoppingListRepository: ObservableObject {
         worker = nil
         self.account = account
         cart = nil
+        hasResolvedCart = false
         planResult = nil
         cachedPlan = nil
         isPlanCached = false
@@ -180,6 +182,7 @@ final class ShoppingListRepository: ObservableObject {
                     }
                     try check(generation)
                     cart = loaded?.status == "active" ? loaded : nil
+                    hasResolvedCart = true
                     needsActiveCartResolution = false
                     if let cart {
                         bindGuestEdits(to: cart.id)
@@ -273,7 +276,10 @@ final class ShoppingListRepository: ObservableObject {
             if let snapshot {
                 try snapshot.validate()
                 // A late disk read must not roll back an already restored server cart.
-                if needsActiveCartResolution { cart = snapshot.cart }
+                if needsActiveCartResolution {
+                    cart = snapshot.cart
+                    hasResolvedCart = snapshot.hasResolvedCart
+                }
                 // New edits and acknowledged intent only mask older edits for the same cart.
                 for (target, edits) in snapshot.pending {
                     var editedIDs = locallyEditedBeforeCacheLoad[target, default: []]
@@ -319,7 +325,8 @@ final class ShoppingListRepository: ObservableObject {
             await previous?.value
             guard let self, self.generation == generation, self.cacheRevision == cacheRevision else { return }
             // Coalesce queued writes and read the newest values when the writer is ready.
-            let snapshot = ShoppingListCacheSnapshot(cart: self.cart, pending: self.pending, plan: self.cachedPlan)
+            let snapshot = ShoppingListCacheSnapshot(cart: self.cart, pending: self.pending, plan: self.cachedPlan,
+                                                     hasResolvedCart: self.hasResolvedCart)
             do {
                 try await cache.save(snapshot, account: account)
                 if self.generation == generation { self.cacheAccessFailed = false }

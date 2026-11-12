@@ -9,6 +9,7 @@ struct ShoppingListView: View {
     @State private var showsAddress = false
     @State private var summaryHeight: CGFloat = .zero
     @State private var viewportHeight: CGFloat = .zero
+    @State private var addressHeight: CGFloat = .zero
     @State private var summaryTop: CGFloat = .zero
     @State private var isPastSummaryTop = false
     @ScaledMetric(relativeTo: .subheadline) private var metricTextHeight = Const.metricTextHeight
@@ -36,7 +37,9 @@ struct ShoppingListView: View {
         .background(Color.Background.iOSPrimary.ignoresSafeArea())
         .navigationTitle(Texts.ShoppingList.title)
         .toolbarTitleDisplayMode(.inlineLarge)
-        .safeAreaBar(edge: .bottom) { routeButton }
+        .safeAreaBar(edge: .bottom) {
+            if viewModel.contentState == .products || viewModel.contentState == .empty { bottomAction }
+        }
         .refreshable { await viewModel.refresh() }
         .onAppear { viewModel.list.setPresented(true) }
         .onDisappear { viewModel.list.setPresented(false) }
@@ -55,14 +58,50 @@ struct ShoppingListView: View {
     private var content: some View {
         // A lazy root preserves the native inline-large title's spacing at accessibility text sizes.
         LazyVStack(alignment: .leading, spacing: Const.sectionSpacing) {
-            addressButton.padding(.horizontal, Const.contentInset)
-            modePicker.padding(.horizontal, Const.contentInset)
-            summarySection
+            addressButton
+                .padding(.horizontal, viewModel.contentState == .products ? Const.contentInset : Const.routeHorizontalInset)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { addressHeight = $0 }
+            if viewModel.contentState == .products {
+                modePicker.padding(.horizontal, Const.contentInset)
+                summarySection
+            } else {
+                VStack(spacing: Const.sectionSpacing) {
+                    emptyContent
+                    feedback.padding(.horizontal, Const.routeHorizontalInset)
+                }
+                .frame(maxWidth: .infinity,
+                       minHeight: max(.zero, viewportHeight - addressHeight - Const.sectionSpacing - Const.contentInset * 2))
+            }
         }
         .padding(.vertical, Const.contentInset)
         .frame(maxWidth: Const.maximumWidth)
         .frame(maxWidth: .infinity)
         .coordinateSpace(name: Const.contentCoordinateSpace)
+    }
+
+    @ViewBuilder private var emptyContent: some View {
+        switch viewModel.contentState {
+        case .loading:
+            ProgressView()
+        case .offline:
+            MotiEmptyStateView.offline
+                .accessibilityIdentifier(AccessibilityID.ShoppingList.offline)
+        case .unavailable:
+            VStack(spacing: Const.sectionSpacing) {
+                MotiEmptyStateView(title: Texts.ShoppingList.loadErrorTitle,
+                                   description: Texts.ShoppingList.loadError)
+                if viewModel.needsAuthentication {
+                    Button(Texts.ShoppingList.signIn) { router.presentAuthentication() }
+                        .buttonStyle(.glass)
+                }
+            }
+        case .empty:
+            MotiEmptyStateView(title: Texts.ShoppingList.emptyTitle, description: Texts.ShoppingList.emptyDescription,
+                               expression: .winking)
+                .accessibilityIdentifier(AccessibilityID.ShoppingList.empty)
+        case .products:
+            EmptyView()
+        }
     }
 
     private var summarySection: some View {
@@ -248,18 +287,26 @@ struct ShoppingListView: View {
         }
     }
 
-    private var routeButton: some View {
-        Button { viewModel.routePlan = viewModel.plan } label: {
-            Text(Texts.ShoppingList.showRoute).font(.headline).frame(maxWidth: .infinity)
+    private var bottomAction: some View {
+        Button {
+            if viewModel.contentState == .empty {
+                router.popToRoot(in: .home)
+                router.selectTab(.home)
+            }
+            else { viewModel.routePlan = viewModel.plan }
+        } label: {
+            Text(viewModel.contentState == .empty ? Texts.ShoppingList.findProducts : Texts.ShoppingList.showRoute)
+                .font(.headline).frame(maxWidth: .infinity)
         }
         .buttonStyle(.glassProminent)
         .controlSize(.large)
-        .disabled(viewModel.plan == nil)
+        .disabled(viewModel.contentState == .products && viewModel.plan == nil)
         .padding(.horizontal, Const.routeHorizontalInset)
         .padding(.vertical, Const.routeInset)
         .frame(maxWidth: Const.maximumWidth)
         .frame(maxWidth: .infinity)
-        .accessibilityIdentifier(AccessibilityID.ShoppingList.route)
+        .accessibilityIdentifier(viewModel.contentState == .empty
+                                 ? AccessibilityID.ShoppingList.addProducts : AccessibilityID.ShoppingList.route)
     }
 
     // MARK: - Products
@@ -272,16 +319,7 @@ struct ShoppingListView: View {
                 Text(Texts.ShoppingList.products(viewModel.list.selection.quantities.count))
                     .font(.caption).foregroundStyle(Color.Label.secondary)
             }
-            if viewModel.list.selection.quantities.isEmpty {
-                ContentUnavailableView {
-                    Label { Text(Texts.ShoppingList.emptyTitle) } icon: { Image.System.checklist }
-                } description: { Text(Texts.ShoppingList.emptyDescription) } actions: {
-                    Button(Texts.ShoppingList.findProducts) { router.selectTab(.search) }.buttonStyle(.glass)
-                }
-                .accessibilityIdentifier(AccessibilityID.ShoppingList.empty)
-            } else {
-                productGrid
-            }
+            productGrid
         }
     }
 

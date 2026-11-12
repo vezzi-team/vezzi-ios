@@ -48,6 +48,9 @@ extension Image {
 
     enum Brand {
         static let wordmark = Image("BrandWordmark")
+        static let motiYarn = Image("MotiYarn")
+        static let motiWinkingFace = Image("MotiWinkingFace")
+        static let motiSadFace = Image("MotiSadFace")
     }
 
     // MARK: - Product

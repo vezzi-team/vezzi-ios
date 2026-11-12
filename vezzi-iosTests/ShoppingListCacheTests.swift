@@ -3,6 +3,43 @@ import XCTest
 
 @MainActor
 final class ShoppingListCacheTests: XCTestCase {
+    func testDiskRoundTripDistinguishesConfirmedAbsenceFromUnresolvedCart() async throws {
+        let folder = temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let account = ShoppingListTestAccount.make("account")
+        let cache = FileShoppingListCache(directory: folder)
+        for hasResolvedCart in [false, true] {
+            let snapshot = ShoppingListCacheSnapshot(cart: nil, pending: [:], plan: nil, hasResolvedCart: hasResolvedCart)
+            try await cache.save(snapshot, account: account)
+            let loaded = try await FileShoppingListCache(directory: folder).load(account: account)
+            XCTAssertNotNil(loaded)
+            XCTAssertNil(loaded?.cart)
+            XCTAssertEqual(loaded?.hasResolvedCart, hasResolvedCart)
+        }
+    }
+
+    func testLegacySnapshotsOnlyConfirmAnExistingCart() async throws {
+        let folder = temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let account = ShoppingListTestAccount.make("account")
+        let cache = FileShoppingListCache(directory: folder)
+        for snapshot in [sampleSnapshot(), ShoppingListCacheSnapshot(cart: nil, pending: [:], plan: nil, hasResolvedCart: true)] {
+            try await cache.save(snapshot, account: account)
+            let file = try XCTUnwrap(FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil).first)
+            let data = try Data(contentsOf: file)
+            var envelope = try XCTUnwrap(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any])
+            var legacy = try XCTUnwrap(envelope["snapshot"] as? [String: Any])
+            legacy.removeValue(forKey: "hasResolvedCart")
+            envelope["snapshot"] = legacy
+            try PropertyListSerialization.data(fromPropertyList: envelope, format: .binary, options: 0).write(to: file)
+
+            let loaded = try await cache.load(account: account)
+            XCTAssertEqual(loaded?.hasResolvedCart, snapshot.cart != nil)
+            XCTAssertEqual(loaded?.cart?.id, snapshot.cart?.id)
+            XCTAssertEqual(loaded?.plan?.cartID, snapshot.plan?.cartID)
+        }
+    }
+
     func testDiskRoundTripKeepsExactPricesProductsAndCalculatedRoute() async throws {
         let folder = temporaryFolder()
         defer { try? FileManager.default.removeItem(at: folder) }

@@ -1,843 +1,600 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "ShoppingListTitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "My list"
+    "" : {
+
+    },
+    "AuthenticationCancel" : {
+      "comment" : "Cancel",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Мой список"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отмена"
           }
         }
       }
     },
-    "ShoppingListMockAddress": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Komendantsky Avenue"
+    "AuthenticationCheckingCredentials" : {
+      "comment" : "Checking your details…",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checking your details…"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Комендантский проспект"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверяем данные…"
           }
         }
       }
     },
-    "ShoppingListWalking": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Walking"
+    "AuthenticationClose" : {
+      "comment" : "Close",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Пешком"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрыть"
           }
         }
       }
     },
-    "ShoppingListBestTotal": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Best price for the whole list"
+    "AuthenticationContinueShopping" : {
+      "comment" : "You can keep shopping",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can keep shopping"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Лучшая цена за весь список"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Можно продолжать покупки"
           }
         }
       }
     },
-    "ShoppingListFastTotal": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fastest calculated option"
+    "AuthenticationCreatingAccount" : {
+      "comment" : "Creating your account…",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Creating your account…"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Самый быстрый из вариантов"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Создаём аккаунт…"
           }
         }
       }
     },
-    "ShoppingListFastestVariant": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fastest"
+    "AuthenticationDismissError" : {
+      "comment" : "OK",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Самый быстрый"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Понятно"
           }
         }
       }
     },
-    "ShoppingListCheapestVariant": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Best price"
+    "AuthenticationEmail" : {
+      "comment" : "Email",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Email"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Самый выгодный"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Электронная почта"
           }
         }
       }
     },
-    "ShoppingListUpdating": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Updating your list and calculating options…"
+    "AuthenticationEmailAlreadyRegistered" : {
+      "comment" : "This email is already registered. Try signing in",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This email is already registered. Try signing in"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Обновляем список и рассчитываем варианты…"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этот email уже зарегистрирован. Попробуйте войти"
           }
         }
       }
     },
-    "ShoppingListCart": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Basket"
+    "AuthenticationEmailPlaceholder" : {
+      "comment" : "you@example.com",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "you@example.com"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Корзина"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "you@example.com"
           }
         }
       }
     },
-    "ShoppingListShowRoute": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "View routes"
+    "AuthenticationErrorTitle" : {
+      "comment" : "Couldn’t complete the action",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t complete the action"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Посмотреть маршруты"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось выполнить действие"
           }
         }
       }
     },
-    "ShoppingListRouteTitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Walking route"
+    "AuthenticationGreeting" : {
+      "comment" : "Hi, I’m Moti!",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hi, I’m Moti!"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Пеший маршрут"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Привет, я Мотя!"
           }
         }
       }
     },
-    "ShoppingListStart": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Starting point"
+    "AuthenticationInvalidCredentials" : {
+      "comment" : "Incorrect email or password",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incorrect email or password"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Начальная точка"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Неверный email или пароль"
           }
         }
       }
     },
-    "ShoppingListClose": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Close"
+    "AuthenticationInvalidEmail" : {
+      "comment" : "Enter a valid email address",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter a valid email address"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Закрыть"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введите корректный email"
           }
         }
       }
     },
-    "ShoppingListEmptyTitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your list is empty"
+    "AuthenticationInvalidInput" : {
+      "comment" : "Check your email and password and try again",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check your email and password and try again"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ваш список пока пуст"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверьте email и пароль и попробуйте снова"
           }
         }
       }
     },
-    "ShoppingListEmptyDescription": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add products from Home or Search to compare your shopping options."
+    "AuthenticationMissingPassword" : {
+      "comment" : "Enter your password",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your password"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Добавляйте товары с Главной или из Поиска, чтобы сравнить варианты покупки."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введите пароль"
           }
         }
       }
     },
-    "ShoppingListFindProducts": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Find products"
+    "AuthenticationOffline" : {
+      "comment" : "Couldn’t connect. Check your internet connection",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t connect. Check your internet connection"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Найти товары"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось подключиться. Проверьте интернет-соединение"
           }
         }
       }
     },
-    "ShoppingListSignIn": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign in"
+    "AuthenticationPassword" : {
+      "comment" : "Password",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Войти"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пароль"
           }
         }
       }
     },
-    "ShoppingListSignInDescription": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign in to save your list and calculate prices and routes."
+    "AuthenticationPasswordPlaceholder" : {
+      "comment" : "Enter your password",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your password"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Войдите, чтобы сохранить список и рассчитать стоимость и маршрут."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введите пароль"
           }
         }
       }
     },
-    "ShoppingListCachedCalculation": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Showing a saved calculation. Prices and routes may have changed."
+    "AuthenticationPasswordTooLong" : {
+      "comment" : "Use no more than 128 characters",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use no more than 128 characters"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Показан сохранённый расчёт. Цены и маршруты могли измениться."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пароль должен содержать не более 128 символов"
           }
         }
       }
     },
-    "ShoppingListCartUnavailable": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Saved changes belong to a list that is no longer available. They have not been applied to your current list."
+    "AuthenticationPasswordTooShort" : {
+      "comment" : "Use at least 8 characters to create an account",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use at least 8 characters to create an account"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Сохранённые изменения относятся к списку, который больше недоступен. Они не применены к текущему списку."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для регистрации нужно минимум 8 символов"
           }
         }
       }
     },
-    "ShoppingListOtherCartSyncFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Changes to another list could not be synced. They are kept on this device for retry. Your current list is available."
+    "AuthenticationRateLimited" : {
+      "comment" : "Too many attempts. Please try again later",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Too many attempts. Please try again later"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Не удалось синхронизировать изменения другого списка. Они сохранены на устройстве для повторной попытки. Текущий список доступен."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Слишком много попыток. Попробуйте позже"
           }
         }
       }
     },
-    "ShoppingListCacheError": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Local storage is unavailable. Some changes may be lost when you close the app. Try again."
+    "AuthenticationRegister" : {
+      "comment" : "Create an account",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create an account"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Локальное хранилище недоступно. Часть изменений может потеряться после закрытия приложения. Повторите попытку."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зарегистрироваться"
           }
         }
       }
     },
-    "ShoppingListLoadError": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not update your list or calculate a route. Try again."
+    "AuthenticationRetry" : {
+      "comment" : "Try again",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Не удалось обновить список или рассчитать маршрут. Повторите попытку."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повторить"
           }
         }
       }
     },
-    "ShoppingListLimitTitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "List limit reached"
+    "AuthenticationSessionCleanupFailed" : {
+      "comment" : "Your session has ended, but its saved data couldn’t be cleared. Please try again",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your session has ended, but its saved data couldn’t be cleared. Please try again"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Лимит списка"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сессия завершена, но её сохранённые данные не удалось удалить. Попробуйте ещё раз"
           }
         }
       }
     },
-    "ShoppingListLimitDescription": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A list can contain up to 30 different products. Remove a product before adding another."
+    "AuthenticationSessionExpired" : {
+      "comment" : "Your session has expired. Please sign in again",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your session has expired. Please sign in again"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "В списке может быть до 30 разных товаров. Удалите один из товаров, чтобы добавить другой."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сессия завершена. Войдите снова"
           }
         }
       }
     },
-    "ShoppingListUnderstood": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OK"
+    "AuthenticationSignIn" : {
+      "comment" : "Sign in",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Понятно"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Войти"
           }
         }
       }
     },
-    "ShoppingListAddressTitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Starting address"
+    "AuthenticationSigningIn" : {
+      "comment" : "Signing in…",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signing in…"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Адрес отправления"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Входим…"
           }
         }
       }
     },
-    "ShoppingListAddressDescription": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "For now, calculations use a fixed starting point on Komendantsky Avenue. Address selection will be available with map integration."
+    "AuthenticationStorageError" : {
+      "comment" : "Couldn’t securely save or read your session. Please try again",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t securely save or read your session. Please try again"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Пока расчёт использует фиксированную точку на Комендантском проспекте. Выбор адреса появится при подключении карты."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось безопасно сохранить или прочитать сессию. Попробуйте ещё раз"
           }
         }
       }
     },
-    "ShoppingListItemsUnavailable": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Some products have no confirmed fresh offers. Change your list or try again later."
+    "AuthenticationSubtitle" : {
+      "comment" : "Sign in to keep shopping and find ideas for dinner",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to keep shopping and find ideas for dinner"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Для части товаров нет актуальных предложений с подтверждённым наличием. Измените список или повторите позже."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Войди в приложение, чтобы продолжить покупки и получать идеи для ужина"
           }
         }
       }
     },
-    "ShoppingListStoreLimit": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This list requires more than three stores. Try reducing the list."
+    "AuthenticationSuccessTitle" : {
+      "comment" : "Welcome",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Для списка нужно больше трёх магазинов. Попробуйте сократить список."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добро пожаловать"
           }
         }
       }
     },
-    "ShoppingListTimeLimit": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No complete route fits the current 60-minute limit. Try reducing the list."
+    "AuthenticationTimedOut" : {
+      "comment" : "The server took too long to respond. Please try again",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server took too long to respond. Please try again"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Полный маршрут не укладывается в текущий лимит 60 минут. Попробуйте сократить список."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер не ответил вовремя. Попробуйте ещё раз"
           }
         }
       }
     },
-    "ShoppingListRadiusLimit": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not all products are available in the selected area."
+    "AuthenticationTitle" : {
+      "comment" : "Sign in",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Не все товары доступны в выбранной области."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Авторизация"
           }
         }
       }
     },
-    "ShoppingListRouteUnavailable": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A walking route is currently unavailable. Try again later."
+    "AuthenticationTryAgain" : {
+      "comment" : "Let’s try again",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let’s try again"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Пеший маршрут сейчас недоступен. Повторите попытку позже."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Попробуем ещё раз"
           }
         }
       }
     },
-    "ShoppingListNoPlans": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No complete shopping option was found for this list."
+    "AuthenticationUnavailable" : {
+      "comment" : "Couldn’t sign in. Please try again.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t sign in. Please try again."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Для этого списка не найден полный вариант покупки."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось войти. Попробуйте ещё раз."
           }
         }
       }
     },
-    "ShoppingListUnavailableProduct": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Product unavailable in the catalog"
+    "AuthenticationWelcome" : {
+      "comment" : "Glad to see you!",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Glad to see you!"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Товар недоступен в каталоге"
-          }
-        }
-      }
-    },
-    "ShoppingListRouteApproximation": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This route connects stores with straight lines and is not a walking navigation route."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Магазины соединены прямыми линиями. Это схема, а не реальный пеший маршрут."
-          }
-        }
-      }
-    },
-    "ShoppingListProductCount": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld product"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld products"
-                }
-              }
-            }
-          }
-        },
-        "ru": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld товар"
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld товара"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld товаров"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld товара"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "ShoppingListStoreCount": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld store"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld stores"
-                }
-              }
-            }
-          }
-        },
-        "ru": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld магазин"
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld магазина"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld магазинов"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld магазина"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "ShoppingListMinutes": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld min"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld min"
-                }
-              }
-            }
-          }
-        },
-        "ru": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld мин"
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld мин"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld мин"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld мин"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "ShoppingListFaster": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld min faster"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld min faster"
-                }
-              }
-            }
-          }
-        },
-        "ru": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "На %lld мин быстрее"
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "На %lld мин быстрее"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "На %lld мин быстрее"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "На %lld мин быстрее"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "ShoppingListSavings": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ saved"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Экономия %@"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Рад тебя видеть!"
           }
         }
       }
@@ -1114,431 +871,6 @@
         }
       }
     },
-    "ProductUnitMeter" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "m"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "м"
-          }
-        }
-      }
-    },
-    "AuthenticationSessionCleanupFailed" : {
-      "comment" : "Your session has ended, but its saved data couldn’t be cleared. Please try again",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your session has ended, but its saved data couldn’t be cleared. Please try again"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сессия завершена, но её сохранённые данные не удалось удалить. Попробуйте ещё раз"
-          }
-        }
-      }
-    },
-    "AuthenticationPasswordTooShort" : {
-      "comment" : "Use at least 8 characters to create an account",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use at least 8 characters to create an account"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Для регистрации нужно минимум 8 символов"
-          }
-        }
-      }
-    },
-    "AuthenticationPasswordTooLong" : {
-      "comment" : "Use no more than 128 characters",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use no more than 128 characters"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Пароль должен содержать не более 128 символов"
-          }
-        }
-      }
-    },
-    "AuthenticationInvalidCredentials" : {
-      "comment" : "Incorrect email or password",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Incorrect email or password"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Неверный email или пароль"
-          }
-        }
-      }
-    },
-    "AuthenticationEmailAlreadyRegistered" : {
-      "comment" : "This email is already registered. Try signing in",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This email is already registered. Try signing in"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Этот email уже зарегистрирован. Попробуйте войти"
-          }
-        }
-      }
-    },
-    "AuthenticationInvalidInput" : {
-      "comment" : "Check your email and password and try again",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Check your email and password and try again"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Проверьте email и пароль и попробуйте снова"
-          }
-        }
-      }
-    },
-    "AuthenticationOffline" : {
-      "comment" : "Couldn’t connect. Check your internet connection",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Couldn’t connect. Check your internet connection"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось подключиться. Проверьте интернет-соединение"
-          }
-        }
-      }
-    },
-    "AuthenticationTimedOut" : {
-      "comment" : "The server took too long to respond. Please try again",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The server took too long to respond. Please try again"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сервер не ответил вовремя. Попробуйте ещё раз"
-          }
-        }
-      }
-    },
-    "AuthenticationRateLimited" : {
-      "comment" : "Too many attempts. Please try again later",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Too many attempts. Please try again later"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Слишком много попыток. Попробуйте позже"
-          }
-        }
-      }
-    },
-    "AuthenticationSessionExpired" : {
-      "comment" : "Your session has expired. Please sign in again",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your session has expired. Please sign in again"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сессия завершена. Войдите снова"
-          }
-        }
-      }
-    },
-    "AuthenticationStorageError" : {
-      "comment" : "Couldn’t securely save or read your session. Please try again",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Couldn’t securely save or read your session. Please try again"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось безопасно сохранить или прочитать сессию. Попробуйте ещё раз"
-          }
-        }
-      }
-    },
-    "AuthenticationErrorTitle" : {
-      "comment" : "Couldn’t complete the action",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Couldn’t complete the action"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось выполнить действие"
-          }
-        }
-      }
-    },
-    "AuthenticationDismissError" : {
-      "comment" : "OK",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "OK"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Понятно"
-          }
-        }
-      }
-    },
-    "AuthenticationRetry" : {
-      "comment" : "Try again",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Try again"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Повторить"
-          }
-        }
-      }
-    },
-    "AuthenticationCreatingAccount" : {
-      "comment" : "Creating your account…",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Creating your account…"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Создаём аккаунт…"
-          }
-        }
-      }
-    },
-    "AuthenticationPassword" : {
-      "comment" : "Password",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Password"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Пароль"
-          }
-        }
-      }
-    },
-    "AuthenticationPasswordPlaceholder" : {
-      "comment" : "Enter your password",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enter your password"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Введите пароль"
-          }
-        }
-      }
-    },
-    "AuthenticationMissingPassword" : {
-      "comment" : "Enter your password",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enter your password"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Введите пароль"
-          }
-        }
-      }
-    },
-    "AuthenticationTryAgain" : {
-      "comment" : "Let’s try again",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Let’s try again"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Попробуем ещё раз"
-          }
-        }
-      }
-    },
-    "AuthenticationCheckingCredentials" : {
-      "comment" : "Checking your details…",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Checking your details…"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Проверяем данные…"
-          }
-        }
-      }
-    },
-    "AuthenticationContinueShopping" : {
-      "comment" : "You can keep shopping",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You can keep shopping"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Можно продолжать покупки"
-          }
-        }
-      }
-    },
-    "ProfileMainDebug" : {
-      "comment" : "Debug",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Debug"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отладка"
-          }
-        }
-      }
-    },
-    "DebugMotiTitle" : {
-      "comment" : "Moti animations",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Moti animations"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Анимации Моти"
-          }
-        }
-      }
-    },
-    "DebugMotiState" : {
-      "comment" : "Current state",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Current state"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Текущее состояние"
-          }
-        }
-      }
-    },
     "DebugMotiEmotions" : {
       "comment" : "Emotion",
       "localizations" : {
@@ -1552,57 +884,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Эмоция"
-          }
-        }
-      }
-    },
-    "DebugMotiPlayback" : {
-      "comment" : "Playback",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Playback"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Воспроизведение"
-          }
-        }
-      }
-    },
-    "DebugMotiIdle" : {
-      "comment" : "Idle",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Idle"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ожидание"
-          }
-        }
-      }
-    },
-    "DebugMotiTyping" : {
-      "comment" : "Typing",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Typing"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ввод текста"
           }
         }
       }
@@ -1624,6 +905,23 @@
         }
       }
     },
+    "DebugMotiIdle" : {
+      "comment" : "Idle",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idle"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ожидание"
+          }
+        }
+      }
+    },
     "DebugMotiLoading" : {
       "comment" : "Loading",
       "localizations" : {
@@ -1637,23 +935,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Загрузка"
-          }
-        }
-      }
-    },
-    "DebugMotiSuccess" : {
-      "comment" : "Success",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Success"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Успешный вход"
           }
         }
       }
@@ -1675,36 +956,19 @@
         }
       }
     },
-    "DebugMotiRapidTransitions" : {
-      "comment" : "Test rapid transitions",
+    "DebugMotiPlayback" : {
+      "comment" : "Playback",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Test rapid transitions"
+            "value" : "Playback"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Проверить быстрые переходы"
-          }
-        }
-      }
-    },
-    "DebugMotiStop" : {
-      "comment" : "Stop transitions",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stop transitions"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Остановить переходы"
+            "value" : "Воспроизведение"
           }
         }
       }
@@ -1726,243 +990,104 @@
         }
       }
     },
-    "" : {
-
-    },
-    "AuthenticationCancel" : {
-      "comment" : "Cancel",
+    "DebugMotiRapidTransitions" : {
+      "comment" : "Test rapid transitions",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cancel"
+            "value" : "Test rapid transitions"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Отмена"
+            "value" : "Проверить быстрые переходы"
           }
         }
       }
     },
-    "AuthenticationClose" : {
-      "comment" : "Close",
+    "DebugMotiState" : {
+      "comment" : "Current state",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Close"
+            "value" : "Current state"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Закрыть"
+            "value" : "Текущее состояние"
           }
         }
       }
     },
-    "AuthenticationEmail" : {
-      "comment" : "Email",
+    "DebugMotiStop" : {
+      "comment" : "Stop transitions",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Email"
+            "value" : "Stop transitions"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Электронная почта"
+            "value" : "Остановить переходы"
           }
         }
       }
     },
-    "AuthenticationEmailPlaceholder" : {
-      "comment" : "you@example.com",
+    "DebugMotiSuccess" : {
+      "comment" : "Success",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "you@example.com"
+            "value" : "Success"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "you@example.com"
+            "value" : "Успешный вход"
           }
         }
       }
     },
-    "AuthenticationGreeting" : {
-      "comment" : "Hi, I’m Moti!",
+    "DebugMotiTitle" : {
+      "comment" : "Moti animations",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hi, I’m Moti!"
+            "value" : "Moti animations"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Привет, я Мотя!"
+            "value" : "Анимации Моти"
           }
         }
       }
     },
-    "AuthenticationInvalidEmail" : {
-      "comment" : "Enter a valid email address",
+    "DebugMotiTyping" : {
+      "comment" : "Typing",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a valid email address"
+            "value" : "Typing"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Введите корректный email"
-          }
-        }
-      }
-    },
-    "AuthenticationRegister" : {
-      "comment" : "Create an account",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create an account"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Зарегистрироваться"
-          }
-        }
-      }
-    },
-    "AuthenticationSuccessTitle" : {
-      "comment" : "Welcome",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Welcome"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Добро пожаловать"
-          }
-        }
-      }
-    },
-    "AuthenticationSignIn" : {
-      "comment" : "Sign in",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign in"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Войти"
-          }
-        }
-      }
-    },
-    "AuthenticationSigningIn" : {
-      "comment" : "Signing in…",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Signing in…"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Входим…"
-          }
-        }
-      }
-    },
-    "AuthenticationSubtitle" : {
-      "comment" : "Sign in to keep shopping and find ideas for dinner",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign in to keep shopping and find ideas for dinner"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Войди в приложение, чтобы продолжить покупки и получать идеи для ужина"
-          }
-        }
-      }
-    },
-    "AuthenticationTitle" : {
-      "comment" : "Sign in",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign in"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Авторизация"
-          }
-        }
-      }
-    },
-    "AuthenticationUnavailable" : {
-      "comment" : "Couldn’t sign in. Please try again.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Couldn’t sign in. Please try again."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось войти. Попробуйте ещё раз."
-          }
-        }
-      }
-    },
-    "AuthenticationWelcome" : {
-      "comment" : "Glad to see you!",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Glad to see you!"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Рад тебя видеть!"
+            "value" : "Ввод текста"
           }
         }
       }
@@ -2014,6 +1139,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Добро пожаловать!"
+          }
+        }
+      }
+    },
+    "EmptyStateOfflineDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect to the internet to load data."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подключитесь к интернету, чтобы загрузить данные."
+          }
+        }
+      }
+    },
+    "EmptyStateOfflineTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet connection"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет подключения к интернету"
           }
         }
       }
@@ -2968,23 +2127,6 @@
         }
       }
     },
-    "ScrollToTop" : {
-      "comment" : "Scroll to top",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scroll to top"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Наверх"
-          }
-        }
-      }
-    },
     "HomeSecondGradeEggs" : {
       "comment" : "C2 eggs",
       "extractionState" : "manual",
@@ -3038,6 +2180,23 @@
         }
       }
     },
+    "ProductSelectedStore" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected store"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбранный магазин"
+          }
+        }
+      }
+    },
     "ProductShowLessStores" : {
       "comment" : "Show less",
       "localizations" : {
@@ -3068,23 +2227,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Показать больше"
-          }
-        }
-      }
-    },
-    "ProductSelectedStore" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selected store"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выбранный магазин"
           }
         }
       }
@@ -3170,6 +2312,108 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Дороже"
+          }
+        }
+      }
+    },
+    "ProductUnitGram" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "g"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "г"
+          }
+        }
+      }
+    },
+    "ProductUnitKilogram" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kg"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "кг"
+          }
+        }
+      }
+    },
+    "ProductUnitLiter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "л"
+          }
+        }
+      }
+    },
+    "ProductUnitMeter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "m"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "м"
+          }
+        }
+      }
+    },
+    "ProductUnitMilliliter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ml"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "мл"
+          }
+        }
+      }
+    },
+    "ProductUnitPiece" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pcs"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "шт."
           }
         }
       }
@@ -3289,6 +2533,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Адрес покупок"
+          }
+        }
+      }
+    },
+    "ProfileMainDebug" : {
+      "comment" : "Debug",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Debug"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отладка"
           }
         }
       }
@@ -3582,6 +2843,40 @@
         }
       }
     },
+    "ScrollToTop" : {
+      "comment" : "Scroll to top",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scroll to top"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Наверх"
+          }
+        }
+      }
+    },
+    "SearchCheaper" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Best price"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выгоднее"
+          }
+        }
+      }
+    },
     "SearchEmptyDescription" : {
       "comment" : "Products will appear here when the catalog is available.",
       "localizations" : {
@@ -3616,6 +2911,23 @@
         }
       }
     },
+    "SearchFaster" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fastest"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Быстрее"
+          }
+        }
+      }
+    },
     "SearchInStock" : {
       "comment" : "In stock",
       "localizations" : {
@@ -3629,6 +2941,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "В наличии"
+          }
+        }
+      }
+    },
+    "SearchMockBread" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bread"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Хлеб"
+          }
+        }
+      }
+    },
+    "SearchMockMilk" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Milk"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Молоко"
+          }
+        }
+      }
+    },
+    "SearchMockPerekrestok" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perekrestok"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перекрёсток"
+          }
+        }
+      }
+    },
+    "SearchMode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search priority"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приоритет поиска"
           }
         }
       }
@@ -3651,35 +3031,35 @@
       }
     },
     "SearchNoResultsDescription" : {
-      "comment" : "Try another name, brand or category.",
+      "comment" : "Try another name or check your search for typos.",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try another name, brand or category."
+            "value" : "Try another name\nor check your search for typos."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Попробуйте другое название, бренд или категорию."
+            "value" : "Попробуйте другое название\nили проверьте опечатки в запросе."
           }
         }
       }
     },
     "SearchNoResultsTitle" : {
-      "comment" : "No products found",
+      "comment" : "Nothing found",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No products found"
+            "value" : "Nothing found"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Товары не найдены"
+            "value" : "Ничего не найдено"
           }
         }
       }
@@ -3748,6 +3128,881 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Дата обновления цены неизвестна"
+          }
+        }
+      }
+    },
+    "SearchWalkingTime" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d min away"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "За %d мин"
+          }
+        }
+      }
+    },
+    "ShoppingListAddressDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For now, calculations use a fixed starting point on Komendantsky Avenue. Address selection will be available with map integration."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пока расчёт использует фиксированную точку на Комендантском проспекте. Выбор адреса появится при подключении карты."
+          }
+        }
+      }
+    },
+    "ShoppingListAddressTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starting address"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адрес отправления"
+          }
+        }
+      }
+    },
+    "ShoppingListBestTotal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Best price for the whole list"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Лучшая цена за весь список"
+          }
+        }
+      }
+    },
+    "ShoppingListCachedCalculation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Showing a saved calculation. Prices and routes may have changed."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показан сохранённый расчёт. Цены и маршруты могли измениться."
+          }
+        }
+      }
+    },
+    "ShoppingListCacheError" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local storage is unavailable. Some changes may be lost when you close the app. Try again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Локальное хранилище недоступно. Часть изменений может потеряться после закрытия приложения. Повторите попытку."
+          }
+        }
+      }
+    },
+    "ShoppingListCart" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basket"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Корзина"
+          }
+        }
+      }
+    },
+    "ShoppingListCartUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved changes belong to a list that is no longer available. They have not been applied to your current list."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранённые изменения относятся к списку, который больше недоступен. Они не применены к текущему списку."
+          }
+        }
+      }
+    },
+    "ShoppingListCheapestVariant" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Best price"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Самый выгодный"
+          }
+        }
+      }
+    },
+    "ShoppingListClose" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрыть"
+          }
+        }
+      }
+    },
+    "ShoppingListEmptyDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add products — we’ll compare prices\nand shopping time."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавьте продукты — сравним цены\nи время на покупки."
+          }
+        }
+      }
+    },
+    "ShoppingListEmptyTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your list is empty"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Список пока пуст"
+          }
+        }
+      }
+    },
+    "ShoppingListFaster" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld min faster"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld min faster"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "На %lld мин быстрее"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "На %lld мин быстрее"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "На %lld мин быстрее"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "На %lld мин быстрее"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ShoppingListFastestVariant" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fastest"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Самый быстрый"
+          }
+        }
+      }
+    },
+    "ShoppingListFastTotal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fastest calculated option"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Самый быстрый из вариантов"
+          }
+        }
+      }
+    },
+    "ShoppingListFindProducts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add products"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить продукты"
+          }
+        }
+      }
+    },
+    "ShoppingListItemsUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some products have no confirmed fresh offers. Change your list or try again later."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для части товаров нет актуальных предложений с подтверждённым наличием. Измените список или повторите позже."
+          }
+        }
+      }
+    },
+    "ShoppingListLimitDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A list can contain up to 30 different products. Remove a product before adding another."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В списке может быть до 30 разных товаров. Удалите один из товаров, чтобы добавить другой."
+          }
+        }
+      }
+    },
+    "ShoppingListLimitTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "List limit reached"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Лимит списка"
+          }
+        }
+      }
+    },
+    "ShoppingListLoadError" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not update your list or calculate a route. Try again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось обновить список или рассчитать маршрут. Повторите попытку."
+          }
+        }
+      }
+    },
+    "ShoppingListLoadErrorTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t load your list"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось загрузить список"
+          }
+        }
+      }
+    },
+    "ShoppingListMinutes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld min"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld min"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld мин"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld мин"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld мин"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld мин"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ShoppingListMockAddress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Komendantsky Avenue"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Комендантский проспект"
+          }
+        }
+      }
+    },
+    "ShoppingListNoPlans" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No complete shopping option was found for this list."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для этого списка не найден полный вариант покупки."
+          }
+        }
+      }
+    },
+    "ShoppingListOtherCartSyncFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changes to another list could not be synced. They are kept on this device for retry. Your current list is available."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось синхронизировать изменения другого списка. Они сохранены на устройстве для повторной попытки. Текущий список доступен."
+          }
+        }
+      }
+    },
+    "ShoppingListProductCount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld product"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld products"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld товара"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld товаров"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld товар"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld товара"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ShoppingListRadiusLimit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not all products are available in the selected area."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не все товары доступны в выбранной области."
+          }
+        }
+      }
+    },
+    "ShoppingListRouteApproximation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This route connects stores with straight lines and is not a walking navigation route."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Магазины соединены прямыми линиями. Это схема, а не реальный пеший маршрут."
+          }
+        }
+      }
+    },
+    "ShoppingListRouteTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Walking route"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пеший маршрут"
+          }
+        }
+      }
+    },
+    "ShoppingListRouteUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A walking route is currently unavailable. Try again later."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пеший маршрут сейчас недоступен. Повторите попытку позже."
+          }
+        }
+      }
+    },
+    "ShoppingListSavings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ saved"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экономия %@"
+          }
+        }
+      }
+    },
+    "ShoppingListShowRoute" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View routes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Посмотреть маршруты"
+          }
+        }
+      }
+    },
+    "ShoppingListSignIn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Войти"
+          }
+        }
+      }
+    },
+    "ShoppingListSignInDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to save your list and calculate prices and routes."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Войдите, чтобы сохранить список и рассчитать стоимость и маршрут."
+          }
+        }
+      }
+    },
+    "ShoppingListStart" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starting point"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начальная точка"
+          }
+        }
+      }
+    },
+    "ShoppingListStoreCount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld store"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld stores"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld магазина"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld магазинов"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld магазин"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld магазина"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ShoppingListStoreLimit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This list requires more than three stores. Try reducing the list."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для списка нужно больше трёх магазинов. Попробуйте сократить список."
+          }
+        }
+      }
+    },
+    "ShoppingListTimeLimit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No complete route fits the current 60-minute limit. Try reducing the list."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Полный маршрут не укладывается в текущий лимит 60 минут. Попробуйте сократить список."
+          }
+        }
+      }
+    },
+    "ShoppingListTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My list"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мой список"
+          }
+        }
+      }
+    },
+    "ShoppingListUnavailableProduct" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Product unavailable in the catalog"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Товар недоступен в каталоге"
+          }
+        }
+      }
+    },
+    "ShoppingListUnderstood" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Понятно"
+          }
+        }
+      }
+    },
+    "ShoppingListUpdating" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updating your list and calculating options…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновляем список и рассчитываем варианты…"
+          }
+        }
+      }
+    },
+    "ShoppingListWalking" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Walking"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пешком"
           }
         }
       }
@@ -3850,210 +4105,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Магазины"
-          }
-        }
-      }
-    },
-    "ProductUnitGram" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "g"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "г"
-          }
-        }
-      }
-    },
-    "ProductUnitKilogram" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "kg"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "кг"
-          }
-        }
-      }
-    },
-    "ProductUnitLiter" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "л"
-          }
-        }
-      }
-    },
-    "ProductUnitMilliliter" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ml"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "мл"
-          }
-        }
-      }
-    },
-    "ProductUnitPiece" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "pcs"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "шт."
-          }
-        }
-      }
-    },
-    "SearchCheaper" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Best price"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выгоднее"
-          }
-        }
-      }
-    },
-    "SearchFaster" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fastest"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Быстрее"
-          }
-        }
-      }
-    },
-    "SearchMockBread" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bread"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Хлеб"
-          }
-        }
-      }
-    },
-    "SearchMockMilk" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Milk"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Молоко"
-          }
-        }
-      }
-    },
-    "SearchMockPerekrestok" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Perekrestok"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Перекрёсток"
-          }
-        }
-      }
-    },
-    "SearchMode" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Search priority"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Приоритет поиска"
-          }
-        }
-      }
-    },
-    "SearchWalkingTime" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d min away"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "За %d мин"
           }
         }
       }

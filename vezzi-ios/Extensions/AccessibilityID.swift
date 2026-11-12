@@ -3,6 +3,8 @@ enum AccessibilityID {
     // MARK: - Home
 
     enum Home {
+        static let empty = "home.empty"
+        static let offline = "home.offline"
         static let profile = "home.profile"
         static let address = "home.address"
         static let scrollToTop = "home.scrollToTop"
@@ -83,6 +85,8 @@ enum AccessibilityID {
         static let route = "shoppingList.route"
         static let routePreview = "shoppingList.routePreview"
         static let empty = "shoppingList.empty"
+        static let offline = "shoppingList.offline"
+        static let addProducts = "shoppingList.addProducts"
     }
 
     enum Search {
@@ -91,6 +95,7 @@ enum AccessibilityID {
         static let cancel = "search.cancel"
         static let results = "search.results"
         static let empty = "search.empty"
+        static let offline = "search.offline"
 
         static func section(_ id: String) -> String { "search.section.\(id)" }
     }

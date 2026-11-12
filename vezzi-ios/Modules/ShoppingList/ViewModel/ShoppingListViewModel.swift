@@ -3,6 +3,7 @@ import Foundation
 
 @MainActor
 final class ShoppingListViewModel: ObservableObject {
+    enum ContentState { case products, loading, empty, offline, unavailable }
     @Published var mode = ShoppingListMode.cheaper
     @Published private(set) var selectedProduct: Product?
     @Published private(set) var selectedProductOffer: ProductOffer?
@@ -30,6 +31,16 @@ final class ShoppingListViewModel: ObservableObject {
     }
 
     nonisolated deinit {}
+
+    var contentState: ContentState {
+        guard list.selection.quantities.isEmpty else { return .products }
+        // A confirmed absence of a cart is usable data too, including after an offline restart.
+        guard list.accountID != nil, !list.hasResolvedCart else { return .empty }
+        if list.isBusy { return .loading }
+        if list.failure == .offline { return .offline }
+        if list.failure != nil { return .unavailable }
+        return .empty
+    }
 
     var products: [Product] {
         let fallback = Dictionary(uniqueKeysWithValues: (list.cart?.items ?? []).map { ($0.product.id, $0.product) })
@@ -93,7 +104,11 @@ final class ShoppingListViewModel: ObservableObject {
     }
 
     private var synchronizationMessage: String? {
-        if needsAuthentication { return Texts.ShoppingList.signInDescription }
+        if needsAuthentication {
+            // The unavailable state already offers sign-in; an untouched guest list needs no warning.
+            return contentState == .products || (contentState == .empty && list.failure == .authenticationRequired)
+                ? Texts.ShoppingList.signInDescription : nil
+        }
         if let failure = list.failure {
             switch failure {
             case .authenticationRequired: return Texts.ShoppingList.signInDescription
@@ -101,7 +116,7 @@ final class ShoppingListViewModel: ObservableObject {
             case .limit: return Texts.ShoppingList.limitDescription
             case .cartUnavailable: return Texts.ShoppingList.cartUnavailable
             case .otherCartSyncFailed: return Texts.ShoppingList.otherCartSyncFailed
-            case .unavailable: return Texts.ShoppingList.loadError
+            case .unavailable: return contentState == .unavailable ? nil : Texts.ShoppingList.loadError
             }
         }
         guard let result = list.planResult, result.plans.isEmpty else { return nil }
