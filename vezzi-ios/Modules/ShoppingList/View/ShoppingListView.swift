@@ -160,11 +160,11 @@ struct ShoppingListView: View {
             .hidden()
             .frame(maxWidth: .infinity, minHeight: metricTextHeight + Const.metricVerticalInset * 2)
             .overlay {
-                if viewModel.list.isBusy {
-                    loadingStatus
-                        .transition(modeTransition)
-                } else if let plan = viewModel.plan {
+                if let plan = viewModel.plan {
                     planMetrics(plan)
+                        .transition(modeTransition)
+                } else if viewModel.list.isBusy {
+                    loadingStatus
                         .transition(modeTransition)
                 }
             }
@@ -236,14 +236,13 @@ struct ShoppingListView: View {
     }
 
     @ViewBuilder private var feedback: some View {
-        if !viewModel.list.isBusy, let message = viewModel.message {
+        if let message = viewModel.message {
             VStack(alignment: .leading, spacing: Const.summarySpacing) {
                 Text(message).font(.footnote).foregroundStyle(Color.Label.secondary)
-                Button(viewModel.needsAuthentication ? Texts.ShoppingList.signIn : Texts.ShoppingList.retry) {
-                    if viewModel.needsAuthentication { router.presentAuthentication() }
-                    else { Task { await viewModel.refresh() } }
+                if !viewModel.list.isBusy, viewModel.needsAuthentication {
+                    Button(Texts.ShoppingList.signIn) { router.presentAuthentication() }
+                        .buttonStyle(.glass)
                 }
-                .buttonStyle(.glass)
             }
             .accessibilityIdentifier(AccessibilityID.ShoppingList.feedback)
         }
@@ -255,7 +254,7 @@ struct ShoppingListView: View {
         }
         .buttonStyle(.glassProminent)
         .controlSize(.large)
-        .disabled(viewModel.plan == nil || viewModel.list.isBusy)
+        .disabled(viewModel.plan == nil)
         .padding(.horizontal, Const.routeHorizontalInset)
         .padding(.vertical, Const.routeInset)
         .frame(maxWidth: Const.maximumWidth)
@@ -347,7 +346,7 @@ struct ShoppingListView: View {
         ShoppingListView(catalog: PreviewCatalogRepository(snapshot: ShoppingListPreview.snapshot), list: list)
     }
     .environmentObject(AppRouter())
-    .task { list.setAccount("preview") }
+    .task { list.setAccount(ShoppingListPreview.account) }
 }
 
 #Preview("Shopping list — dark, large text") {
@@ -358,7 +357,7 @@ struct ShoppingListView: View {
     .environmentObject(AppRouter())
     .preferredColorScheme(.dark)
     .dynamicTypeSize(.accessibility3)
-    .task { list.setAccount("preview") }
+    .task { list.setAccount(ShoppingListPreview.account) }
 }
 
 #Preview("Shopping list — guest") {

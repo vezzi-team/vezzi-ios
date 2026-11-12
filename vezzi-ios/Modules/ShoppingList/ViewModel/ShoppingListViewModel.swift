@@ -19,7 +19,7 @@ final class ShoppingListViewModel: ObservableObject {
         self.list = list
         list.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }.store(in: &subscriptions)
         list.selection.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }.store(in: &subscriptions)
-        list.$accountID.removeDuplicates().dropFirst().sink { [weak self] _ in
+        list.$account.removeDuplicates().dropFirst().sink { [weak self] _ in
             self?.routePlan = nil
             self?.dismissProduct()
             self?.selectedProductOffer = nil
@@ -86,12 +86,21 @@ final class ShoppingListViewModel: ObservableObject {
     var needsAuthentication: Bool { list.accountID == nil || list.failure == .authenticationRequired }
 
     var message: String? {
+        let messages = [list.isBusy ? nil : synchronizationMessage,
+                        list.isPlanCached && plan != nil ? Texts.ShoppingList.cachedCalculation : nil,
+                        list.hasCacheFailure ? Texts.ShoppingList.cacheError : nil].compactMap { $0 }
+        return messages.isEmpty ? nil : messages.joined(separator: "\n")
+    }
+
+    private var synchronizationMessage: String? {
         if needsAuthentication { return Texts.ShoppingList.signInDescription }
         if let failure = list.failure {
             switch failure {
             case .authenticationRequired: return Texts.ShoppingList.signInDescription
-            case .offline: return Texts.ShoppingList.offline
+            case .offline: return nil
             case .limit: return Texts.ShoppingList.limitDescription
+            case .cartUnavailable: return Texts.ShoppingList.cartUnavailable
+            case .otherCartSyncFailed: return Texts.ShoppingList.otherCartSyncFailed
             case .unavailable: return Texts.ShoppingList.loadError
             }
         }

@@ -17,9 +17,10 @@ final class AppDependencies: ObservableObject {
         let authentication = DefaultAuthenticationService()
         self.init(cache: CoreDataCatalogCache(persistence: PersistenceController()),
                   source: APICatalogSource(client: authentication), authenticationService: authentication,
-                  shoppingListService: APIShoppingListService(client: authentication))
+                  shoppingListService: APIShoppingListService(client: authentication), shoppingListCache: FileShoppingListCache())
         networkMonitor = NetworkMonitor { [weak self] connected in
             self?.catalog.updateConnectivity(isConnected: connected)
+            self?.shoppingList.updateConnectivity(isConnected: connected)
         }
     }
 
@@ -27,13 +28,16 @@ final class AppDependencies: ObservableObject {
         cache: (any CatalogCache)?,
         source: (any CatalogSource)? = nil,
         authenticationService: any AuthenticationService = DefaultAuthenticationService(),
-        shoppingListService: (any ShoppingListService)? = nil
+        shoppingListService: (any ShoppingListService)? = nil,
+        shoppingListCache: (any ShoppingListCache)? = nil
     ) {
         catalog = DefaultCatalogRepository(cache: cache, source: source)
         authentication = AuthenticationSession(service: authenticationService, startsRestoring: true)
-        shoppingList = ShoppingListRepository(service: shoppingListService)
-        accountSubscription = authentication.$user.map { $0?.id.uuidString }.removeDuplicates().sink { [weak self] id in
-            self?.shoppingList.setAccount(id)
+        shoppingList = ShoppingListRepository(service: shoppingListService, cache: shoppingListCache)
+        accountSubscription = authentication.$identity.map { identity in
+            identity.map { ShoppingListAccount(id: $0.user.id.uuidString, sessionID: $0.sessionID) }
+        }.removeDuplicates().sink { [weak self] account in
+            self?.shoppingList.setAccount(account)
         }
         listStatusSubscription = shoppingList.$failure.removeDuplicates().sink { [weak self] failure in
             guard failure == .authenticationRequired else { return }

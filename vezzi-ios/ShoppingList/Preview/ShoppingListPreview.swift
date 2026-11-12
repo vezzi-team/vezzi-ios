@@ -3,6 +3,7 @@ import Foundation
 /// Explicit fixtures for previews and UI verification. Never wired to production dependencies.
 @MainActor
 enum ShoppingListPreview {
+    static let account = ShoppingListAccount(id: "preview", sessionID: UUID())
     static let snapshot = SearchMockData.snapshot()
 
     static func repository() -> ShoppingListRepository {

@@ -110,6 +110,9 @@
 		B49E6A844FB847A3A8E1B918 /* ShoppingListRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 620F9CEB802849BE822FE83E /* ShoppingListRepositoryTests.swift */; };
 		65FAECEE9BCE468DAF94CCAB /* ShoppingListAPITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B62E7E4133A4AF48B85291D /* ShoppingListAPITests.swift */; };
 		5E7D3231246548E7964E58DA /* ShoppingListPriceSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BF593AA18AE4443A81EA325 /* ShoppingListPriceSummary.swift */; };
+		D1F9B92E4B474DB4B07910C2 /* ShoppingListCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CB60AD977D74FA59C1EAEFB /* ShoppingListCache.swift */; };
+		4BCC8E6294D3483DB4D17BAD /* FileShoppingListCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C25D51CDC1F488190401B37 /* FileShoppingListCache.swift */; };
+		435270265F8A4EFBAE28DD25 /* ShoppingListCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C7E0FD53E2A418E8FD26A90 /* ShoppingListCacheTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -229,6 +232,9 @@
 		620F9CEB802849BE822FE83E /* ShoppingListRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingListRepositoryTests.swift; sourceTree = "<group>"; };
 		1B62E7E4133A4AF48B85291D /* ShoppingListAPITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingListAPITests.swift; sourceTree = "<group>"; };
 		0BF593AA18AE4443A81EA325 /* ShoppingListPriceSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingListPriceSummary.swift; sourceTree = "<group>"; };
+		6CB60AD977D74FA59C1EAEFB /* ShoppingListCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingListCache.swift; sourceTree = "<group>"; };
+		5C25D51CDC1F488190401B37 /* FileShoppingListCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShoppingListCache.swift; sourceTree = "<group>"; };
+		3C7E0FD53E2A418E8FD26A90 /* ShoppingListCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingListCacheTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -504,6 +510,7 @@
 			isa = PBXGroup;
 			children = (
 				1B62E7E4133A4AF48B85291D /* ShoppingListAPITests.swift */,
+				3C7E0FD53E2A418E8FD26A90 /* ShoppingListCacheTests.swift */,
 				620F9CEB802849BE822FE83E /* ShoppingListRepositoryTests.swift */,
 				20C1C43C5DA141C1997C77DE /* LoginViewModelTests.swift */,
 				B5B58E8851FF49B08143A545 /* AuthenticationServiceTests.swift */,
@@ -802,6 +809,7 @@
 			children = (
 				20B6BDD2692240B7AB6E7CF6 /* Model */,
 				0B71F80431D84DCDAF3EE32C /* Service */,
+				81B314411D244AA8A32D7118 /* Storage */,
 				B5F795E37F8F4B888A27B382 /* Repository */,
 				D8B4772FC0A64BB690461563 /* Preview */,
 			);
@@ -846,6 +854,15 @@
 				BAB6A3DD1FD1416497C77F7F /* ShoppingListViewModel.swift */,
 			);
 			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		81B314411D244AA8A32D7118 /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				6CB60AD977D74FA59C1EAEFB /* ShoppingListCache.swift */,
+				5C25D51CDC1F488190401B37 /* FileShoppingListCache.swift */,
+			);
+			path = Storage;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -957,6 +974,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				65FAECEE9BCE468DAF94CCAB /* ShoppingListAPITests.swift in Sources */,
+				435270265F8A4EFBAE28DD25 /* ShoppingListCacheTests.swift in Sources */,
 				B49E6A844FB847A3A8E1B918 /* ShoppingListRepositoryTests.swift in Sources */,
 				A4571AC65EDA43429193DFA1 /* LoginViewModelTests.swift in Sources */,
 				CC3B54FB7CFA41F7A02E6E47 /* AuthenticationServiceTests.swift in Sources */,
@@ -981,6 +999,8 @@
 				82D4DE11D38049D89E182954 /* ShoppingListModels.swift in Sources */,
 				93447FE58F5D418ABCFB6701 /* ShoppingListService.swift in Sources */,
 				5ED36ECEB1BE42EC978BE9B2 /* ShoppingListRepository.swift in Sources */,
+				D1F9B92E4B474DB4B07910C2 /* ShoppingListCache.swift in Sources */,
+				4BCC8E6294D3483DB4D17BAD /* FileShoppingListCache.swift in Sources */,
 				3F42044418544F1EB2D981BA /* ShoppingListPreview.swift in Sources */,
 				33517233A5D84FFCB3FA4122 /* ShoppingListViewModel.swift in Sources */,
 				C79DD45D94C743F2A571268D /* ShoppingPlanStoresView.swift in Sources */,

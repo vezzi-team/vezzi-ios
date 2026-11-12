@@ -1,6 +1,18 @@
 import Foundation
 
-nonisolated struct ShoppingCart: Sendable {
+/// Account-owned data is also scoped to the persisted sign-in session, never to its rotating tokens.
+nonisolated struct ShoppingListAccount: Codable, Hashable, Sendable {
+    let id: String
+    let sessionID: UUID
+}
+
+/// Guest edits are bound once an active cart is resolved. Bound edits never move to another cart.
+nonisolated enum ShoppingCartEditTarget: Codable, Hashable, Sendable {
+    case active
+    case cart(UUID)
+}
+
+nonisolated struct ShoppingCart: Codable, Sendable {
     let id: UUID
     let name: String
     let status: String
@@ -11,7 +23,7 @@ nonisolated struct ShoppingCart: Sendable {
     }
 }
 
-nonisolated struct ShoppingCartItem: Sendable {
+nonisolated struct ShoppingCartItem: Codable, Sendable {
     let product: CatalogProduct
     let quantity: Int
 }
@@ -24,14 +36,14 @@ nonisolated struct ShoppingCoordinate: Codable, Sendable, Equatable {
     static let previewOrigin = Self(latitude: 60.0087, longitude: 30.2582)
 }
 
-nonisolated struct ShoppingPlanResult: Sendable {
+nonisolated struct ShoppingPlanResult: Codable, Sendable {
     let plans: [ShoppingPlan]
     let baselinePrice: Decimal?
     let problem: String?
     let isSynthetic: Bool
 }
 
-nonisolated struct ShoppingPlan: Identifiable, Sendable {
+nonisolated struct ShoppingPlan: Codable, Identifiable, Sendable {
     let id: UUID
     let total: Decimal
     let savings: Decimal?
@@ -43,7 +55,7 @@ nonisolated struct ShoppingPlan: Identifiable, Sendable {
     let isSynthetic: Bool
 }
 
-nonisolated struct ShoppingPlanStop: Identifiable, Sendable {
+nonisolated struct ShoppingPlanStop: Codable, Identifiable, Sendable {
     var id: String { store.id }
     let position: Int
     let store: CatalogStore
@@ -51,7 +63,7 @@ nonisolated struct ShoppingPlanStop: Identifiable, Sendable {
     let subtotal: Decimal
 }
 
-nonisolated struct ShoppingPlanItem: Sendable {
+nonisolated struct ShoppingPlanItem: Codable, Sendable {
     let product: CatalogProduct
     let quantity: Int
     let unitPrice: Decimal
@@ -63,6 +75,8 @@ nonisolated enum ShoppingListFailure: Error, Equatable {
     case authenticationRequired
     case offline
     case limit
+    case cartUnavailable
+    case otherCartSyncFailed
     case unavailable
 
     static func from(_ error: Error) -> Self {

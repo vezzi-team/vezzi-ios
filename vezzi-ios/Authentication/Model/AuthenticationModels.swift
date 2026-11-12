@@ -27,6 +27,12 @@ nonisolated struct AuthenticationResponse: Decodable, Sendable {
     let tokens: AuthenticationTokens
 }
 
+/// Public session identity without credentials. Stable across token rotation and app launches.
+nonisolated struct AuthenticationIdentity: Equatable, Sendable {
+    let sessionID: UUID
+    var user: AuthenticatedUser
+}
+
 /// A provisional response. Receiving it alone never persists or publishes an account.
 nonisolated struct AuthenticationGrant: Sendable {
     let generation: UUID

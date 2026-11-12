@@ -2,7 +2,7 @@ import Foundation
 
 /// Explicitly injected by previews and tests; never used by the production composition root.
 actor MockAuthenticationService: AuthenticationService {
-    private var user: AuthenticatedUser?
+    private var identity: AuthenticationIdentity?
 
     func authenticate(email: String, password: String, intent: AuthenticationIntent) async throws -> AuthenticationGrant {
         try await Task.sleep(for: .seconds(1))
@@ -14,20 +14,20 @@ actor MockAuthenticationService: AuthenticationService {
 
     func commit(_ grant: AuthenticationGrant) throws -> AuthenticatedUser {
         try Task.checkCancellation()
-        user = grant.session.user
+        identity = AuthenticationIdentity(sessionID: grant.session.id, user: grant.session.user)
         return grant.session.user
     }
 
     func discard(_ grant: AuthenticationGrant) {
-        if user?.id == grant.session.user.id { user = nil }
+        if identity?.sessionID == grant.session.id { identity = nil }
     }
 
-    func cachedUser() -> AuthenticatedUser? { user }
+    func cachedIdentity() -> AuthenticationIdentity? { identity }
 
     func currentUser() throws -> AuthenticatedUser {
-        guard let user else { throw AuthenticationFailure.sessionExpired }
+        guard let user = identity?.user else { throw AuthenticationFailure.sessionExpired }
         return user
     }
 
-    func signOut() { user = nil }
+    func signOut() { identity = nil }
 }

@@ -307,36 +307,70 @@
         }
       }
     },
-    "ShoppingListRetry": {
+    "ShoppingListCachedCalculation": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try again"
+            "value": "Showing a saved calculation. Prices and routes may have changed."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Повторить"
+            "value": "Показан сохранённый расчёт. Цены и маршруты могли измениться."
           }
         }
       }
     },
-    "ShoppingListOffline": {
+    "ShoppingListCartUnavailable": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Changes have not been saved to the server. Check your connection and try again before closing the app."
+            "value": "Saved changes belong to a list that is no longer available. They have not been applied to your current list."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Изменения ещё не сохранены на сервере. Проверьте интернет и повторите попытку перед закрытием приложения."
+            "value": "Сохранённые изменения относятся к списку, который больше недоступен. Они не применены к текущему списку."
+          }
+        }
+      }
+    },
+    "ShoppingListOtherCartSyncFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes to another list could not be synced. They are kept on this device for retry. Your current list is available."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось синхронизировать изменения другого списка. Они сохранены на устройстве для повторной попытки. Текущий список доступен."
+          }
+        }
+      }
+    },
+    "ShoppingListCacheError": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local storage is unavailable. Some changes may be lost when you close the app. Try again."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Локальное хранилище недоступно. Часть изменений может потеряться после закрытия приложения. Повторите попытку."
           }
         }
       }
@@ -347,13 +381,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not update your list or calculate a route. Your changes are still on this screen; try again."
+            "value": "Could not update your list or calculate a route. Try again."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Не удалось обновить список или рассчитать маршрут. Ваши изменения остаются на экране; повторите попытку."
+            "value": "Не удалось обновить список или рассчитать маршрут. Повторите попытку."
           }
         }
       }
