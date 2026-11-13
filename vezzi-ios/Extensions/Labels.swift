@@ -124,6 +124,7 @@ final class Texts {
         }
 
         enum Stores {
+            static let selected = NSLocalizedString("ProductSelectedStore", comment: "Selected store")
             static let showMore = NSLocalizedString("ProductShowMoreStores", comment: "Show more")
             static let showLess = NSLocalizedString("ProductShowLessStores", comment: "Show less")
 
@@ -273,6 +274,11 @@ final class Texts {
         static let retry = NSLocalizedString("StorageRetry", comment: "Try again")
     }
 
+    enum EmptyState {
+        static let offlineTitle = NSLocalizedString("EmptyStateOfflineTitle", comment: "No internet connection")
+        static let offlineDescription = NSLocalizedString("EmptyStateOfflineDescription", comment: "Connect to the internet to load data.")
+    }
+
     // MARK: - Search
 
     enum Search {
@@ -293,11 +299,74 @@ final class Texts {
         static let prompt = NSLocalizedString("SearchPrompt", comment: "Find products")
         static let emptyTitle = NSLocalizedString("SearchEmptyTitle", comment: "No products yet")
         static let emptyDescription = NSLocalizedString("SearchEmptyDescription", comment: "Products will appear here when the catalog is available.")
-        static let noResultsTitle = NSLocalizedString("SearchNoResultsTitle", comment: "No products found")
-        static let noResultsDescription = NSLocalizedString("SearchNoResultsDescription", comment: "Try another name, brand or category.")
+        static let noResultsTitle = NSLocalizedString("SearchNoResultsTitle", comment: "Nothing found")
+        static let noResultsDescription = NSLocalizedString("SearchNoResultsDescription", comment: "Try another name or check your search for typos.")
         static let noOffers = NSLocalizedString("SearchNoOffers", comment: "No store offers available")
         static let unknownPriceDate = NSLocalizedString("SearchUnknownPriceDate", comment: "Price update date unknown")
         static let resultLimit = NSLocalizedString("SearchResultLimit", comment: "Up to 50 products are shown. Refine your search to find more.")
+    }
+
+    // MARK: - Shopping List
+
+    enum ShoppingList {
+        static let title = NSLocalizedString("ShoppingListTitle", comment: "My list")
+        static let mockAddress = NSLocalizedString("ShoppingListMockAddress", comment: "Komendantsky Avenue")
+        static let walking = NSLocalizedString("ShoppingListWalking", comment: "Walking")
+        static let bestTotal = NSLocalizedString("ShoppingListBestTotal", comment: "Best price for the whole list")
+        static let fastTotal = NSLocalizedString("ShoppingListFastTotal", comment: "Fastest calculated option")
+        static let fastestVariant = NSLocalizedString("ShoppingListFastestVariant", comment: "Fastest option")
+        static let cheapestVariant = NSLocalizedString("ShoppingListCheapestVariant", comment: "Best price")
+        static let updating = NSLocalizedString("ShoppingListUpdating", comment: "Updating your list and calculating options…")
+        static let cart = NSLocalizedString("ShoppingListCart", comment: "Basket")
+        static let showRoute = NSLocalizedString("ShoppingListShowRoute", comment: "View routes")
+        static let routeTitle = NSLocalizedString("ShoppingListRouteTitle", comment: "Walking route")
+        static let start = NSLocalizedString("ShoppingListStart", comment: "Starting point")
+        static let close = NSLocalizedString("ShoppingListClose", comment: "Close")
+        static let emptyTitle = NSLocalizedString("ShoppingListEmptyTitle", comment: "Your list is empty")
+        static let emptyDescription = NSLocalizedString("ShoppingListEmptyDescription", comment: "Add products — we’ll compare prices and shopping time.")
+        static let findProducts = NSLocalizedString("ShoppingListFindProducts", comment: "Add products")
+        static let loadErrorTitle = NSLocalizedString("ShoppingListLoadErrorTitle", comment: "Couldn’t load your list")
+        static let signIn = NSLocalizedString("ShoppingListSignIn", comment: "Sign in")
+        static let signInDescription = NSLocalizedString("ShoppingListSignInDescription", comment: "Sign in to save your list and calculate prices and routes.")
+        static let loadError = NSLocalizedString("ShoppingListLoadError", comment: "Could not update your list or calculate a route. Try again.")
+        static let cartUnavailable = NSLocalizedString("ShoppingListCartUnavailable", comment: "Saved changes belong to a list that is no longer available. They have not been applied to your current list.")
+        static let otherCartSyncFailed = NSLocalizedString("ShoppingListOtherCartSyncFailed", comment: "Changes to another list could not be synced. They are kept on this device for retry. Your current list is available.")
+        static let cachedCalculation = NSLocalizedString("ShoppingListCachedCalculation", comment: "Showing a saved calculation. Prices and routes may have changed.")
+        static let cacheError = NSLocalizedString("ShoppingListCacheError", comment: "Local storage is unavailable. Some changes may be lost when you close the app. Try again.")
+        static let limitTitle = NSLocalizedString("ShoppingListLimitTitle", comment: "List limit reached")
+        static let limitDescription = NSLocalizedString("ShoppingListLimitDescription", comment: "A list can contain up to 30 different products. Remove a product before adding another.")
+        static let understood = NSLocalizedString("ShoppingListUnderstood", comment: "OK")
+        static let addressTitle = NSLocalizedString("ShoppingListAddressTitle", comment: "Starting address")
+        static let addressDescription = NSLocalizedString("ShoppingListAddressDescription", comment: "For now, calculations use a fixed starting point on Komendantsky Avenue. Address selection will be available with map integration.")
+        static let itemsUnavailable = NSLocalizedString("ShoppingListItemsUnavailable", comment: "Some products have no confirmed fresh offers. Change your list or try again later.")
+        static let storeLimit = NSLocalizedString("ShoppingListStoreLimit", comment: "This list requires more than three stores. Try reducing the list.")
+        static let timeLimit = NSLocalizedString("ShoppingListTimeLimit", comment: "No complete route fits the current 60-minute limit. Try reducing the list.")
+        static let radiusLimit = NSLocalizedString("ShoppingListRadiusLimit", comment: "Not all products are available in the selected area.")
+        static let routeUnavailable = NSLocalizedString("ShoppingListRouteUnavailable", comment: "A walking route is currently unavailable. Try again later.")
+        static let noPlans = NSLocalizedString("ShoppingListNoPlans", comment: "No complete shopping option was found for this list.")
+        static let unavailableProduct = NSLocalizedString("ShoppingListUnavailableProduct", comment: "Product unavailable in the catalog")
+        static let routeApproximation = NSLocalizedString("ShoppingListRouteApproximation", comment: "This route connects stores with straight lines and is not a walking navigation route.")
+
+        static func products(_ count: Int) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("ShoppingListProductCount", comment: "Count"), Int64(count))
+        }
+
+        static func stores(_ count: Int) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("ShoppingListStoreCount", comment: "Count"), Int64(count))
+        }
+
+        static func minutes(_ count: Int) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("ShoppingListMinutes", comment: "Count"), Int64(count))
+        }
+
+        static func faster(_ count: Int) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("ShoppingListFaster", comment: "Count"), Int64(count))
+        }
+
+        static func savings(_ price: Decimal) -> String {
+            String(format: NSLocalizedString("ShoppingListSavings", comment: "Savings"),
+                   price.formatted(.currency(code: "RUB").precision(.fractionLength(0...2))))
+        }
     }
 
     // MARK: - Demo Module
@@ -330,4 +399,5 @@ extension AuthenticationFailure {
         case .unavailable: return Texts.Authentication.unavailable
         }
     }
+
 }

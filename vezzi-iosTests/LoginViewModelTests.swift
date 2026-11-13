@@ -248,7 +248,7 @@ extension TestAuthenticationService {
         return grant.session.user
     }
     func discard(_ grant: AuthenticationGrant) async throws { }
-    func cachedUser() async throws -> AuthenticatedUser? { nil }
+    func cachedIdentity() async throws -> AuthenticationIdentity? { nil }
     func currentUser() async throws -> AuthenticatedUser { throw AuthenticationFailure.sessionExpired }
     func signOut() async throws { }
 }

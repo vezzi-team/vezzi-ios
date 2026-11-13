@@ -87,12 +87,7 @@ struct ProductOffer: Identifiable {
     }
 
     var displayAddress: String? {
-        guard let address = address?.trimmingCharacters(in: .whitespacesAndNewlines), !address.isEmpty else { return nil }
-        // Strip only the known city prefix; keep the complete address for maps and catalog data.
-        let shortened = address.replacingOccurrences(
-            of: #"^(?:(?:г\.?\s*|город\s+)?Санкт-Петербург|Saint Petersburg|St\.?\s+Petersburg)\s*,\s*"#,
-            with: "", options: [.regularExpression, .caseInsensitive])
-        return shortened.isEmpty ? address : shortened
+        StoreDisplayText.address(address)
     }
 }
 
@@ -167,3 +162,13 @@ private enum ProductDisplayText {
     }
 }
 
+nonisolated enum StoreDisplayText {
+    static func address(_ address: String?) -> String? {
+        guard let address = address?.trimmingCharacters(in: .whitespacesAndNewlines), !address.isEmpty else { return nil }
+        // Strip only the known city prefix; keep the complete address for maps and catalog data.
+        let shortened = address.replacingOccurrences(
+            of: #"^(?:(?:г\.?\s*|город\s+)?Санкт-Петербург|Saint Petersburg|St\.?\s+Petersburg)\s*,\s*"#,
+            with: "", options: [.regularExpression, .caseInsensitive])
+        return shortened.isEmpty ? address : shortened
+    }
+}

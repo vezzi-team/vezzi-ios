@@ -47,7 +47,8 @@ struct HomeView: View {
     // MARK: - Content
 
     private func scrollToTopButton(using proxy: ScrollViewProxy) -> some View {
-        ScrollToTopButton(isVisible: isPastResultsTop, accessibilityIdentifier: AccessibilityID.Home.scrollToTop) {
+        ScrollToTopButton(isVisible: isPastResultsTop && !viewModel.products.isEmpty,
+                          accessibilityIdentifier: AccessibilityID.Home.scrollToTop) {
             proxy.scrollTo(Const.scrollTopID, anchor: .top)
         }
         .padding(Const.contentInset)
@@ -81,11 +82,20 @@ struct HomeView: View {
         VStack(spacing: .zero) {
             // Let a large accessibility header scroll so the catalog remains reachable.
             if dynamicTypeSize.isAccessibilitySize { addressHeader }
-            catalogBanner
-                .padding(.horizontal, Const.contentInset)
-                .padding(.bottom, Const.sectionSpacing)
-            productSection(viewportHeight: viewportHeight)
+            if !viewModel.products.isEmpty || viewModel.emptyState != .offline {
+                catalogBanner
+                    .padding(.horizontal, Const.contentInset)
+                    .padding(.bottom, Const.sectionSpacing)
+            }
+            if viewModel.products.isEmpty {
+                Spacer(minLength: .zero)
+                emptyContent
+                Spacer(minLength: .zero)
+            } else {
+                productSection(viewportHeight: viewportHeight)
+            }
         }
+        .frame(minHeight: viewModel.products.isEmpty ? viewportHeight : nil)
         .frame(maxWidth: Const.maximumWidth)
         .frame(maxWidth: .infinity)
         .id(Const.scrollTopID)
@@ -95,7 +105,7 @@ struct HomeView: View {
     private func productSection(viewportHeight: CGFloat) -> some View {
         LazyVStack(spacing: .zero, pinnedViews: [.sectionHeaders]) {
             Section {
-                catalogContent
+                productGrid
                     .padding(.horizontal, Const.contentInset)
                     .padding(.bottom, Const.contentInset)
                     // A short filtered feed must still leave enough room to pin its header.
@@ -218,17 +228,16 @@ struct HomeView: View {
         }
     }
 
-    @ViewBuilder private var catalogContent: some View {
-        if viewModel.products.isEmpty {
-            if viewModel.catalogStatus.isRefreshing {
-                ProgressView().frame(maxWidth: .infinity).padding()
-            } else {
-                ContentUnavailableView {
-                    Label { Text(Texts.Search.emptyTitle) } icon: { Image.System.magnifyingGlass }
-                } description: { Text(Texts.Search.emptyDescription) }
-            }
-        } else {
-            productGrid
+    @ViewBuilder private var emptyContent: some View {
+        switch viewModel.emptyState {
+        case .loading:
+            ProgressView().frame(maxWidth: .infinity).padding()
+        case .offline:
+            MotiEmptyStateView.offline
+                .accessibilityIdentifier(AccessibilityID.Home.offline)
+        case .empty:
+            MotiEmptyStateView(title: Texts.Search.emptyTitle, description: Texts.Search.emptyDescription)
+                .accessibilityIdentifier(AccessibilityID.Home.empty)
         }
     }
 

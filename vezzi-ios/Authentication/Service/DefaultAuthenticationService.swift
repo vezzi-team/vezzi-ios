@@ -67,9 +67,9 @@ actor DefaultAuthenticationService: AuthenticationService, AuthorizedRequestPerf
 
     // MARK: - Restore and authorized requests
 
-    func cachedUser() throws -> AuthenticatedUser? {
+    func cachedIdentity() throws -> AuthenticationIdentity? {
         try loadIfNeeded()
-        return stored?.user
+        return stored.map { AuthenticationIdentity(sessionID: $0.id, user: $0.user) }
     }
 
     func currentUser() async throws -> AuthenticatedUser {

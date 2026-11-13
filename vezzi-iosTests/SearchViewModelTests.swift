@@ -4,6 +4,65 @@ import XCTest
 
 @MainActor
 final class SearchViewModelTests: XCTestCase {
+    func testOfflineEmptySearchDoesNotMistakeANonmatchingQueryForMissingCache() async throws {
+        let repository = DefaultCatalogRepository()
+        repository.updateConnectivity(isConnected: false)
+        let model = SearchViewModel(repository: repository)
+        XCTAssertEqual(model.emptyState, .offline)
+        XCTAssertFalse(model.showsModePicker)
+
+        try await repository.importCatalog(CatalogFixtures.catalog())
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { !$0.isEmpty })
+        XCTAssertEqual(model.emptyState, .empty)
+        XCTAssertTrue(model.showsModePicker)
+
+        model.query = "nonmatching query"
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.isEmpty })
+        XCTAssertEqual(model.emptyState, .empty, "Cached catalog data exists even when the search has no matches")
+        XCTAssertFalse(model.showsModePicker)
+    }
+
+    func testNoOffersInFastestKeepsModePickerAvailable() throws {
+        let snapshot = try CatalogFixtures.snapshot(CatalogImport(products: [CatalogProduct(id: "p", name: "Milk")]))
+        let model = SearchViewModel(repository: PreviewCatalogRepository(snapshot: snapshot))
+        model.mode = .faster
+        XCTAssertTrue(model.sections.isEmpty)
+        XCTAssertTrue(model.showsModePicker, "The user must be able to return to Best price")
+        model.mode = .cheaper
+        XCTAssertFalse(model.sections.isEmpty)
+    }
+
+    func testOfflineFeedbackWaitsForCacheRestorationAndRecovers() async throws {
+        let cache = ControlledCatalogCache()
+        cache.pauseLoad = true
+        let repository = DefaultCatalogRepository(cache: cache)
+        repository.updateConnectivity(isConnected: false)
+        let home = HomeViewModel(repository: repository)
+        let search = SearchViewModel(repository: repository)
+        XCTAssertEqual(home.emptyState, .loading)
+        XCTAssertEqual(search.emptyState, .loading)
+        let started = expectation(description: "Cache read started")
+        cache.onLoadStarted = { started.fulfill() }
+        let preparation = Task { await repository.prepareCache() }
+        await fulfillment(of: [started], timeout: 2)
+        cache.finishLoading(CatalogSnapshot())
+        await preparation.value
+        XCTAssertEqual(home.emptyState, .offline)
+        XCTAssertEqual(search.emptyState, .offline)
+
+        try await repository.importCatalog(CatalogFixtures.catalog())
+        _ = await publishedItems(search.$items.eraseToAnyPublisher(), where: { !$0.isEmpty })
+        XCTAssertEqual(home.emptyState, .empty)
+        XCTAssertEqual(search.emptyState, .empty)
+    }
+
+    func testEmptyStateRetainsOfflineFailureUntilARefreshSucceeds() {
+        XCTAssertEqual(CatalogEmptyState(status: CatalogStatus(failure: .offline), cacheState: .unavailable), .offline)
+        XCTAssertEqual(CatalogEmptyState(status: CatalogStatus(hasSnapshot: true, isOffline: true), cacheState: .available), .empty)
+        XCTAssertEqual(CatalogEmptyState(status: CatalogStatus(isRefreshing: true), cacheState: .disabled), .loading)
+        XCTAssertEqual(CatalogEmptyState(status: CatalogStatus(failure: .unavailable), cacheState: .disabled), .empty)
+    }
+
     func testProductNameFallbackInSectionTitleOmitsDuplicatedPackage() throws {
         let name = "4 сезона Картофель фри, 450 г"
         let batch = CatalogImport(
@@ -259,21 +318,21 @@ final class SearchViewModelTests: XCTestCase {
         try await repository.importCatalog(CatalogFixtures.catalog())
         let viewModel = SearchViewModel(repository: repository)
         _ = await publishedItems(viewModel.$items.eraseToAnyPublisher(), where: { !$0.isEmpty })
-        var loadingStates: [Bool] = []
-        let observation = viewModel.$isRefreshing.dropFirst().sink { loadingStates.append($0) }
+        var emptyStates: [CatalogEmptyState] = []
+        let observation = viewModel.$emptyState.dropFirst().sink { emptyStates.append($0) }
         defer { observation.cancel() }
 
         await viewModel.refresh()
-        XCTAssertFalse(viewModel.isRefreshing)
+        XCTAssertEqual(viewModel.emptyState, .empty)
         XCTAssertEqual(viewModel.items.map(\.id), ["p1"])
         XCTAssertEqual(viewModel.items.first?.offers.first?.offer.price, Decimal(string: "99.90"))
 
         await source.succeed(with: CatalogFixtures.catalog(price: 120))
         await viewModel.refresh()
-        XCTAssertFalse(viewModel.isRefreshing)
+        XCTAssertEqual(viewModel.emptyState, .empty)
         let updated = await publishedItems(viewModel.$items.eraseToAnyPublisher(), where: { $0.first?.offers.first?.offer.price == 120 })
         XCTAssertEqual(updated.first?.offers.first?.offer.price, 120)
-        XCTAssertEqual(loadingStates, [true, false, true, false], "Only actual loading changes should be published")
+        XCTAssertTrue(emptyStates.isEmpty, "Refreshing an available snapshot should not republish unchanged empty feedback")
     }
 }
 

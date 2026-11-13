@@ -5,6 +5,41 @@ import XCTest
 
 @MainActor
 final class AuthenticationServiceTests: XCTestCase {
+    func testPublicSessionIdentitySurvivesRotationAndServiceRecreation() async throws {
+        let saved = AuthFixtures.saved(expired: true)
+        let store = MemoryAuthenticationStore(saved)
+        let (service, _) = makeService(store: store) { request, _ in
+            request.url!.path.hasSuffix("refresh") ? .json(AuthFixtures.rotatedTokens) : .json(AuthFixtures.userJSON)
+        }
+        let before = try await service.cachedIdentity()
+        XCTAssertEqual(before?.sessionID, saved.id)
+        _ = try await service.currentUser()
+        let after = try await service.cachedIdentity()
+        XCTAssertEqual(after?.sessionID, saved.id)
+        let (recreated, _) = makeService(store: store) { _, _ in .json(AuthFixtures.userJSON) }
+        let restored = try await recreated.cachedIdentity()
+        XCTAssertEqual(restored, after)
+    }
+
+    func testDependenciesPublishNewSessionEvenWhenTheUserIsUnchanged() async throws {
+        let saved = AuthFixtures.saved()
+        let store = MemoryAuthenticationStore(saved)
+        let (service, _) = makeService(store: store) { request, _ in
+            request.url!.path.hasSuffix("login") ? .json(AuthFixtures.authentication) : .json(AuthFixtures.userJSON)
+        }
+        let dependencies = AppDependencies(cache: nil, authenticationService: service)
+        await dependencies.authentication.restore()
+        XCTAssertEqual(dependencies.shoppingList.account?.sessionID, saved.id)
+        dependencies.shoppingList.selection.setQuantity(2, for: "1")
+        try await dependencies.authentication.signIn(email: "moti@example.com", password: "secret123",
+                                                     intent: .signIn, requestID: UUID())
+        let identity = try XCTUnwrap(dependencies.authentication.identity)
+        XCTAssertEqual(identity.user.id, saved.user.id)
+        XCTAssertNotEqual(identity.sessionID, saved.id)
+        XCTAssertEqual(dependencies.shoppingList.account?.sessionID, identity.sessionID)
+        XCTAssertTrue(dependencies.shoppingList.selection.quantities.isEmpty)
+    }
+
     func testLoginAndRegistrationMatchTheContractAndCommitOnlyAfterAcceptance() async throws {
         for intent in [AuthenticationIntent.signIn, .register] {
             let store = MemoryAuthenticationStore()
@@ -85,7 +120,7 @@ final class AuthenticationServiceTests: XCTestCase {
         do { _ = try await request.value; XCTFail("Late refresh must be ignored") }
         catch { XCTAssertTrue(error is CancellationError) }
         XCTAssertNil(store.snapshot)
-        let cached = try await service.cachedUser()
+        let cached = (try await service.cachedIdentity())?.user
         XCTAssertNil(cached)
         await waitUntil {
             server.requests.contains { $0.url!.path.hasSuffix("logout") && String(data: $0.httpBody ?? Data(), encoding: .utf8)?.contains("refresh-2") == true }
@@ -123,7 +158,7 @@ final class AuthenticationServiceTests: XCTestCase {
         interrupted.refreshPending = true
         let store = MemoryAuthenticationStore(interrupted)
         let (service, server) = makeService(store: store) { _, _ in .json(AuthFixtures.rotatedTokens) }
-        do { _ = try await service.cachedUser(); XCTFail("Expected expiration") }
+        do { _ = (try await service.cachedIdentity())?.user; XCTFail("Expected expiration") }
         catch { XCTAssertEqual(error as? AuthenticationFailure, .sessionExpired) }
         XCTAssertEqual(server.count("auth/refresh"), 0)
         XCTAssertEqual(server.count("users/me"), 0)
@@ -525,7 +560,7 @@ final class AuthenticationServiceTests: XCTestCase {
             do { _ = try await service.commit(grant); XCTFail("A cancelled grant must not be accepted again") }
             catch { XCTAssertTrue(error is CancellationError) }
             store.allowRemoval()
-            let cached = try await service.cachedUser()
+            let cached = (try await service.cachedIdentity())?.user
             XCTAssertNil(cached)
             XCTAssertNil(store.snapshot)
         }
@@ -583,7 +618,7 @@ final class AuthenticationServiceTests: XCTestCase {
         _ = try await service.commit(grant)
         try await service.discard(grant)
         XCTAssertNil(store.snapshot)
-        let cached = try await service.cachedUser()
+        let cached = (try await service.cachedIdentity())?.user
         XCTAssertNil(cached)
     }
 
@@ -909,7 +944,7 @@ nonisolated private struct DelayedCommitService: AuthenticationService {
         try await Task.sleep(for: discardDelay)
         try await base.discard(grant)
     }
-    func cachedUser() async throws -> AuthenticatedUser? { try await base.cachedUser() }
+    func cachedIdentity() async throws -> AuthenticationIdentity? { try await base.cachedIdentity() }
     func currentUser() async throws -> AuthenticatedUser { try await base.currentUser() }
     func signOut() async throws { try await base.signOut() }
 }

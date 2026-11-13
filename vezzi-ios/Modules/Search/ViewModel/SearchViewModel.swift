@@ -12,10 +12,12 @@ final class SearchViewModel: ObservableObject {
     @Published private(set) var selectedProduct: Product?
     @Published private(set) var selectedProductStoreID: String?
     @Published private(set) var relatedProducts: [Product] = []
-    @Published private(set) var isRefreshing = false
+    @Published private(set) var emptyState = CatalogEmptyState.empty
 
     var canRefresh: Bool { repository.canRefresh }
     var isResultLimitReached: Bool { items.count == CatalogSearch.resultLimit }
+    // Keep the picker reachable when Fastest has no offers but Best price still has products.
+    var showsModePicker: Bool { !items.isEmpty }
 
     private let stores: [String: SearchStoreInfo]
     private let groupRanks: [String: Int]
@@ -30,10 +32,10 @@ final class SearchViewModel: ObservableObject {
         self.repository = repository
         self.stores = stores
         groupRanks = Dictionary(groupOrder.enumerated().map { ($0.element, $0.offset) }, uniquingKeysWith: min)
-        statusSubscription = repository.status
-            .map(\.isRefreshing)
+        statusSubscription = repository.status.combineLatest(repository.cacheState)
+            .map { CatalogEmptyState(status: $0, cacheState: $1) }
             .removeDuplicates()
-            .sink { [weak self] in self?.isRefreshing = $0 }
+            .sink { [weak self] in self?.emptyState = $0 }
         observe(query: "")
         querySubscription = $query
             .dropFirst()

@@ -6,7 +6,7 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var products: [Product] = []
     @Published private(set) var categories: [ProductCategory] = []
     @Published private(set) var catalogStatus = CatalogStatus()
-    @Published private(set) var isCacheUnavailable = false
+    @Published private var cacheState = CatalogCacheState.disabled
     @Published private(set) var selectedProduct: Product?
     @Published private(set) var relatedProducts: [Product] = []
     @Published var selectedAddress = HomeAddress.home
@@ -21,7 +21,7 @@ final class HomeViewModel: ObservableObject {
         self.selection = selection ?? ProductSelection()
         self.selection.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }.store(in: &subscriptions)
         repository.status.sink { [weak self] in self?.catalogStatus = $0 }.store(in: &subscriptions)
-        repository.cacheState.sink { [weak self] in self?.isCacheUnavailable = $0 == .unavailable }.store(in: &subscriptions)
+        repository.cacheState.removeDuplicates().sink { [weak self] in self?.cacheState = $0 }.store(in: &subscriptions)
         repository.observeAllProducts().sink { [weak self] items in
             guard let self else { return }
             self.products = items.map { Product(catalog: $0) }
@@ -33,6 +33,8 @@ final class HomeViewModel: ObservableObject {
     nonisolated deinit {}
 
     var quantities: [String: Int] { selection.quantities }
+    var isCacheUnavailable: Bool { cacheState == .unavailable }
+    var emptyState: CatalogEmptyState { CatalogEmptyState(status: catalogStatus, cacheState: cacheState) }
     var filteredProducts: [Product] { products(in: selectedCategory) }
 
     func refresh() async {

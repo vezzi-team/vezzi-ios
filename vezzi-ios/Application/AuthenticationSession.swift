@@ -4,7 +4,8 @@ import Foundation
 /// Main-actor presentation state. The service owns credentials, storage and token rotation.
 @MainActor
 final class AuthenticationSession: ObservableObject {
-    @Published private(set) var user: AuthenticatedUser?
+    @Published private(set) var identity: AuthenticationIdentity?
+    var user: AuthenticatedUser? { identity?.user }
     @Published private(set) var isRestoring: Bool
     @Published private(set) var isVerifying = false
     @Published private(set) var isSigningOut = false
@@ -45,18 +46,18 @@ final class AuthenticationSession: ObservableObject {
             await pendingDiscard?.value
             try Task.checkCancellation()
             guard self.revision == revision else { return }
-            let cached = try await service.cachedUser()
+            let cached = try await service.cachedIdentity()
             try Task.checkCancellation()
             guard self.revision == revision else { return }
-            user = cached
+            identity = cached
             hasRestored = true
             isRestoring = false
             lastError = nil
-            guard cached != nil else { return }
+            guard let cached else { return }
             let verified = try await service.currentUser()
             try Task.checkCancellation()
             guard self.revision == revision else { return }
-            user = verified
+            identity = AuthenticationIdentity(sessionID: cached.sessionID, user: verified)
         } catch is CancellationError {
             // Cancellation is not evidence that the saved session is invalid.
         } catch {
@@ -64,7 +65,7 @@ final class AuthenticationSession: ObservableObject {
             let failure = AuthenticationFailure.from(error)
             lastError = failure
             if failure.invalidatesSession {
-                user = nil
+                identity = nil
                 preferences = ProfilePreferences()
             }
         }
@@ -89,7 +90,7 @@ final class AuthenticationSession: ObservableObject {
             activeSignIn = nil
             hasRestored = true
             preferences = ProfilePreferences()
-            self.user = user
+            identity = AuthenticationIdentity(sessionID: response.session.id, user: user)
         } catch {
             if let grant {
                 do { try await service.discard(grant) }
@@ -132,7 +133,7 @@ final class AuthenticationSession: ObservableObject {
         defer { isSigningOut = false }
         do {
             try await service.signOut()
-            user = nil
+            identity = nil
             preferences = ProfilePreferences()
             lastError = nil
             hasRestored = true
