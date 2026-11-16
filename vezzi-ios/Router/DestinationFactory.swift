@@ -16,7 +16,7 @@ enum DestinationFactory {
             case .search:
                 SearchView(repository: catalog, selection: productSelection)
             case .profile:
-                ProfileView(session: authentication)
+                ProfileView()
             case .profileDetails(let destination):
                 ProfileDetailView(destination: destination, session: authentication)
             case .motiDebug:
