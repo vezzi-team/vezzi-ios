@@ -2,7 +2,6 @@
   "sourceLanguage" : "en",
   "strings" : {
     "" : {
-
     },
     "AddressSearchDismiss" : {
       "comment" : "Hide",
@@ -2113,23 +2112,6 @@
         }
       }
     },
-    "HomeIncreaseQuantity" : {
-      "comment" : "Increase product quantity",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Increase quantity of %@"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Увеличить количество: %@"
-          }
-        }
-      }
-    },
     "HomeInList" : {
       "comment" : "In your list",
       "localizations" : {
@@ -2196,6 +2178,23 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "HomeIncreaseQuantity" : {
+      "comment" : "Increase product quantity",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Increase quantity of %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увеличить количество: %@"
           }
         }
       }
@@ -4349,23 +4348,6 @@
         }
       }
     },
-    "ShoppingListCachedCalculation" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Showing a saved calculation. Prices and routes may have changed."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показан сохранённый расчёт. Цены и маршруты могли измениться."
-          }
-        }
-      }
-    },
     "ShoppingListCacheError" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4379,6 +4361,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Локальное хранилище недоступно. Часть изменений может потеряться после закрытия приложения. Повторите попытку."
+          }
+        }
+      }
+    },
+    "ShoppingListCachedCalculation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Showing a saved calculation. Prices and routes may have changed."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показан сохранённый расчёт. Цены и маршруты могли измениться."
           }
         }
       }
@@ -4485,6 +4484,23 @@
         }
       }
     },
+    "ShoppingListFastTotal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fastest calculated option"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Самый быстрый из вариантов"
+          }
+        }
+      }
+    },
     "ShoppingListFaster" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4551,23 +4567,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Самый быстрый"
-          }
-        }
-      }
-    },
-    "ShoppingListFastTotal" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fastest calculated option"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Самый быстрый из вариантов"
           }
         }
       }
@@ -5257,6 +5256,50 @@
           }
         }
       }
+    },
+    "Адрес" : {
+    },
+    "Ваш список. Лучший вариант." : {
+    },
+    "Версия %@" : {
+    },
+    "Включите уведомления" : {
+    },
+    "Готово" : {
+    },
+    "Демо" : {
+    },
+    "Название, например Дом" : {
+    },
+    "Не удалось запросить разрешение" : {
+    },
+    "ОК" : {
+    },
+    "Обратиться в поддержку" : {
+    },
+    "Отмена" : {
+    },
+    "Поиск" : {
+    },
+    "Полка" : {
+    },
+    "Поможем разобраться\nс ценами и покупками" : {
+    },
+    "Понятно" : {
+    },
+    "Разрешите их в настройках iPhone, чтобы узнавать о снижении цен на товары из списка." : {
+    },
+    "Разрешите уведомления, чтобы узнавать о снижении цен на товары из списка." : {
+    },
+    "Связаться с нами" : {
+    },
+    "Сравнивайте стоимость продуктов в ближайших магазинах и выбирайте удобный маршрут за покупками." : {
+    },
+    "Уведомления выключены" : {
+    },
+    "Улица и номер дома" : {
+    },
+    "🧶" : {
     }
   },
   "version" : "1.3"
