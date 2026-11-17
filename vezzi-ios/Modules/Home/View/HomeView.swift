@@ -8,14 +8,17 @@ struct HomeView: View {
     @State private var displayedCategory: ProductCategory?
     @State private var isPastResultsTop = false
     @State private var filterBarHeight: CGFloat = .zero
+    @State private var showsAddress = false
+    private let location: any DeviceLocating
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(repository: any CatalogRepository, authentication: AuthenticationSession, profileTransition: Namespace.ID,
-         selection: ProductSelection? = nil) {
+         list: ShoppingListRepository, location: any DeviceLocating) {
         self.authentication = authentication
         self.profileTransition = profileTransition
-        _viewModel = StateObject(wrappedValue: HomeViewModel(repository: repository, selection: selection))
+        self.location = location
+        _viewModel = StateObject(wrappedValue: HomeViewModel(repository: repository, list: list))
     }
 
     var body: some View {
@@ -33,14 +36,18 @@ struct HomeView: View {
                         scrollToTopButton(using: proxy)
                     }
             }
+            .toolbar { navigationToolbar(availableWidth: geometry.size.width) }
         }
         .background(Color.Background.primary.ignoresSafeArea())
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar { navigationToolbar }
         .sheet(item: selectedProduct) { product in
             ProductDetailView(product: product, relatedProducts: viewModel.relatedProducts,
                               selection: viewModel.selection)
+        }
+        .fullScreenCover(isPresented: $showsAddress) {
+            LocationPickerView(coordinate: viewModel.list.origin, options: viewModel.list.routeOptions,
+                               address: viewModel.list.originAddress, location: location, onConfirm: viewModel.list.setRoute)
         }
     }
 
@@ -99,7 +106,7 @@ struct HomeView: View {
         .frame(maxWidth: Const.maximumWidth)
         .frame(maxWidth: .infinity)
         .id(Const.scrollTopID)
-        .environment(\.isShimmerEnabled, viewModel.selectedProduct == nil && router.presentedSheet == nil)
+        .environment(\.isShimmerEnabled, viewModel.selectedProduct == nil && router.presentedSheet == nil && !showsAddress)
     }
 
     private func productSection(viewportHeight: CGFloat) -> some View {
@@ -159,11 +166,14 @@ struct HomeView: View {
     // MARK: - Header
 
     @ToolbarContentBuilder
-    private var navigationToolbar: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
+    private func navigationToolbar(availableWidth: CGFloat) -> some ToolbarContent {
+        ToolbarItem(placement: .principal) {
             if !dynamicTypeSize.isAccessibilitySize {
                 addressPicker
                     .buttonStyle(.plain)
+                    // Give the title a stable width while reserving the profile's space.
+                    // Leading bar items can be moved into the overflow menu on iOS 26.
+                    .frame(width: max(.zero, availableWidth - Const.toolbarReservedWidth), alignment: .leading)
             }
         }
         .sharedBackgroundVisibility(.hidden)
@@ -185,13 +195,7 @@ struct HomeView: View {
     }
 
     private var addressPicker: some View {
-        Menu {
-            Picker(Texts.Home.Main.address, selection: $viewModel.selectedAddress) {
-                ForEach(HomeAddress.allCases) { address in
-                    Text(address.title).tag(address)
-                }
-            }
-        } label: {
+        Button { showsAddress = true } label: {
             addressLabel
         }
         .foregroundStyle(Color.Label.primary)
@@ -201,10 +205,12 @@ struct HomeView: View {
     private var addressLabel: some View {
         VStack(alignment: .leading, spacing: .zero) {
             HStack(alignment: .firstTextBaseline, spacing: Const.chevronSpacing) {
-                Text(viewModel.selectedAddress.title)
+                Text(viewModel.list.originAddress?.addressCapitalized ?? Texts.Routes.Settings.mapTitle)
                     .appTextStyle(size: Const.headingFontSize, lineHeight: Const.headingLineHeight,
                                    weight: .semibold, relativeTo: .headline)
                     .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                    .minimumScaleFactor(dynamicTypeSize.isAccessibilitySize ? 1 : Const.addressMinimumScale)
+                    .truncationMode(.middle)
                 Image.System.chevronDown
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Color.Label.tertiary)
@@ -233,10 +239,10 @@ struct HomeView: View {
         case .loading:
             ProgressView().frame(maxWidth: .infinity).padding()
         case .offline:
-            MotiEmptyStateView.offline
+            MotiStateView.offline
                 .accessibilityIdentifier(AccessibilityID.Home.offline)
         case .empty:
-            MotiEmptyStateView(title: Texts.Search.emptyTitle, description: Texts.Search.emptyDescription)
+            MotiStateView(title: Texts.Search.emptyTitle, description: Texts.Search.emptyDescription)
                 .accessibilityIdentifier(AccessibilityID.Home.empty)
         }
     }
@@ -268,6 +274,9 @@ struct HomeView: View {
         static let filterScrollDuration: TimeInterval = 0.22
         static let filterTransitionDuration: TimeInterval = 0.18
         static let minimumCardWidth: CGFloat = 150
+        static let addressMinimumScale: CGFloat = 0.7
+        // Native side margins, the profile button and the gap between the two controls.
+        static let toolbarReservedWidth: CGFloat = 92
         static let chevronSpacing: CGFloat = 14
         static let headingFontSize: CGFloat = 17
         static let headingLineHeight: CGFloat = 22
@@ -279,7 +288,8 @@ struct HomeView: View {
 #Preview("Home — light") {
     @Previewable @Namespace var profileTransition
     NavigationStack {
-        HomeView(repository: MockSearchRepository(), authentication: AuthenticationSession.preview(), profileTransition: profileTransition)
+        HomeView(repository: MockSearchRepository(), authentication: AuthenticationSession.preview(), profileTransition: profileTransition,
+                 list: ShoppingListRepository(addressResolver: PreviewAddressResolver()), location: DeviceLocationService())
             .environmentObject(AppRouter())
     }
         .preferredColorScheme(.light)
@@ -288,7 +298,8 @@ struct HomeView: View {
 #Preview("Home — dark, large text") {
     @Previewable @Namespace var profileTransition
     NavigationStack {
-        HomeView(repository: MockSearchRepository(), authentication: AuthenticationSession.preview(), profileTransition: profileTransition)
+        HomeView(repository: MockSearchRepository(), authentication: AuthenticationSession.preview(), profileTransition: profileTransition,
+                 list: ShoppingListRepository(addressResolver: PreviewAddressResolver()), location: DeviceLocationService())
             .environmentObject(AppRouter())
     }
         .preferredColorScheme(.dark)

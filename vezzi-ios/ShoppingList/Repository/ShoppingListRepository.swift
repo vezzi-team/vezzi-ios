@@ -13,10 +13,16 @@ final class ShoppingListRepository: ObservableObject {
     var accountID: String? { account?.id }
     @Published private(set) var hasCacheFailure = false
     @Published private(set) var isPlanCached = false
+    @Published private(set) var origin = ShoppingCoordinate.defaultOrigin
+    @Published private(set) var originAddress: String?
+    @Published private(set) var routeOptions = ShoppingRouteOptions()
     let selection: ProductSelection
 
     private let service: (any ShoppingListService)?
     private let cache: (any ShoppingListCache)?
+    private let addressResolver: (any AddressResolving)?
+    private var addressTask: Task<Void, Never>?
+    private var addressRevision = UUID()
     private var cachedPlan: CachedShoppingPlan?
     private var needsCacheLoad = true
     private var locallyEditedBeforeCacheLoad: [ShoppingCartEditTarget: Set<String>] = [:]
@@ -40,27 +46,31 @@ final class ShoppingListRepository: ObservableObject {
     private var connectionRevision = 0
     private var generation = UUID()
     private var revision = 0
+    private var hasEditedRoute = false
     private var worker: Task<Void, Never>?
     private var observation: AnyCancellable?
 
     init(service: (any ShoppingListService)? = nil, selection: ProductSelection? = nil,
-         cache: (any ShoppingListCache)? = nil) {
+         cache: (any ShoppingListCache)? = nil, addressResolver: (any AddressResolving)? = nil) {
         self.service = service
         self.cache = cache
+        self.addressResolver = addressResolver
         let selection = selection ?? ProductSelection()
         self.selection = selection
         previousQuantities = selection.quantities
         observation = selection.$quantities.dropFirst().sink { [weak self] values in
             self?.quantitiesChanged(values)
         }
+        startAddressLookup()
     }
 
-    nonisolated deinit {}
+    nonisolated deinit { addressTask?.cancel() }
 
     func setAccount(_ account: ShoppingListAccount?) {
         guard self.account != account else { return }
         let previousAccount = self.account
         let guestQuantities = accountID == nil ? selection.quantities : [:]
+        let guestRoute = accountID == nil && hasEditedRoute ? (origin, routeOptions, originAddress) : nil
         generation = UUID()
         worker?.cancel()
         worker = nil
@@ -70,6 +80,10 @@ final class ShoppingListRepository: ObservableObject {
         planResult = nil
         cachedPlan = nil
         isPlanCached = false
+        origin = guestRoute?.0 ?? .defaultOrigin
+        replaceOriginAddress(guestRoute?.2)
+        routeOptions = guestRoute?.1 ?? .init()
+        hasEditedRoute = guestRoute != nil
         cacheAccessFailed = false
         failure = nil
         isBusy = false
@@ -84,11 +98,59 @@ final class ShoppingListRepository: ObservableObject {
         retryCacheRemovals()
         applyQuantities(account == nil ? [:] : guestQuantities)
         startWorker()
+        startAddressLookup()
     }
 
     func setPresented(_ presented: Bool) {
         isPresented = presented
         if presented { startWorker() }
+    }
+
+    func setOrigin(_ coordinate: ShoppingCoordinate) {
+        setRoute(origin: coordinate, options: routeOptions)
+    }
+
+    func setRoute(origin coordinate: ShoppingCoordinate, options: ShoppingRouteOptions, address: String? = nil) {
+        guard coordinate.isValid, options.isValid else { return }
+        // Explicit confirmation takes precedence over a late cache read, even without changes.
+        hasEditedRoute = true
+        let routeChanged = coordinate != origin || options != routeOptions
+        if coordinate != origin || address != nil { replaceOriginAddress(address) }
+        origin = coordinate
+        routeOptions = options
+        startAddressLookup()
+        guard routeChanged else {
+            saveCache()
+            return
+        }
+        revision += 1
+        invalidatePlan()
+        saveCache()
+        // Do not cancel an in-flight POST: let the serial worker reject it and calculate again.
+        startWorker()
+    }
+
+    // The resolved label belongs to this exact origin, independently of plan calculations.
+    private func replaceOriginAddress(_ address: String?) {
+        addressTask?.cancel()
+        addressTask = nil
+        addressRevision = UUID()
+        let value = address?.trimmingCharacters(in: .whitespacesAndNewlines)
+        originAddress = value?.isEmpty == false ? value : nil
+    }
+
+    private func startAddressLookup() {
+        guard originAddress == nil, addressTask == nil, let addressResolver else { return }
+        let point = origin
+        let revision = addressRevision
+        addressTask = Task { [weak self] in
+            guard !Task.isCancelled else { return }
+            let address = try? await addressResolver.address(for: point)
+            guard !Task.isCancelled, let self, self.addressRevision == revision, self.origin == point else { return }
+            self.addressTask = nil
+            self.replaceOriginAddress(address)
+            self.saveCache()
+        }
     }
 
     func updateConnectivity(isConnected: Bool) {
@@ -97,6 +159,7 @@ final class ShoppingListRepository: ObservableObject {
         if isConnected {
             connectionRevision += 1
             startWorker()
+            startAddressLookup()
         } else if accountID != nil {
             // Reload before sending pending edits, but let requests determine reachability.
             needsReload = true
@@ -104,6 +167,7 @@ final class ShoppingListRepository: ObservableObject {
     }
 
     func refresh() async {
+        startAddressLookup()
         needsReload = true
         // A failed refresh must not discard a calculation for the unchanged cart.
         needsPlan = true
@@ -233,7 +297,9 @@ final class ShoppingListRepository: ObservableObject {
                 }
                 guard isPresented, needsPlan, !hasCurrentPendingEdits, let cart, !cart.items.isEmpty else { return }
                 let plannedRevision = revision
-                let result = try await service.plans(cartID: cart.id, start: .previewOrigin)
+                let plannedOrigin = origin
+                let plannedOptions = routeOptions
+                let result = try await service.plans(cartID: cart.id, start: plannedOrigin, options: plannedOptions)
                 try check(generation)
                 // Plan requests are serialized with cart writes; an old POST cannot replace a newer calculation.
                 guard plannedRevision == revision, !needsReload else { continue }
@@ -242,10 +308,10 @@ final class ShoppingListRepository: ObservableObject {
                                                 uniquingKeysWith: +)
                     guard quantities == cart.quantities else { throw APIError.invalidResponse }
                 }
-                planResult = result
-                cachedPlan = CachedShoppingPlan(cartID: cart.id, quantities: cart.quantities, origin: .previewOrigin,
-                                                calculatedAt: Date(), result: result)
+                cachedPlan = CachedShoppingPlan(cartID: cart.id, quantities: cart.quantities, origin: plannedOrigin,
+                                               calculatedAt: Date(), result: result, routeOptions: plannedOptions)
                 isPlanCached = false
+                planResult = result
                 needsPlan = false
                 saveCache()
                 return
@@ -275,6 +341,17 @@ final class ShoppingListRepository: ObservableObject {
             try check(generation)
             if let snapshot {
                 try snapshot.validate()
+                if !hasEditedRoute, origin != snapshot.origin || routeOptions != snapshot.routeOptions {
+                    if origin != snapshot.origin { replaceOriginAddress(snapshot.originAddress) }
+                    origin = snapshot.origin
+                    routeOptions = snapshot.routeOptions
+                    revision += 1
+                    // Cache recovery may follow a server calculation made from the fallback origin.
+                    invalidatePlan()
+                }
+                if !hasEditedRoute, originAddress == nil, let address = snapshot.originAddress {
+                    replaceOriginAddress(address)
+                }
                 // A late disk read must not roll back an already restored server cart.
                 if needsActiveCartResolution {
                     cart = snapshot.cart
@@ -296,10 +373,10 @@ final class ShoppingListRepository: ObservableObject {
                 if !pending.isEmpty { needsReload = true }
                 reconcileSelection()
                 if !hasCurrentPendingEdits, planResult == nil, let saved = snapshot.plan,
-                   saved.origin == .previewOrigin, cart.map({ saved.matches($0) }) == true {
+                   saved.origin == origin, saved.routeOptions == routeOptions, cart.map({ saved.matches($0) }) == true {
                     cachedPlan = saved
-                    planResult = saved.result
                     isPlanCached = true
+                    planResult = saved.result
                 }
             }
         } catch is CancellationError {
@@ -312,6 +389,7 @@ final class ShoppingListRepository: ObservableObject {
         needsCacheLoad = false
         locallyEditedBeforeCacheLoad = [:]
         cacheAccessFailed = false
+        startAddressLookup()
         saveCache()
     }
 
@@ -326,7 +404,8 @@ final class ShoppingListRepository: ObservableObject {
             guard let self, self.generation == generation, self.cacheRevision == cacheRevision else { return }
             // Coalesce queued writes and read the newest values when the writer is ready.
             let snapshot = ShoppingListCacheSnapshot(cart: self.cart, pending: self.pending, plan: self.cachedPlan,
-                                                     hasResolvedCart: self.hasResolvedCart)
+                                                     hasResolvedCart: self.hasResolvedCart, origin: self.origin,
+                                                     routeOptions: self.routeOptions, originAddress: self.originAddress)
             do {
                 try await cache.save(snapshot, account: account)
                 if self.generation == generation { self.cacheAccessFailed = false }

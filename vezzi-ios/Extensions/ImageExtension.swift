@@ -12,9 +12,12 @@ extension Image {
     // MARK: - SF Symbols
 
     enum System {
+        static let location = Image(systemName: "location")
+        static let locationFill = Image(systemName: "location.fill")
         static let person = Image(systemName: "person.crop.circle")
         static let walk = Image(systemName: "figure.walk")
         static let chevronRight = Image(systemName: "chevron.right")
+        static let chevronLeft = Image(systemName: "chevron.left")
         static let chevronDown = Image(systemName: "chevron.down")
         static let xmark = Image(systemName: "xmark")
         static let arrowRight = Image(systemName: "arrow.right")
@@ -69,6 +72,14 @@ extension Image {
 
 // Core Animation uses the same asset catalog as SwiftUI images.
 extension UIImage {
+    enum System {
+        static var startPin: UIImage? {
+            UIImage(systemName: "mappin")
+        }
+        static var roundTripPin: UIImage? {
+            UIImage(systemName: "mappin.and.ellipse")
+        }
+    }
     enum Brand {
         static let motiYarn = UIImage(named: "MotiYarn")
     }

@@ -3,6 +3,21 @@ import XCTest
 
 @MainActor
 final class ShoppingListCacheTests: XCTestCase {
+    func testAddressRoundTripAndLegacySnapshotWithoutAddress() throws {
+        let snapshot = ShoppingListCacheSnapshot(cart: nil, pending: [:], plan: nil,
+                                                origin: .defaultOrigin, originAddress: "Комендантский проспект, 12")
+        let data = try PropertyListEncoder().encode(snapshot)
+        let restored = try PropertyListDecoder().decode(ShoppingListCacheSnapshot.self, from: data)
+        XCTAssertEqual(restored.originAddress, snapshot.originAddress)
+        XCTAssertEqual(restored.origin, snapshot.origin)
+        var legacy = try XCTUnwrap(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any])
+        legacy.removeValue(forKey: "originAddress")
+        let legacyData = try PropertyListSerialization.data(fromPropertyList: legacy, format: .binary, options: 0)
+        let decoded = try PropertyListDecoder().decode(ShoppingListCacheSnapshot.self, from: legacyData)
+        XCTAssertNil(decoded.originAddress)
+        XCTAssertEqual(decoded.origin, snapshot.origin, "Existing saved points must not move to the new default")
+    }
+
     func testDiskRoundTripDistinguishesConfirmedAbsenceFromUnresolvedCart() async throws {
         let folder = temporaryFolder()
         defer { try? FileManager.default.removeItem(at: folder) }
@@ -177,6 +192,35 @@ final class ShoppingListCacheTests: XCTestCase {
         let loaded = try await cache.load(account: ShoppingListTestAccount.make("account"))
         XCTAssertEqual(loaded?.plan?.cartID, valid.cart?.id)
         XCTAssertTrue(loaded?.pending.isEmpty == true)
+    }
+
+    func testRouteOptionsRoundTripAndLegacyCacheDefaults() throws {
+        var snapshot = sampleSnapshot()
+        let saved = try XCTUnwrap(snapshot.plan)
+        let options = ShoppingRouteOptions(returnToStart: true, radiusMeters: 1000)
+        snapshot.routeOptions = options
+        snapshot.plan = CachedShoppingPlan(cartID: saved.cartID, quantities: saved.quantities, origin: saved.origin,
+                                           calculatedAt: saved.calculatedAt, result: saved.result, routeOptions: options)
+        let data = try PropertyListEncoder().encode(snapshot)
+        let loaded = try PropertyListDecoder().decode(ShoppingListCacheSnapshot.self, from: data)
+        XCTAssertEqual(loaded.routeOptions, options)
+        XCTAssertEqual(loaded.plan?.routeOptions, options)
+        XCTAssertNoThrow(try loaded.validate())
+
+        var legacy = try XCTUnwrap(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any])
+        legacy.removeValue(forKey: "routeOptions")
+        var legacyPlan = try XCTUnwrap(legacy["plan"] as? [String: Any])
+        legacyPlan.removeValue(forKey: "routeOptions")
+        legacy["plan"] = legacyPlan
+        let oldData = try PropertyListSerialization.data(fromPropertyList: legacy, format: .binary, options: 0)
+        let old = try PropertyListDecoder().decode(ShoppingListCacheSnapshot.self, from: oldData)
+        XCTAssertEqual(old.routeOptions, .init())
+        XCTAssertEqual(old.plan?.routeOptions, .init())
+        XCTAssertNoThrow(try old.validate())
+
+        var mismatched = loaded
+        mismatched.routeOptions.radiusMeters = 500
+        XCTAssertThrowsError(try mismatched.validate())
     }
 
     private func temporaryFolder() -> URL {

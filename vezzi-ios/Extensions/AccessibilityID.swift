@@ -1,5 +1,36 @@
 /// Stable, nonlocalized identifiers used to find interface elements in UI tests.
 enum AccessibilityID {
+    enum Routes {
+        enum AddressSearch {
+            static let cancel = "routes.addressSearch.cancel"
+            static let results = "routes.addressSearch.results"
+            static func suggestion(_ id: String) -> String { "routes.addressSearch.suggestion.\(id)" }
+        }
+        enum Settings {
+            static let panel = "routes.settings.panel"
+            static let direction = "routes.settings.direction"
+            static let radius = "routes.settings.radius"
+            static let coordinate = "routes.settings.coordinate"
+            static let pin = "routes.settings.pin"
+            static let expand = "routes.settings.expand"
+            static let returnToArea = "routes.settings.returnToArea"
+            static let returnToAreaInPanel = "routes.settings.returnToAreaInPanel"
+            static func radiusOption(_ meters: Int) -> String { "routes.settings.radius.\(meters)" }
+        }
+        static let zoomIn = "routes.zoomIn"
+        static let zoomOut = "routes.zoomOut"
+        static let deviceLocation = "routes.deviceLocation"
+        static let attribution = "routes.attribution"
+        static let map = "routes.map"
+        static let options = "routes.options"
+        static let origin = "routes.origin"
+        static let back = "routes.back"
+        static let panel = "routes.panel"
+        static let summary = "routes.summary"
+        static let startShopping = "routes.startShopping"
+        static let locate = "routes.locate"
+        static let confirmOrigin = "routes.confirmOrigin"
+    }
     // MARK: - Home
 
     enum Home {

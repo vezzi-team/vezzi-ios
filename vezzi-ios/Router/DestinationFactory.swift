@@ -4,13 +4,14 @@ import SwiftUI
 enum DestinationFactory {
     static func view(for route: AppRouter.Route, catalog: any CatalogRepository,
                      authentication: AuthenticationSession, profileTransition: Namespace.ID,
-                     productSelection: ProductSelection, shoppingList: ShoppingListRepository) -> some View {
+                     productSelection: ProductSelection, shoppingList: ShoppingListRepository, location: any DeviceLocating) -> some View {
         Group {
             switch route {
             case .home:
-                HomeView(repository: catalog, authentication: authentication, profileTransition: profileTransition, selection: productSelection)
+                HomeView(repository: catalog, authentication: authentication, profileTransition: profileTransition,
+                         list: shoppingList, location: location)
             case .shoppingList:
-                ShoppingListView(catalog: catalog, list: shoppingList)
+                ShoppingListView(catalog: catalog, list: shoppingList, location: location)
             case .stores:
                 StoresView()
             case .search:

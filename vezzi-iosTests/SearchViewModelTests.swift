@@ -292,7 +292,7 @@ final class SearchViewModelTests: XCTestCase {
 
     func testProductQuantitiesAreSharedWithHomeAndSurviveSearchModeChanges() {
         let selection = ProductSelection()
-        let home = HomeViewModel(repository: MockSearchRepository(), selection: selection)
+        let home = HomeViewModel(repository: MockSearchRepository(), list: ShoppingListRepository(selection: selection))
         let search = mockViewModel()
         let product = search.sections[0].products[0]
         selection.setQuantity(2, for: product.id)
