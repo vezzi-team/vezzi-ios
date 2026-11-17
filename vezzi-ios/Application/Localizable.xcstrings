@@ -1,6 +1,490 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "EmptyStateLoading": {
+      "comment": "Loading",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Загрузка"
+          }
+        }
+      }
+    },
+    "AddressSearchHintTitle": {
+      "comment": "Choose an address",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an address"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Укажите адрес"
+          }
+        }
+      }
+    },
+    "AddressSearchLoading": {
+      "comment": "Searching for addresses",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Searching for addresses"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ищем адреса"
+          }
+        }
+      }
+    },
+    "AddressSearchEmptyDescription": {
+      "comment": "Check the spelling or try another address.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the spelling or try another address."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверьте написание или попробуйте другой адрес."
+          }
+        }
+      }
+    },
+    "AddressSearchFailureTitle": {
+      "comment": "Could not find the address",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not find the address"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось найти адрес"
+          }
+        }
+      }
+    },
+    "RoutesSettingsReturnToArea": {
+      "comment": "Return to the available area",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to the available area"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вернуться в доступную область"
+          }
+        }
+      }
+    },
+    "AddressSearchDismiss": {
+      "comment": "Hide",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скрыть"
+          }
+        }
+      }
+    },
+    "AddressSearchFailure": {
+      "comment": "Check your connection and try again.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check your connection and try again."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверьте подключение и попробуйте ещё раз."
+          }
+        }
+      }
+    },
+    "AddressSearchEmpty": {
+      "comment": "No addresses found",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No addresses found"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Адреса не найдены"
+          }
+        }
+      }
+    },
+    "AddressSearchHint": {
+      "comment": "Enter a street and house number",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a street and house number"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Введите улицу и номер дома"
+          }
+        }
+      }
+    },
+    "AddressSearchPrompt": {
+      "comment": "Street and house number",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Street and house number"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Улица и номер дома"
+          }
+        }
+      }
+    },
+    "AddressSearchTitle": {
+      "comment": "Find an address",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find an address"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поиск адреса"
+          }
+        }
+      }
+    },
+    "RoutesSettingsReturnLeg" : {
+      "comment" : "Back to the start · %@ · %@",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to the start · %@ · %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обратно к началу · %@ · %@"
+          }
+        }
+      }
+    },
+    "RoutesSettingsRequiredRadius" : {
+      "comment" : "Some products are outside the search area. Increase the radius to at least %@.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some products are outside the search area. Increase the radius to at least %@."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Часть товаров за пределами поиска. Увеличьте радиус хотя бы до %@."
+          }
+        }
+      }
+    },
+    "RoutesSettingsWalkingMode" : {
+      "comment" : "Walking · %@",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Walking · %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пешком · %@"
+          }
+        }
+      }
+    },
+    "RoutesSettingsConfirm" : {
+      "comment" : "Save route settings",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save route settings"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранить параметры маршрута"
+          }
+        }
+      }
+    },
+    "RoutesSettingsMoveMap" : {
+      "comment" : "Move the map",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move the map"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Двигайте карту"
+          }
+        }
+      }
+    },
+    "RoutesSettingsNoLimit" : {
+      "comment" : "No limit",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No limit"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Без ограничений"
+          }
+        }
+      }
+    },
+    "RoutesSettingsRadius" : {
+      "comment" : "Radius from the starting point",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radius from the starting point"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Радиус от начальной точки"
+          }
+        }
+      }
+    },
+    "RoutesSettingsStart" : {
+      "comment" : "Start",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начало"
+          }
+        }
+      }
+    },
+    "RoutesSettingsOneWay" : {
+      "comment" : "One way",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One way"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В одну сторону"
+          }
+        }
+      }
+    },
+    "RoutesSettingsRoundTrip" : {
+      "comment" : "Round trip",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Round trip"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Туда-обратно"
+          }
+        }
+      }
+    },
+    "RoutesSettingsDirection" : {
+      "comment" : "Route direction",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Route direction"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Направление маршрута"
+          }
+        }
+      }
+    },
+    "RoutesSettingsFindingAddress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finding address…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Определяем адрес…"
+          }
+        }
+      }
+    },
+    "RoutesSettingsSelectedPoint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected point on the map"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбранная точка на карте"
+          }
+        }
+      }
+    },
+    "RoutesSettingsTitle" : {
+      "comment" : "Address and route",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Address and route"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адрес и маршрут"
+          }
+        }
+      }
+    },
+    "RoutesSettingsMapTitle" : {
+      "comment" : "Starting point",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starting point"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начальная точка"
+          }
+        }
+      }
+    },
     "" : {
 
     },
@@ -2860,23 +3344,6 @@
         }
       }
     },
-    "RoutesChoosePoint" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tap the map to choose a starting point"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Нажмите на карту, чтобы выбрать точку старта"
-          }
-        }
-      }
-    },
     "RoutesCollapseDetails" : {
       "comment" : "Collapse route details",
       "localizations" : {
@@ -3215,40 +3682,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Начать покупки · %@"
-          }
-        }
-      }
-    },
-    "RoutesStartTitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Starting point"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Точка старта"
-          }
-        }
-      }
-    },
-    "RoutesUsePoint" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start from here"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Начать отсюда"
           }
         }
       }

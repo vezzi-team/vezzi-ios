@@ -227,10 +227,10 @@ struct SearchView: View {
         case .loading:
             ProgressView()
         case .offline:
-            MotiEmptyStateView.offline
+            MotiStateView.offline
                 .accessibilityIdentifier(AccessibilityID.Search.offline)
         case .empty:
-            MotiEmptyStateView(
+            MotiStateView(
                 title: emptyTitle,
                 description: viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                     ? Texts.Search.emptyDescription : Texts.Search.noResultsDescription)

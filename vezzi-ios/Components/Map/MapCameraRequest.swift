@@ -5,6 +5,8 @@ nonisolated struct MapCameraRequest {
     enum Action: Equatable {
         case zoomIn, zoomOut
         case center(ShoppingCoordinate)
+        case fitArea(LocationSelectionArea)
+        case fitRoute
     }
 
     let id = UUID()

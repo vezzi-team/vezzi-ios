@@ -20,13 +20,7 @@ final class ShoppingRouteViewModel: ObservableObject {
         self.location = location
         list.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }.store(in: &subscriptions)
         list.$planResult.sink { [weak self] result in
-            guard let self, self.isRecalculating, let result,
-                  let first = result.plans.first,
-                  let updated = ShoppingRoutesSnapshot(plans: result.plans, selectedID: first.id,
-                                                       origin: list.origin, isSaved: false) else { return }
-            self.snapshot = updated
-            self.selectedID = updated.selectedID
-            self.isRecalculating = false
+            self?.acceptRecalculation(result)
         }.store(in: &subscriptions)
     }
 
@@ -34,20 +28,41 @@ final class ShoppingRouteViewModel: ObservableObject {
 
     var selectedPlan: ShoppingPlan? { isRecalculating ? nil : snapshot.plans.first { $0.id == selectedID } }
     var origin: ShoppingCoordinate { isRecalculating ? list.origin : snapshot.origin }
+    var originAddress: String? {
+        let savedAddress = origin == snapshot.origin ? snapshot.originAddress : nil
+        return origin == list.origin ? list.originAddress ?? savedAddress : savedAddress
+    }
+    var routeOptions: ShoppingRouteOptions { isRecalculating ? list.routeOptions : snapshot.routeOptions }
     var isBusy: Bool { isRecalculating && list.isBusy }
     var failure: String? {
         guard isRecalculating, !list.isBusy else { return nil }
         if list.failure == .offline { return Texts.Routes.offline }
         if list.failure == .authenticationRequired { return Texts.ShoppingList.signInDescription }
         if list.failure != nil { return Texts.ShoppingList.loadError }
-        return Texts.ShoppingList.planningProblem(list.planResult?.problem)
+        return Texts.ShoppingList.planningProblem(list.planResult?.problem, requiredRadius: list.planResult?.minRequiredRadiusMeters)
     }
 
-    func changeOrigin(_ coordinate: ShoppingCoordinate) {
-        guard coordinate.isValid, coordinate != origin else { return }
+    func changeRoute(_ coordinate: ShoppingCoordinate, options: ShoppingRouteOptions, address: String? = nil) {
+        guard coordinate.isValid, options.isValid else { return }
+        guard coordinate != origin || options != routeOptions || coordinate != list.origin || options != list.routeOptions else {
+            list.setRoute(origin: coordinate, options: options, address: address)
+            return
+        }
         isRecalculating = true
-        list.setOrigin(coordinate)
+        list.setRoute(origin: coordinate, options: options, address: address)
+        // The repository may already have this calculation while the screen retains an older snapshot.
+        acceptRecalculation(list.planResult)
         list.setPresented(true)
+    }
+
+    private func acceptRecalculation(_ result: ShoppingPlanResult?) {
+        guard isRecalculating, let result, let first = result.plans.first,
+              let updated = ShoppingRoutesSnapshot(plans: result.plans, selectedID: first.id,
+                                                   origin: list.origin, isSaved: list.isPlanCached,
+                                                   routeOptions: list.routeOptions, originAddress: list.originAddress) else { return }
+        snapshot = updated
+        selectedID = updated.selectedID
+        isRecalculating = false
     }
 
     func retry() async { await list.refresh() }

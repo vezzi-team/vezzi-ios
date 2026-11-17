@@ -120,7 +120,7 @@ final class ShoppingListViewModel: ObservableObject {
             }
         }
         guard let result = list.planResult, result.plans.isEmpty else { return nil }
-        return Texts.ShoppingList.planningProblem(result.problem)
+        return Texts.ShoppingList.planningProblem(result.problem, requiredRadius: result.minRequiredRadiusMeters)
     }
 
     func refresh() async {
@@ -131,7 +131,8 @@ final class ShoppingListViewModel: ObservableObject {
 
     func showRoutes() {
         guard let selected = plan, let plans = list.planResult?.plans else { return }
-        routes = ShoppingRoutesSnapshot(plans: plans, selectedID: selected.id, origin: list.origin, isSaved: list.isPlanCached)
+        routes = ShoppingRoutesSnapshot(plans: plans, selectedID: selected.id, origin: list.origin, isSaved: list.isPlanCached,
+                                        routeOptions: list.routeOptions, originAddress: list.originAddress)
     }
 
     func showProduct(_ product: Product) {

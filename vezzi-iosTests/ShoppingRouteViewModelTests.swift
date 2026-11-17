@@ -3,6 +3,23 @@ import XCTest
 
 @MainActor
 final class ShoppingRouteViewModelTests: XCTestCase {
+    func testRouteKeepsAddressBoundToItsSnapshotUntilOriginChanges() throws {
+        let list = ShoppingListRepository()
+        list.setRoute(origin: list.origin, options: .init(), address: "Original street")
+        let plan = ShoppingPlan(id: UUID(), total: 100, savings: nil, totalSeconds: 600, walkingMeters: 500,
+                                stops: [], points: [list.origin], usesRoadNetwork: true, isSynthetic: true)
+        let snapshot = try XCTUnwrap(ShoppingRoutesSnapshot(plans: [plan], selectedID: plan.id,
+                                                            origin: list.origin, isSaved: false, originAddress: list.originAddress))
+        let model = ShoppingRouteViewModel(snapshot: snapshot, list: list, location: RouteLocationStub())
+        let point = ShoppingCoordinate(latitude: 60.015, longitude: 30.26)
+        list.setRoute(origin: point, options: .init(), address: "New street")
+        XCTAssertEqual(model.originAddress, "Original street")
+        XCTAssertEqual(model.origin, snapshot.origin)
+        model.changeRoute(point, options: .init(), address: "New street")
+        XCTAssertEqual(model.origin, point)
+        XCTAssertEqual(model.originAddress, "New street")
+    }
+
     func testLocationDoesNotChangeRouteOriginOrSelection() async throws {
         let service = RouteLocationStub()
         let list = ShoppingListPreview.repository()
@@ -73,6 +90,9 @@ final class RouteLocationStub: DeviceLocating {
     private var continuation: CheckedContinuation<ShoppingCoordinate, Error>?
     private var observer: CheckedContinuation<Void, Never>?
     private(set) var requestCount = 0
+
+    // Avoid the isolated-deinit runtime crash on early iOS 26.
+    nonisolated deinit {}
 
     func currentCoordinate() async throws -> ShoppingCoordinate {
         requestCount += 1

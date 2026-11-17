@@ -66,7 +66,7 @@ struct ProfileView: View {
 
     private var shoppingSection: some View {
         Section {
-            row(.address, subtitle: session.preferences.address)
+            row(.address, subtitle: session.preferences.address.addressCapitalized)
             row(.priority, subtitle: session.preferences.priority.title)
         } header: {
             sectionTitle(Texts.Profile.Main.shopping)

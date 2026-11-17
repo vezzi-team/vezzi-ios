@@ -275,6 +275,7 @@ final class Texts {
     }
 
     enum EmptyState {
+        static let loading = NSLocalizedString("EmptyStateLoading", comment: "Loading")
         static let offlineTitle = NSLocalizedString("EmptyStateOfflineTitle", comment: "No internet connection")
         static let offlineDescription = NSLocalizedString("EmptyStateOfflineDescription", comment: "Connect to the internet to load data.")
     }
@@ -309,12 +310,13 @@ final class Texts {
     // MARK: - Shopping List
 
     enum ShoppingList {
-        static func planningProblem(_ reason: String?) -> String {
+        static func planningProblem(_ reason: String?, requiredRadius: Int? = nil) -> String {
             switch reason {
             case "items_unavailable": return itemsUnavailable
             case "store_limit_too_low": return storeLimit
             case "time_limit_too_low": return timeLimit
-            case "radius_too_small": return radiusLimit
+            case "radius_too_small":
+                return requiredRadius.map { Routes.Settings.requiredRadius($0) } ?? radiusLimit
             case "route_unavailable": return routeUnavailable
             default: return noPlans
             }
@@ -377,16 +379,57 @@ final class Texts {
     }
 
     enum Routes {
+        enum AddressSearch {
+            static let hintTitle = NSLocalizedString("AddressSearchHintTitle", comment: "Choose an address")
+            static let loading = NSLocalizedString("AddressSearchLoading", comment: "Searching for addresses")
+            static let emptyDescription = NSLocalizedString("AddressSearchEmptyDescription", comment: "Check the spelling or try another address.")
+            static let failureTitle = NSLocalizedString("AddressSearchFailureTitle", comment: "Could not find the address")
+            static let title = NSLocalizedString("AddressSearchTitle", comment: "Find an address")
+            static let prompt = NSLocalizedString("AddressSearchPrompt", comment: "Street and house number")
+            static let hint = NSLocalizedString("AddressSearchHint", comment: "Enter a street and house number")
+            static let empty = NSLocalizedString("AddressSearchEmpty", comment: "No addresses found")
+            static let failure = NSLocalizedString("AddressSearchFailure", comment: "Check your connection and try again.")
+            static let dismiss = NSLocalizedString("AddressSearchDismiss", comment: "Hide")
+        }
+
+        enum Settings {
+            static let title = NSLocalizedString("RoutesSettingsTitle", comment: "Address and route")
+            static let mapTitle = NSLocalizedString("RoutesSettingsMapTitle", comment: "Starting point")
+            static let direction = NSLocalizedString("RoutesSettingsDirection", comment: "Route direction")
+            static let roundTrip = NSLocalizedString("RoutesSettingsRoundTrip", comment: "Round trip")
+            static let oneWay = NSLocalizedString("RoutesSettingsOneWay", comment: "One way")
+            static let start = NSLocalizedString("RoutesSettingsStart", comment: "Start")
+            static let radius = NSLocalizedString("RoutesSettingsRadius", comment: "Radius from the starting point")
+            static let noLimit = NSLocalizedString("RoutesSettingsNoLimit", comment: "No limit")
+            static let moveMap = NSLocalizedString("RoutesSettingsMoveMap", comment: "Move the map")
+            static let returnToArea = NSLocalizedString("RoutesSettingsReturnToArea", comment: "Return to the available area")
+            static let confirm = NSLocalizedString("RoutesSettingsConfirm", comment: "Save route settings")
+            static let findingAddress = NSLocalizedString("RoutesSettingsFindingAddress", comment: "Finding address…")
+            static let selectedPoint = NSLocalizedString("RoutesSettingsSelectedPoint", comment: "Selected point on the map")
+
+            static func walkingMode(_ options: ShoppingRouteOptions) -> String {
+                String.localizedStringWithFormat(NSLocalizedString("RoutesSettingsWalkingMode", comment: "Walking and route direction"),
+                                                 options.returnToStart ? roundTrip : oneWay)
+            }
+
+            static func requiredRadius(_ meters: Int) -> String {
+                String.localizedStringWithFormat(NSLocalizedString("RoutesSettingsRequiredRadius", comment: "Increase the search radius"),
+                                                 Routes.distance(meters))
+            }
+
+            static func returnLeg(meters: Int, seconds: Int) -> String {
+                String.localizedStringWithFormat(NSLocalizedString("RoutesSettingsReturnLeg", comment: "Walk back to the starting point"),
+                                                 ShoppingList.minutes(Int(ceil(Double(seconds) / 60))), Routes.distance(meters))
+            }
+        }
+
         static let zoomIn = NSLocalizedString("RoutesZoomIn", comment: "Zoom in")
         static let zoomOut = NSLocalizedString("RoutesZoomOut", comment: "Zoom out")
         static let currentLocation = NSLocalizedString("RoutesCurrentLocation", comment: "Your location")
         static let locating = NSLocalizedString("RoutesLocating", comment: "Finding your location")
         static let mapAttribution = NSLocalizedString("RoutesMapAttribution", comment: "Map data credits")
         static let mapSources = NSLocalizedString("RoutesMapSources", comment: "Map sources")
-        static let startTitle = NSLocalizedString("RoutesStartTitle", comment: "Starting point")
-        static let choosePoint = NSLocalizedString("RoutesChoosePoint", comment: "Tap the map to choose a starting point")
         static let myLocation = NSLocalizedString("RoutesMyLocation", comment: "Use my location")
-        static let usePoint = NSLocalizedString("RoutesUsePoint", comment: "Start from here")
         static let openSettings = NSLocalizedString("RoutesOpenSettings", comment: "Open settings")
         static let locationDenied = NSLocalizedString("RoutesLocationDenied", comment: "Location access is off. Enable it in Settings or choose a point on the map.")
         static let locationUnavailable = NSLocalizedString("RoutesLocationUnavailable", comment: "Could not get your location. Try again or choose a point on the map.")

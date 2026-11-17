@@ -36,16 +36,19 @@ nonisolated struct APIShoppingListService: ShoppingListService {
         return try response.decode(CartDTO.self).record()
     }
 
-    @concurrent func plans(cartID: UUID, start: ShoppingCoordinate) async throws -> ShoppingPlanResult {
+    @concurrent func plans(cartID: UUID, start: ShoppingCoordinate, options: ShoppingRouteOptions) async throws -> ShoppingPlanResult {
+        guard start.isValid, options.isValid else { throw APIError.invalidResponse }
         let response = try await client.authorizedResponse(for: APIRequest(path: "carts/\(cartID.uuidString)/plans", method: "POST",
-                                                                         body: APIClient.encode(PlanRequest(start: start))))
+                                                                         body: APIClient.encode(PlanRequest(start: start, returnToStart: options.returnToStart,
+                                                                                                          radiusMeters: options.radiusMeters))))
         let result: PlanResponseDTO = try response.decode()
         guard ["ok", "no_plans"].contains(result.status),
               (result.status == "ok") == !result.plans.isEmpty,
               Set(result.plans.map(\.id)).count == result.plans.count,
               result.baseline.map({ $0.totalKopecks >= 0 }) ?? true else { throw APIError.invalidResponse }
         return ShoppingPlanResult(plans: try result.plans.map { try $0.record() }, baselinePrice: result.baseline.map { Decimal($0.totalKopecks) / 100 },
-                                  problem: result.problem?.reason, isSynthetic: result.dataIsSynthetic)
+                                  problem: result.problem?.reason, isSynthetic: result.dataIsSynthetic,
+                                  minRequiredRadiusMeters: result.problem?.minRequiredRadiusMeters)
     }
 
     private struct CartCreate: Encodable { let name: String }
@@ -55,6 +58,8 @@ nonisolated struct APIShoppingListService: ShoppingListService {
         let start: ShoppingCoordinate
         let maxStores = 3
         let maxTotalMinutes = 60
+        let returnToStart: Bool
+        let radiusMeters: Int?
     }
     private struct CartSummaryDTO: Decodable, Sendable { let id: UUID }
     private struct CartDTO: Decodable, Sendable {
@@ -82,13 +87,18 @@ nonisolated struct APIShoppingListService: ShoppingListService {
         let dataIsSynthetic: Bool
     }
     private struct BaselineDTO: Decodable, Sendable { let totalKopecks: Int64 }
-    private struct ProblemDTO: Decodable, Sendable { let reason: String }
+    private struct ProblemDTO: Decodable, Sendable {
+        let reason: String
+        let minRequiredRadiusMeters: Int?
+    }
     private struct PlanDTO: Decodable, Sendable {
         let id: UUID
         let totalKopecks: Int64
         let savingsKopecks: Int64?
         let totalSeconds: Int
         let walkingMeters: Int
+        let returnWalkSeconds: Int?
+        let returnWalkMeters: Int?
         let stops: [StopDTO]
         let route: RouteDTO
         let dataIsSynthetic: Bool
@@ -96,6 +106,7 @@ nonisolated struct APIShoppingListService: ShoppingListService {
         func record() throws -> ShoppingPlan {
             let items = stops.flatMap(\.items)
             guard totalKopecks >= 0, totalSeconds >= 0, walkingMeters >= 0, !stops.isEmpty,
+                  returnWalkSeconds.map({ $0 >= 0 }) ?? true, returnWalkMeters.map({ $0 >= 0 }) ?? true,
                   Set(stops.map { $0.store.id }).count == stops.count,
                   Set(items.map { $0.product.id }).count == items.count,
                   items.allSatisfy({ (1...99).contains($0.quantity) && $0.unitPriceKopecks >= 0 }),
@@ -108,7 +119,8 @@ nonisolated struct APIShoppingListService: ShoppingListService {
             return ShoppingPlan(id: id, total: Decimal(totalKopecks) / 100, savings: savingsKopecks.map { Decimal($0) / 100 },
                          totalSeconds: totalSeconds, walkingMeters: walkingMeters,
                          stops: stops.sorted { $0.position < $1.position }.map(\.record), points: route.points,
-                         usesRoadNetwork: route.usesRoadNetwork, isSynthetic: dataIsSynthetic)
+                         usesRoadNetwork: route.usesRoadNetwork, isSynthetic: dataIsSynthetic,
+                         returnWalkingSeconds: returnWalkSeconds, returnWalkingMeters: returnWalkMeters)
         }
     }
     private struct RouteDTO: Decodable, Sendable {

@@ -3,6 +3,15 @@ import XCTest
 
 @MainActor
 final class HomeViewModelTests: XCTestCase {
+    func testHomeSharesSelectedOriginAndQuantitiesWithList() {
+        let list = ShoppingListRepository()
+        let model = HomeViewModel(repository: PreviewCatalogRepository(), list: list)
+        XCTAssertTrue(model.selection === list.selection)
+        list.setRoute(origin: .defaultOrigin, options: .init(), address: "Chosen street")
+        XCTAssertEqual(model.list.originAddress, "Chosen street")
+        XCTAssertEqual(model.list.origin, .defaultOrigin)
+    }
+
     func testMainPricePrioritizesAvailabilityAndFreshnessAcrossStores() {
         var product = Product(id: "p", name: "Milk", brand: "", packageQuantity: nil, packageUnit: nil, category: nil, offers: [
             ProductOffer(id: "unavailable", storeID: "s1", name: "Store 1", price: 20, inStock: false),
@@ -92,7 +101,7 @@ final class HomeViewModelTests: XCTestCase {
             CatalogProduct(id: "apples", name: "Apples", category: "Produce")
         ])
         let selection = ProductSelection()
-        let model = HomeViewModel(repository: PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(batch)), selection: selection)
+        let model = HomeViewModel(repository: PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(batch)), list: ShoppingListRepository(selection: selection))
         XCTAssertEqual(model.categories.map(\.rawValue), ["Dairy", "Produce"])
         model.setQuantity(2, for: "milk")
         model.selectedCategory = ProductCategory(rawValue: "Produce")

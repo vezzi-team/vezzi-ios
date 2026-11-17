@@ -9,16 +9,19 @@ final class HomeViewModel: ObservableObject {
     @Published private var cacheState = CatalogCacheState.disabled
     @Published private(set) var selectedProduct: Product?
     @Published private(set) var relatedProducts: [Product] = []
-    @Published var selectedAddress = HomeAddress.home
     @Published var selectedCategory: ProductCategory?
     let selection: ProductSelection
+    let list: ShoppingListRepository
     private let repository: any CatalogRepository
     private var subscriptions = Set<AnyCancellable>()
     private var relatedSubscription: AnyCancellable?
 
-    init(repository: any CatalogRepository, selection: ProductSelection? = nil) {
+    init(repository: any CatalogRepository, list: ShoppingListRepository? = nil) {
         self.repository = repository
-        self.selection = selection ?? ProductSelection()
+        let list = list ?? ShoppingListRepository()
+        self.list = list
+        self.selection = list.selection
+        list.$originAddress.removeDuplicates().sink { [weak self] _ in self?.objectWillChange.send() }.store(in: &subscriptions)
         self.selection.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }.store(in: &subscriptions)
         repository.status.sink { [weak self] in self?.catalogStatus = $0 }.store(in: &subscriptions)
         repository.cacheState.removeDuplicates().sink { [weak self] in self?.cacheState = $0 }.store(in: &subscriptions)

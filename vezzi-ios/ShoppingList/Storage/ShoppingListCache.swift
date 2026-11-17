@@ -14,17 +14,22 @@ nonisolated struct ShoppingListCacheSnapshot: Codable, Sendable {
     /// A successful lookup can confirm that the account has no active cart.
     var hasResolvedCart: Bool
     var origin: ShoppingCoordinate
+    var originAddress: String?
+    var routeOptions: ShoppingRouteOptions
 
     init(cart: ShoppingCart?, pending: [ShoppingCartEditTarget: [String: Int]], plan: CachedShoppingPlan?,
-         hasResolvedCart: Bool = false, origin: ShoppingCoordinate? = nil) {
+         hasResolvedCart: Bool = false, origin: ShoppingCoordinate? = nil, routeOptions: ShoppingRouteOptions = .init(),
+         originAddress: String? = nil) {
         self.cart = cart
         self.pending = pending
         self.plan = plan
         self.hasResolvedCart = hasResolvedCart || cart != nil
-        self.origin = origin ?? plan?.origin ?? .previewOrigin
+        self.origin = origin ?? plan?.origin ?? .defaultOrigin
+        self.originAddress = originAddress
+        self.routeOptions = routeOptions
     }
 
-    private enum CodingKeys: String, CodingKey { case cart, pending, plan, hasResolvedCart, origin }
+    private enum CodingKeys: String, CodingKey { case cart, pending, plan, hasResolvedCart, origin, routeOptions, originAddress }
 
     init(from decoder: any Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
@@ -34,10 +39,12 @@ nonisolated struct ShoppingListCacheSnapshot: Codable, Sendable {
         // Older snapshots also saved nil after a failed first request; only an actual cart is proof.
         hasResolvedCart = try values.decodeIfPresent(Bool.self, forKey: .hasResolvedCart) ?? (cart != nil)
         origin = try values.decodeIfPresent(ShoppingCoordinate.self, forKey: .origin) ?? plan?.origin ?? .previewOrigin
+        originAddress = try values.decodeIfPresent(String.self, forKey: .originAddress)
+        routeOptions = try values.decodeIfPresent(ShoppingRouteOptions.self, forKey: .routeOptions) ?? .init()
     }
 
     func validate() throws {
-        guard origin.isValid else { throw ShoppingListCacheError.invalidSnapshot }
+        guard origin.isValid, routeOptions.isValid else { throw ShoppingListCacheError.invalidSnapshot }
         if let cart {
             guard hasResolvedCart, cart.status == "active", cart.items.count <= 30,
                   Set(cart.items.map { $0.product.id }).count == cart.items.count,
@@ -52,6 +59,7 @@ nonisolated struct ShoppingListCacheSnapshot: Codable, Sendable {
         // Preserve that conflict on disk; synchronization enforces the limit before adding items.
         if let plan {
             guard pending[.active] == nil, let cart, pending[.cart(cart.id)] == nil, plan.matches(cart), plan.origin == origin,
+                  plan.routeOptions == routeOptions,
                   plan.calculatedAt.timeIntervalSince1970.isFinite,
                   plan.result.baselinePrice.map({ $0 >= .zero }) ?? true,
                   plan.result.plans.count <= 3,
@@ -61,6 +69,8 @@ nonisolated struct ShoppingListCacheSnapshot: Codable, Sendable {
             for option in plan.result.plans {
                 let items = option.stops.flatMap(\.items)
                 guard option.total >= .zero, option.totalSeconds >= 0, option.walkingMeters >= 0, !option.stops.isEmpty,
+                      option.returnWalkingSeconds.map({ $0 >= 0 }) ?? true,
+                      option.returnWalkingMeters.map({ $0 >= 0 }) ?? true,
                       Set(option.stops.map(\.id)).count == option.stops.count,
                       Set(items.map { $0.product.id }).count == items.count,
                       items.allSatisfy({ (1...99).contains($0.quantity) && $0.unitPrice >= .zero
@@ -83,6 +93,30 @@ nonisolated struct CachedShoppingPlan: Codable, Sendable {
     let origin: ShoppingCoordinate
     let calculatedAt: Date
     let result: ShoppingPlanResult
+    let routeOptions: ShoppingRouteOptions
+
+    init(cartID: UUID, quantities: [String: Int], origin: ShoppingCoordinate, calculatedAt: Date,
+         result: ShoppingPlanResult, routeOptions: ShoppingRouteOptions = .init()) {
+        self.cartID = cartID
+        self.quantities = quantities
+        self.origin = origin
+        self.calculatedAt = calculatedAt
+        self.result = result
+        self.routeOptions = routeOptions
+    }
+
+    private enum CodingKeys: String, CodingKey { case cartID, quantities, origin, calculatedAt, result, routeOptions }
+
+    init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        cartID = try values.decode(UUID.self, forKey: .cartID)
+        quantities = try values.decode([String: Int].self, forKey: .quantities)
+        origin = try values.decode(ShoppingCoordinate.self, forKey: .origin)
+        calculatedAt = try values.decode(Date.self, forKey: .calculatedAt)
+        result = try values.decode(ShoppingPlanResult.self, forKey: .result)
+        // Existing snapshots were one-way calculations without a radius limit.
+        routeOptions = try values.decodeIfPresent(ShoppingRouteOptions.self, forKey: .routeOptions) ?? .init()
+    }
 
     func matches(_ cart: ShoppingCart) -> Bool {
         cartID == cart.id && quantities == cart.quantities

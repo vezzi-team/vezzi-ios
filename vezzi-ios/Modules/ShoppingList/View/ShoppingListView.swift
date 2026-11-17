@@ -36,7 +36,7 @@ struct ShoppingListView: View {
             isPastSummaryTop = isPastTop
         }
         .environment(\.isShimmerEnabled, viewModel.selectedProduct == nil && viewModel.routes == nil && !showsStores && !showsAddress)
-        .background(Color.Background.iOSPrimary.ignoresSafeArea())
+        .background(Color.Background.primary.ignoresSafeArea())
         .navigationTitle(Texts.ShoppingList.title)
         .toolbarTitleDisplayMode(.inlineLarge)
         .safeAreaBar(edge: .bottom) {
@@ -53,7 +53,8 @@ struct ShoppingListView: View {
             ShoppingRouteView(snapshot: snapshot, list: viewModel.list, location: location)
         }
         .fullScreenCover(isPresented: $showsAddress) {
-            LocationPickerView(coordinate: viewModel.list.origin, location: location, onConfirm: viewModel.list.setOrigin)
+            LocationPickerView(coordinate: viewModel.list.origin, options: viewModel.list.routeOptions,
+                               address: viewModel.list.originAddress, location: location, onConfirm: viewModel.list.setRoute)
         }
     }
 
@@ -88,19 +89,14 @@ struct ShoppingListView: View {
         case .loading:
             ProgressView()
         case .offline:
-            MotiEmptyStateView.offline
+            MotiStateView.offline
                 .accessibilityIdentifier(AccessibilityID.ShoppingList.offline)
         case .unavailable:
-            VStack(spacing: Const.sectionSpacing) {
-                MotiEmptyStateView(title: Texts.ShoppingList.loadErrorTitle,
-                                   description: Texts.ShoppingList.loadError)
-                if viewModel.needsAuthentication {
-                    Button(Texts.ShoppingList.signIn) { router.presentAuthentication() }
-                        .buttonStyle(.glass)
-                }
-            }
+            MotiStateView(title: Texts.ShoppingList.loadErrorTitle, description: Texts.ShoppingList.loadError,
+                          action: viewModel.needsAuthentication
+                            ? .init(title: Texts.ShoppingList.signIn, perform: { router.presentAuthentication() }) : nil)
         case .empty:
-            MotiEmptyStateView(title: Texts.ShoppingList.emptyTitle, description: Texts.ShoppingList.emptyDescription,
+            MotiStateView(title: Texts.ShoppingList.emptyTitle, description: Texts.ShoppingList.emptyDescription,
                                expression: .winking)
                 .accessibilityIdentifier(AccessibilityID.ShoppingList.empty)
         case .products:
@@ -134,9 +130,9 @@ struct ShoppingListView: View {
             HStack(spacing: Const.addressSpacing) {
                 Image.System.walk.font(.title2).foregroundStyle(.tint)
                 VStack(alignment: .leading, spacing: Const.captionSpacing) {
-                    Text(viewModel.list.origin == .previewOrigin ? Texts.ShoppingList.mockAddress : Texts.Routes.coordinate(viewModel.list.origin))
+                    Text(viewModel.list.originAddress?.addressCapitalized ?? Texts.Routes.Settings.mapTitle)
                         .font(.subheadline.weight(.semibold)).foregroundStyle(Color.Label.primary)
-                    Text(Texts.ShoppingList.walking).font(.caption).foregroundStyle(Color.Label.secondary)
+                    Text(Texts.Routes.Settings.walkingMode(viewModel.list.routeOptions)).font(.caption).foregroundStyle(Color.Label.secondary)
                 }
                 Spacer(minLength: .zero)
                 Image.System.chevronRight.font(.caption.weight(.semibold)).foregroundStyle(Color.Label.secondary)

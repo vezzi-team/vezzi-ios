@@ -72,6 +72,14 @@ extension Image {
 
 // Core Animation uses the same asset catalog as SwiftUI images.
 extension UIImage {
+    enum System {
+        static var startPin: UIImage? {
+            UIImage(systemName: "mappin")
+        }
+        static var roundTripPin: UIImage? {
+            UIImage(systemName: "mappin.and.ellipse")
+        }
+    }
     enum Brand {
         static let motiYarn = UIImage(named: "MotiYarn")
     }

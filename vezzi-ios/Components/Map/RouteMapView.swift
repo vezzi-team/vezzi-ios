@@ -12,8 +12,13 @@ struct RouteMapView: UIViewRepresentable {
     var cameraRequest: MapCameraRequest?
     var deviceCoordinate: ShoppingCoordinate?
     var reloadRevision = 0
+    var selectionRadius: Int?
+    var selectionReturnsToStart = false
+    var selectionLiveBottomInset: CGFloat?
+    var selectionArea: LocationSelectionArea?
     var onInteractionBegan: () -> Void = {}
     var onSelectCoordinate: ((ShoppingCoordinate) -> Void)?
+    var onSelectionAvailabilityChanged: (Bool) -> Void = { _ in }
     var onLoadFailure: (Bool) -> Void = { _ in }
     var onShowAttribution: (([MapAttribution]) -> Void)?
 
@@ -36,13 +41,11 @@ struct RouteMapView: UIViewRepresentable {
         if Const.showsAttribution { context.coordinator.installAttribution(in: container) }
         map.accessibilityIdentifier = AccessibilityID.Routes.map
         map.setCenter(origin.clCoordinate, zoomLevel: Const.initialZoom, animated: false)
-        let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.selectPoint(_:)))
-        tap.numberOfTapsRequired = 1
-        for gesture in map.gestureRecognizers ?? [] {
-            if let zoom = gesture as? UITapGestureRecognizer, zoom.numberOfTapsRequired > 1 { tap.require(toFail: zoom) }
+        if onSelectCoordinate != nil {
+            let selection = MapPointSelection()
+            selection.install(in: container)
+            context.coordinator.pointSelection = selection
         }
-        map.addGestureRecognizer(tap)
-        context.coordinator.selectionGesture = tap
         return container
     }
 
@@ -50,7 +53,6 @@ struct RouteMapView: UIViewRepresentable {
         let map = container.map
         let coordinator = context.coordinator
         coordinator.parent = self
-        coordinator.selectionGesture?.isEnabled = onSelectCoordinate != nil
         coordinator.attributionBottom?.constant = -max(Const.ornamentInset,
                                                        bottomInset - container.safeAreaInsets.bottom + Const.ornamentInset)
         if map.styleURL != styleURL {
@@ -104,7 +106,7 @@ struct RouteMapView: UIViewRepresentable {
     final class Coordinator: NSObject, MLNMapViewDelegate {
         var parent: RouteMapView
         weak var mapView: MLNMapView?
-        weak var selectionGesture: UITapGestureRecognizer?
+        var pointSelection: MapPointSelection?
         private weak var attributionButton: UIButton?
         var attributionBottom: NSLayoutConstraint?
         var reloadRevision = 0
@@ -115,7 +117,10 @@ struct RouteMapView: UIViewRepresentable {
         private var lastBottomInset: CGFloat?
         private var needsCameraFit = false
         private var hasFittedCamera = false
+        private var preservesUserCamera = false
         private var isInteracting = false
+        private var interactionRevision = UUID()
+        private var lastSelectionAvailability: Bool?
         private var lastCameraRequestID: UUID?
         private var requestedZoom: Double?
         private var deviceAnnotation: DeviceLocationAnnotation?
@@ -180,6 +185,9 @@ struct RouteMapView: UIViewRepresentable {
         }
 
         func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
+            if let area = parent.selectionArea {
+                MapSelectionAreaOverlay.install(in: style, area: area, traits: mapView.traitCollection)
+            }
             let source = MLNShapeSource(identifier: Const.sourceID, shape: nil, options: [.lineDistanceMetrics: true])
             style.addSource(source)
             revealLayers.removeAll()
@@ -202,24 +210,55 @@ struct RouteMapView: UIViewRepresentable {
         }
 
         func mapView(_ mapView: MLNMapView, regionWillChangeWith reason: MLNCameraChangeReason, animated: Bool) {
-            guard !reason.intersection(Const.userGestures).isEmpty, hasActiveGesture(mapView) else { return }
+            // Tap recognizers have already ended when the SDK starts their zoom animation.
+            let isTapZoom = !reason.intersection([.gestureZoomIn, .gestureZoomOut]).isEmpty
+            guard !reason.intersection(Const.userGestures).isEmpty,
+                  isTapZoom || hasActiveGesture(mapView) else { return }
             isInteracting = true
+            interactionRevision = UUID()
+            lastSelectionAvailability = nil
             requestedZoom = nil
+            lastCameraRequestID = parent.cameraRequest?.id
+            preservesUserCamera = true
+            needsCameraFit = false
+            pointSelection?.prepareCamera(mapView)
             parent.onInteractionBegan()
         }
 
         func mapView(_ mapView: MLNMapView, regionDidChangeWith reason: MLNCameraChangeReason, animated: Bool) {
+            guard pointSelection?.isAdjustingCamera != true else { return }
+            if let pointSelection {
+                // Layout, style loading and centering must not turn a confirmed point into a new draft.
+                guard isInteracting, !hasActiveGesture(mapView) else { return }
+                let revision = interactionRevision
+                // Avoid publishing during updateUIView or recursively from setCenter/contentInset.
+                Task { @MainActor [weak self] in
+                    guard let self, self.interactionRevision == revision, let map = self.mapView,
+                          self.isInteracting, !self.hasActiveGesture(map) else { return }
+                    self.isInteracting = false
+                    guard let coordinate = pointSelection.settle(map) else { return }
+                    self.parent.onSelectCoordinate?(coordinate)
+                    self.applyCameraRequest(map)
+                }
+                return
+            }
             guard isInteracting, !hasActiveGesture(mapView) else { return }
             isInteracting = false
-            // Wait until the native gesture (including inertia) finishes before fitting the route.
-            // Starting a camera animation inside a pan would cancel it on the next touch event.
-            Task { @MainActor [weak self] in
-                guard let self, let map = self.mapView else { return }
-                self.fitIfNeeded(map)
-            }
+            applyCameraRequest(mapView)
         }
 
         func mapView(_ mapView: MLNMapView, regionIsChangingWith reason: MLNCameraChangeReason) {
+            pointSelection?.render(mapView)
+            if isInteracting, let selection = pointSelection, let area = parent.selectionArea {
+                let available = area.contains(selection.visibleCoordinate(in: mapView))
+                if lastSelectionAvailability != available {
+                    lastSelectionAvailability = available
+                    Task { @MainActor [weak self] in
+                        guard let self, self.isInteracting, self.lastSelectionAvailability == available else { return }
+                        self.parent.onSelectionAvailabilityChanged(available)
+                    }
+                }
+            }
             captionsNeedLayout = true
         }
 
@@ -240,6 +279,23 @@ struct RouteMapView: UIViewRepresentable {
 
         func update(_ map: MLNMapView, styleReloaded: Bool = false) {
             defer { applyCameraRequest(map) }
+            if let pointSelection {
+                if let coordinate = pointSelection.update(map, coordinate: parent.origin, radius: parent.selectionRadius,
+                                      returnsToStart: parent.selectionReturnsToStart,
+                                      bottomInset: parent.bottomInset, liveBottomInset: parent.selectionLiveBottomInset ?? parent.bottomInset,
+                                      isInteracting: isInteracting || hasActiveGesture(map), animated: canAnimate) {
+                    let revision = interactionRevision
+                    // The panel may finish collapsing after the gesture. Commit the point under
+                    // its final pin without moving the camera or publishing during updateUIView.
+                    Task { @MainActor [weak self] in
+                        guard let self, self.interactionRevision == revision, !self.isInteracting,
+                              let map = self.mapView, !self.hasActiveGesture(map),
+                              self.pointSelection?.selectedCoordinate == coordinate else { return }
+                        self.parent.onSelectCoordinate?(coordinate)
+                    }
+                }
+                return
+            }
             captionsNeedLayout = true
             updateDeviceLocation(map)
             // Read the actual safe area after layout. Avoid resetting camera insets on every update.
@@ -290,7 +346,7 @@ struct RouteMapView: UIViewRepresentable {
                 lastSize = map.bounds.size
                 lastInsets = insets
                 lastBottomInset = parent.bottomInset
-                needsCameraFit = true
+                needsCameraFit = !preservesUserCamera
             }
             fitIfNeeded(map)
         }
@@ -313,11 +369,38 @@ struct RouteMapView: UIViewRepresentable {
         private func applyCameraRequest(_ map: MLNMapView) {
             guard let request = parent.cameraRequest, request.id != lastCameraRequestID,
                   map.window != nil, map.bounds.width > .zero, map.bounds.height > .zero else { return }
+            // A zoom waits for the gesture's point to be committed, including its deferred callback.
+            // Location and return-to-area requests already supply an explicit replacement point.
+            if isInteracting || hasActiveGesture(map) {
+                switch request.action {
+                case .fitRoute: return
+                case .zoomIn, .zoomOut:
+                    if pointSelection != nil { return }
+                case .center, .fitArea: break
+                }
+            }
+            // Keep the camera's logical center in the visible area above the sheet.
+            let padding = pointSelection == nil
+                ? UIEdgeInsets(top: Const.routePadding, left: Const.routePadding,
+                               bottom: parent.bottomInset + Const.routePadding, right: Const.routePadding)
+                : pointSelection?.cameraInsets ?? .zero
+            if case .fitArea = request.action,
+               map.bounds.inset(by: padding).height < Const.minimumVisibleHeight { return }
             lastCameraRequestID = request.id
+            interactionRevision = UUID()
+            isInteracting = false
             needsCameraFit = false
+            preservesUserCamera = true
+            pointSelection?.prepareCamera(map)
             let camera = map.camera
+            if let coordinate = pointSelection?.selectedCoordinate { camera.centerCoordinate = coordinate.clCoordinate }
             let zoom: Double
             switch request.action {
+            case .fitRoute:
+                preservesUserCamera = false
+                needsCameraFit = true
+                fitIfNeeded(map)
+                return
             case .zoomIn, .zoomOut:
                 let step = request.action == .zoomIn ? Const.zoomStep : -Const.zoomStep
                 zoom = min(map.maximumZoomLevel, max(map.minimumZoomLevel, (requestedZoom ?? map.zoomLevel) + step))
@@ -327,11 +410,15 @@ struct RouteMapView: UIViewRepresentable {
                 camera.centerCoordinate = coordinate.clCoordinate
                 zoom = min(map.maximumZoomLevel, max(Const.locationZoom, map.zoomLevel))
                 requestedZoom = nil
+            case .fitArea(let area):
+                camera.centerCoordinate = area.center.clCoordinate
+                let viewport = map.bounds.inset(by: padding)
+                let diameter = max(Const.minimumVisibleHeight, min(viewport.width, viewport.height) - Const.routePadding * 2)
+                let scale = Double(diameter) * map.metersPerPoint(atLatitude: area.center.latitude) / (area.radiusMeters * 2)
+                zoom = min(map.maximumZoomLevel, max(map.minimumZoomLevel, map.zoomLevel + log2(scale)))
+                requestedZoom = nil
             }
             camera.altitude = MLNAltitudeForZoomLevel(zoom, camera.pitch, camera.centerCoordinate.latitude, map.bounds.size)
-            // Keep the camera's logical center in the visible area above the sheet.
-            let padding = UIEdgeInsets(top: Const.routePadding, left: Const.routePadding,
-                                       bottom: parent.bottomInset + Const.routePadding, right: Const.routePadding)
             map.setCamera(camera, withDuration: canAnimate ? Const.cameraDuration : .zero,
                           animationTimingFunction: CAMediaTimingFunction(name: .easeInEaseOut), edgePadding: padding) { [weak self] in
                 guard self?.lastCameraRequestID == request.id else { return }
@@ -383,7 +470,7 @@ struct RouteMapView: UIViewRepresentable {
         }
 
         private func fitIfNeeded(_ map: MLNMapView) {
-            guard needsCameraFit, !isInteracting, !hasActiveGesture(map), map.window != nil,
+            guard needsCameraFit, !preservesUserCamera, !isInteracting, !hasActiveGesture(map), map.window != nil,
                   map.bounds.width > .zero, map.bounds.height > .zero else { return }
             let availableHeight = map.bounds.height - map.contentInset.top - map.contentInset.bottom
             let bottomPadding = parent.bottomInset + Const.routePadding
@@ -410,13 +497,6 @@ struct RouteMapView: UIViewRepresentable {
             } else {
                 map.setCenter(parent.origin.clCoordinate, zoomLevel: Const.initialZoom, animated: animated)
             }
-        }
-
-        @objc func selectPoint(_ gesture: UITapGestureRecognizer) {
-            guard let map = gesture.view as? MLNMapView, let select = parent.onSelectCoordinate else { return }
-            let point = map.convert(gesture.location(in: map), toCoordinateFrom: map)
-            let coordinate = ShoppingCoordinate(latitude: point.latitude, longitude: point.longitude)
-            if coordinate.isValid { select(coordinate) }
         }
 
         func mapView(_ mapView: MLNMapView, viewFor annotation: any MLNAnnotation) -> MLNAnnotationView? {

@@ -65,7 +65,8 @@ struct ShoppingRouteView: View {
             if phase == .background { locationRequest = nil }
         }
         .task(id: locationRequest) {
-            if locationRequest != nil, let coordinate = await viewModel.locate(), !Task.isCancelled {
+            guard let request = locationRequest else { return }
+            if let coordinate = await viewModel.locate(), !Task.isCancelled, locationRequest == request {
                 cameraRequest = MapCameraRequest(action: .center(coordinate))
             }
         }
@@ -90,7 +91,7 @@ struct ShoppingRouteView: View {
         RouteMapView(origin: viewModel.origin, plan: viewModel.selectedPlan,
                      bottomInset: mapBottomInset(in: geometry),
                      cameraRequest: cameraRequest, deviceCoordinate: viewModel.deviceCoordinate,
-                     reloadRevision: reloadRevision, onInteractionBegan: collapsePanel,
+                     reloadRevision: reloadRevision, onInteractionBegan: beginMapInteraction,
                      onLoadFailure: { mapFailed = $0 },
                      onShowAttribution: { attribution = MapAttributionContent(items: $0) })
             .ignoresSafeArea()
@@ -135,9 +136,9 @@ struct ShoppingRouteView: View {
                 HStack(spacing: Const.addressSpacing) {
                     Image.System.walk.font(.title3).foregroundStyle(.tint)
                     VStack(alignment: .leading, spacing: Const.addressCaptionSpacing) {
-                        Text(viewModel.origin == .previewOrigin ? Texts.ShoppingList.mockAddress : Texts.Routes.coordinate(viewModel.origin))
+                        Text(viewModel.originAddress?.addressCapitalized ?? Texts.Routes.Settings.mapTitle)
                             .font(.subheadline.weight(.semibold)).foregroundStyle(Color.Label.primary)
-                        Text(Texts.ShoppingList.walking).font(.caption).foregroundStyle(Color.Label.secondary)
+                        Text(Texts.Routes.Settings.walkingMode(viewModel.routeOptions)).font(.caption).foregroundStyle(Color.Label.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     Image.System.chevronRight.font(.caption.weight(.semibold)).foregroundStyle(Color.Label.secondary)
@@ -148,7 +149,7 @@ struct ShoppingRouteView: View {
                 .contentShape(.capsule)
             }
             .buttonStyle(.plain)
-            .background(Color.Background.secondary, in: .capsule)
+            .glassEffect(.regular.interactive(), in: .capsule)
             .accessibilityIdentifier(AccessibilityID.Routes.origin)
             if mapFailed {
                 VStack(spacing: Const.spacing) {
@@ -184,7 +185,11 @@ struct ShoppingRouteView: View {
         .accessibilityIdentifier(AccessibilityID.Routes.panel)
         .accessibilityAction(.escape, close)
         .fullScreenCover(isPresented: $showsOrigin) {
-            LocationPickerView(coordinate: viewModel.origin, location: location, onConfirm: viewModel.changeOrigin)
+            LocationPickerView(coordinate: viewModel.origin, options: viewModel.routeOptions,
+                               address: viewModel.originAddress, location: location) { coordinate, options, address in
+                viewModel.changeRoute(coordinate, options: options, address: address)
+                cameraRequest = MapCameraRequest(action: .fitRoute)
+            }
         }
         .sheet(item: $attribution) { MapAttributionView(items: $0.items) }
         .alert(Texts.Routes.currentLocation, isPresented: Binding(
@@ -231,33 +236,54 @@ struct ShoppingRouteView: View {
 
     private var routeDetails: some View {
         ScrollView {
-            VStack(spacing: Const.sectionSpacing) {
-                if let plan = viewModel.selectedPlan {
-                    VStack(spacing: Const.spacing) {
-                        ForEach(plan.stops) { stop in
-                            RouteStopRow(stop: stop, isFirst: stop.id == plan.stops.first?.id)
-                        }
-                    }
-                    if !plan.usesRoadNetwork {
-                        Text(Texts.ShoppingList.routeApproximation).font(.footnote).foregroundStyle(Color.Label.secondary)
-                    }
-                    if viewModel.snapshot.isSaved {
-                        Text(Texts.ShoppingList.cachedCalculation).font(.footnote).foregroundStyle(Color.Label.secondary)
-                    }
-                } else if viewModel.isBusy {
-                    ProgressView(Texts.ShoppingList.updating)
-                        .frame(maxWidth: .infinity, minHeight: Const.loadingHeight)
-                } else if let failure = viewModel.failure {
-                    Text(failure).font(.subheadline).foregroundStyle(Color.Label.secondary)
-                    Button(Texts.Routes.retry) { Task { await viewModel.retry() } }
-                        .buttonStyle(.glass)
-                }
+            ZStack(alignment: .top) {
+                routeDetailsContent
+                    .id(viewModel.selectedPlan?.id)
+                    .transition(reduceMotion ? .identity : AnyTransition(.blurReplace))
             }
+            .frame(maxWidth: .infinity)
             .padding(.horizontal, Const.contentInset)
             .padding(.top, Const.spacing)
             .padding(.bottom, Const.contentInset)
+            .animation(routeChangeAnimation, value: viewModel.selectedPlan?.id)
         }
         .scrollIndicators(.hidden)
+    }
+
+    private var routeDetailsContent: some View {
+        VStack(spacing: Const.sectionSpacing) {
+            if let plan = viewModel.selectedPlan {
+                routeStops(plan)
+                if !plan.usesRoadNetwork {
+                    Text(Texts.ShoppingList.routeApproximation).font(.footnote).foregroundStyle(Color.Label.secondary)
+                }
+                if viewModel.snapshot.isSaved {
+                    Text(Texts.ShoppingList.cachedCalculation).font(.footnote).foregroundStyle(Color.Label.secondary)
+                }
+            } else if viewModel.isBusy {
+                ProgressView(Texts.ShoppingList.updating)
+                    .frame(maxWidth: .infinity, minHeight: Const.loadingHeight)
+            } else if let failure = viewModel.failure {
+                Text(failure).font(.subheadline).foregroundStyle(Color.Label.secondary)
+                Button(Texts.Routes.retry) { Task { await viewModel.retry() } }
+                    .buttonStyle(.glass)
+            }
+        }
+    }
+
+    private func routeStops(_ plan: ShoppingPlan) -> some View {
+        VStack(spacing: Const.spacing) {
+            ForEach(plan.stops) { stop in
+                RouteStopRow(stop: stop, isFirst: stop.id == plan.stops.first?.id)
+            }
+            if let meters = plan.returnWalkingMeters, let seconds = plan.returnWalkingSeconds {
+                Label {
+                    Text(Texts.Routes.Settings.returnLeg(meters: meters, seconds: seconds))
+                } icon: { Image.System.location }
+                    .font(.footnote).foregroundStyle(Color.Label.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
     }
 
     @ViewBuilder private var routeAction: some View {
@@ -273,7 +299,10 @@ struct ShoppingRouteView: View {
     private func startShoppingButton(_ plan: ShoppingPlan) -> some View {
         // Plan activation is deliberately unavailable in this read-only preview.
         Button(action: {}) {
-            Text(Texts.Routes.startShopping(plan.total)).frame(maxWidth: .infinity)
+            Text(Texts.Routes.startShopping(plan.total))
+                .contentTransition(reduceMotion ? .identity : .numericText(value: NSDecimalNumber(decimal: plan.total).doubleValue))
+                .animation(routeChangeAnimation, value: plan.total)
+                .frame(maxWidth: .infinity)
         }
         .buttonStyle(.glassProminent).controlSize(.large)
         .disabled(true)
@@ -281,7 +310,11 @@ struct ShoppingRouteView: View {
     }
 
     private var routePicker: some View {
-        Picker(Texts.Routes.options, selection: $viewModel.selectedID) {
+        Picker(Texts.Routes.options, selection: Binding(get: { viewModel.selectedID }, set: { id in
+            guard id != viewModel.selectedID else { return }
+            viewModel.selectedID = id
+            cameraRequest = MapCameraRequest(action: .fitRoute)
+        })) {
             ForEach(Array(viewModel.snapshot.plans.enumerated()), id: \.element.id) { index, plan in
                 Text(Texts.Routes.option(index + 1)).tag(plan.id)
             }
@@ -325,6 +358,11 @@ struct ShoppingRouteView: View {
         })
     }
 
+    private func beginMapInteraction() {
+        locationRequest = nil
+        collapsePanel()
+    }
+
     private func collapsePanel() {
         guard !isMinimized else { return }
         withAnimation(reduceMotion ? nil : .easeInOut(duration: Const.transitionDuration)) { detent = collapsedDetent }
@@ -343,6 +381,9 @@ struct ShoppingRouteView: View {
     }
 
     private var usesFloatingPanel: Bool { horizontalSizeClass == .regular }
+    private var routeChangeAnimation: Animation? {
+        reduceMotion ? nil : .easeInOut(duration: Const.transitionDuration)
+    }
     private var collapsedHeight: CGFloat {
         max(Const.minimumCollapsedHeight, routeHeaderHeight + (viewModel.selectedPlan == nil ? .zero : routeActionHeight))
     }

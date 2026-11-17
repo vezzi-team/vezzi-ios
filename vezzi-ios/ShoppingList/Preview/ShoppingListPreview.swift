@@ -35,14 +35,14 @@ private actor PreviewShoppingListService: ShoppingListService {
         return value
     }
 
-    func plans(cartID: UUID, start: ShoppingCoordinate) -> ShoppingPlanResult {
+    func plans(cartID: UUID, start: ShoppingCoordinate, options: ShoppingRouteOptions) -> ShoppingPlanResult {
         let stores = snapshot.stores.values.sorted { $0.id < $1.id }
-        let cheapest = plan(stores: stores, fastest: false, start: start)
-        let fastest = plan(stores: Array(stores.prefix(1)), fastest: true, start: start)
+        let cheapest = plan(stores: stores, fastest: false, start: start, options: options)
+        let fastest = plan(stores: Array(stores.prefix(1)), fastest: true, start: start, options: options)
         return ShoppingPlanResult(plans: [cheapest, fastest], baselinePrice: fastest.total, problem: nil, isSynthetic: false)
     }
 
-    private func plan(stores: [CatalogStore], fastest: Bool, start: ShoppingCoordinate) -> ShoppingPlan {
+    private func plan(stores: [CatalogStore], fastest: Bool, start: ShoppingCoordinate, options: ShoppingRouteOptions) -> ShoppingPlan {
         var groups: [Int: [ShoppingPlanItem]] = [:]
         for (index, item) in value.items.enumerated() {
             let price = snapshot.offers.values.filter { $0.offer.productID == item.product.id }.map(\.offer.price).min() ?? 99
@@ -61,10 +61,13 @@ private actor PreviewShoppingListService: ShoppingListService {
         let total = stops.reduce(Decimal.zero) { $0 + $1.subtotal }
         return ShoppingPlan(id: UUID(), total: total,
                             savings: fastest ? 0 : Decimal(value.items.reduce(0) { $0 + $1.quantity }) * 5,
-                            totalSeconds: fastest ? 780 : 1080, walkingMeters: fastest ? 800 : 1300,
+                            totalSeconds: (fastest ? 780 : 1080) + (options.returnToStart ? 300 : 0),
+                            walkingMeters: (fastest ? 800 : 1300) + (options.returnToStart ? 400 : 0),
                             stops: stops, points: [start] + stops.compactMap {
                                 guard let latitude = $0.store.latitude, let longitude = $0.store.longitude else { return nil }
                                 return ShoppingCoordinate(latitude: latitude, longitude: longitude)
-                            }, usesRoadNetwork: false, isSynthetic: false)
+                            } + (options.returnToStart ? [start] : []), usesRoadNetwork: false, isSynthetic: false,
+                            returnWalkingSeconds: options.returnToStart ? 300 : nil,
+                            returnWalkingMeters: options.returnToStart ? 400 : nil)
     }
 }
