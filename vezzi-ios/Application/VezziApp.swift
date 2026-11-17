@@ -14,7 +14,8 @@ struct VezziApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppLaunchView(catalog: dependencies.catalog, authentication: dependencies.authentication, shoppingList: dependencies.shoppingList)
+            AppLaunchView(catalog: dependencies.catalog, authentication: dependencies.authentication,
+                          shoppingList: dependencies.shoppingList, location: dependencies.location)
                 .task { await dependencies.load() }
                 .onChange(of: dependencies.authentication.user?.id) { _, _ in
                     Task { await dependencies.accountChanged() }

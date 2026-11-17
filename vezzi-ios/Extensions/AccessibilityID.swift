@@ -1,5 +1,20 @@
 /// Stable, nonlocalized identifiers used to find interface elements in UI tests.
 enum AccessibilityID {
+    enum Routes {
+        static let zoomIn = "routes.zoomIn"
+        static let zoomOut = "routes.zoomOut"
+        static let deviceLocation = "routes.deviceLocation"
+        static let attribution = "routes.attribution"
+        static let map = "routes.map"
+        static let options = "routes.options"
+        static let origin = "routes.origin"
+        static let back = "routes.back"
+        static let panel = "routes.panel"
+        static let summary = "routes.summary"
+        static let startShopping = "routes.startShopping"
+        static let locate = "routes.locate"
+        static let confirmOrigin = "routes.confirmOrigin"
+    }
     // MARK: - Home
 
     enum Home {

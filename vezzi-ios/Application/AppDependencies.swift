@@ -6,6 +6,7 @@ final class AppDependencies: ObservableObject {
     let catalog: DefaultCatalogRepository
     let authentication: AuthenticationSession
     let shoppingList: ShoppingListRepository
+    let location: any DeviceLocating = DeviceLocationService()
     private var networkMonitor: NetworkMonitor?
     private var hasLoaded = false
     private var hasStarted = false

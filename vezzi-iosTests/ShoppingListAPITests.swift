@@ -41,6 +41,8 @@ final class ShoppingListAPITests: XCTestCase {
         XCTAssertEqual(result.baselinePrice, Decimal(string: "210.10"))
         XCTAssertTrue(result.isSynthetic)
         XCTAssertFalse(plan.usesRoadNetwork)
+        XCTAssertEqual(plan.stops.first?.walkingSeconds, 240)
+        XCTAssertEqual(plan.stops.first?.walkingMeters, 350)
         XCTAssertEqual(plan.points, [.previewOrigin])
         let firstRequest = await client.firstRequest()
         let request = try XCTUnwrap(firstRequest)
@@ -101,7 +103,8 @@ final class ShoppingListAPITests: XCTestCase {
                                    "latitude": 60.01, "longitude": 30.26, "format": "supermarket"]
         let plan: [String: Any] = ["id": UUID().uuidString, "total_kopecks": 19998, "savings_kopecks": 1012, "total_seconds": 600,
                                   "walking_meters": 800, "data_is_synthetic": true,
-                                  "stops": [["position": 1, "store": store, "items": [item], "subtotal_kopecks": 19998]],
+                                  "stops": [["position": 1, "store": store, "items": [item], "subtotal_kopecks": 19998,
+                                             "walk_from_previous_seconds": 240, "walk_from_previous_meters": 350]],
                                   "route": ["uses_road_network": false, "points": [["latitude": 60.0087, "longitude": 30.2582]]]]
         return ["status": "ok", "plans": [plan], "baseline": ["total_kopecks": 21010], "problem": NSNull(), "data_is_synthetic": true]
     }

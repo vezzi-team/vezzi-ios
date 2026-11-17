@@ -13,6 +13,7 @@ final class ShoppingListRepository: ObservableObject {
     var accountID: String? { account?.id }
     @Published private(set) var hasCacheFailure = false
     @Published private(set) var isPlanCached = false
+    @Published private(set) var origin = ShoppingCoordinate.previewOrigin
     let selection: ProductSelection
 
     private let service: (any ShoppingListService)?
@@ -40,6 +41,7 @@ final class ShoppingListRepository: ObservableObject {
     private var connectionRevision = 0
     private var generation = UUID()
     private var revision = 0
+    private var hasEditedOrigin = false
     private var worker: Task<Void, Never>?
     private var observation: AnyCancellable?
 
@@ -61,6 +63,7 @@ final class ShoppingListRepository: ObservableObject {
         guard self.account != account else { return }
         let previousAccount = self.account
         let guestQuantities = accountID == nil ? selection.quantities : [:]
+        let guestOrigin = accountID == nil && hasEditedOrigin ? origin : nil
         generation = UUID()
         worker?.cancel()
         worker = nil
@@ -70,6 +73,8 @@ final class ShoppingListRepository: ObservableObject {
         planResult = nil
         cachedPlan = nil
         isPlanCached = false
+        origin = guestOrigin ?? .previewOrigin
+        hasEditedOrigin = guestOrigin != nil
         cacheAccessFailed = false
         failure = nil
         isBusy = false
@@ -89,6 +94,19 @@ final class ShoppingListRepository: ObservableObject {
     func setPresented(_ presented: Bool) {
         isPresented = presented
         if presented { startWorker() }
+    }
+
+    func setOrigin(_ coordinate: ShoppingCoordinate) {
+        guard coordinate.isValid else { return }
+        // Even selecting the current point must take precedence over a late cache read.
+        hasEditedOrigin = true
+        guard coordinate != origin else { return }
+        origin = coordinate
+        revision += 1
+        invalidatePlan()
+        saveCache()
+        // Do not cancel an in-flight POST: let the serial worker reject it and calculate again.
+        startWorker()
     }
 
     func updateConnectivity(isConnected: Bool) {
@@ -233,7 +251,8 @@ final class ShoppingListRepository: ObservableObject {
                 }
                 guard isPresented, needsPlan, !hasCurrentPendingEdits, let cart, !cart.items.isEmpty else { return }
                 let plannedRevision = revision
-                let result = try await service.plans(cartID: cart.id, start: .previewOrigin)
+                let plannedOrigin = origin
+                let result = try await service.plans(cartID: cart.id, start: plannedOrigin)
                 try check(generation)
                 // Plan requests are serialized with cart writes; an old POST cannot replace a newer calculation.
                 guard plannedRevision == revision, !needsReload else { continue }
@@ -243,7 +262,7 @@ final class ShoppingListRepository: ObservableObject {
                     guard quantities == cart.quantities else { throw APIError.invalidResponse }
                 }
                 planResult = result
-                cachedPlan = CachedShoppingPlan(cartID: cart.id, quantities: cart.quantities, origin: .previewOrigin,
+                cachedPlan = CachedShoppingPlan(cartID: cart.id, quantities: cart.quantities, origin: plannedOrigin,
                                                 calculatedAt: Date(), result: result)
                 isPlanCached = false
                 needsPlan = false
@@ -275,6 +294,12 @@ final class ShoppingListRepository: ObservableObject {
             try check(generation)
             if let snapshot {
                 try snapshot.validate()
+                if !hasEditedOrigin, origin != snapshot.origin {
+                    origin = snapshot.origin
+                    revision += 1
+                    // Cache recovery may follow a server calculation made from the fallback origin.
+                    invalidatePlan()
+                }
                 // A late disk read must not roll back an already restored server cart.
                 if needsActiveCartResolution {
                     cart = snapshot.cart
@@ -296,7 +321,7 @@ final class ShoppingListRepository: ObservableObject {
                 if !pending.isEmpty { needsReload = true }
                 reconcileSelection()
                 if !hasCurrentPendingEdits, planResult == nil, let saved = snapshot.plan,
-                   saved.origin == .previewOrigin, cart.map({ saved.matches($0) }) == true {
+                   saved.origin == origin, cart.map({ saved.matches($0) }) == true {
                     cachedPlan = saved
                     planResult = saved.result
                     isPlanCached = true
@@ -326,7 +351,7 @@ final class ShoppingListRepository: ObservableObject {
             guard let self, self.generation == generation, self.cacheRevision == cacheRevision else { return }
             // Coalesce queued writes and read the newest values when the writer is ready.
             let snapshot = ShoppingListCacheSnapshot(cart: self.cart, pending: self.pending, plan: self.cachedPlan,
-                                                     hasResolvedCart: self.hasResolvedCart)
+                                                     hasResolvedCart: self.hasResolvedCart, origin: self.origin)
             do {
                 try await cache.save(snapshot, account: account)
                 if self.generation == generation { self.cacheAccessFailed = false }

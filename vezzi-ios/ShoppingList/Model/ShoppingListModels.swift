@@ -32,6 +32,8 @@ nonisolated struct ShoppingCoordinate: Codable, Sendable, Equatable {
     let latitude: Double
     let longitude: Double
 
+    var isValid: Bool { (-90...90).contains(latitude) && (-180...180).contains(longitude) }
+
     // Temporary origin in the area covered by the current catalog; never a device location.
     static let previewOrigin = Self(latitude: 60.0087, longitude: 30.2582)
 }
@@ -61,6 +63,9 @@ nonisolated struct ShoppingPlanStop: Codable, Identifiable, Sendable {
     let store: CatalogStore
     let items: [ShoppingPlanItem]
     let subtotal: Decimal
+    // Optional for previously cached calculations which did not retain leg metrics.
+    var walkingSeconds: Int? = nil
+    var walkingMeters: Int? = nil
 }
 
 nonisolated struct ShoppingPlanItem: Codable, Sendable {

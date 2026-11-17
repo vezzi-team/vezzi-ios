@@ -100,6 +100,8 @@ nonisolated struct APIShoppingListService: ShoppingListService {
                   Set(items.map { $0.product.id }).count == items.count,
                   items.allSatisfy({ (1...99).contains($0.quantity) && $0.unitPriceKopecks >= 0 }),
                   stops.allSatisfy({ $0.position > 0 && $0.subtotalKopecks >= 0
+                      && ($0.walkFromPreviousSeconds.map { $0 >= 0 } ?? true)
+                      && ($0.walkFromPreviousMeters.map { $0 >= 0 } ?? true)
                       && (-90...90).contains($0.store.latitude) && (-180...180).contains($0.store.longitude) }),
                   route.points.allSatisfy({ (-90...90).contains($0.latitude) && (-180...180).contains($0.longitude) })
             else { throw APIError.invalidResponse }
@@ -118,9 +120,12 @@ nonisolated struct APIShoppingListService: ShoppingListService {
         let store: CatalogStoreDTO
         let items: [PlanItemDTO]
         let subtotalKopecks: Int64
+        let walkFromPreviousSeconds: Int?
+        let walkFromPreviousMeters: Int?
 
         var record: ShoppingPlanStop {
-            ShoppingPlanStop(position: position, store: store.record, items: items.map(\.record), subtotal: Decimal(subtotalKopecks) / 100)
+            ShoppingPlanStop(position: position, store: store.record, items: items.map(\.record), subtotal: Decimal(subtotalKopecks) / 100,
+                             walkingSeconds: walkFromPreviousSeconds, walkingMeters: walkFromPreviousMeters)
         }
     }
     private struct PlanItemDTO: Decodable, Sendable {

@@ -9,6 +9,7 @@ struct AppLaunchView: View {
     let catalog: any CatalogRepository
     let authentication: AuthenticationSession
     var shoppingList: ShoppingListRepository = ShoppingListRepository()
+    var location: any DeviceLocating = DeviceLocationService()
 
     private var showsSplash: Bool { splash.isPresented && !reduceMotion }
 
@@ -20,6 +21,7 @@ struct AppLaunchView: View {
                 catalog: catalog,
                 authentication: authentication,
                 shoppingList: shoppingList,
+                location: location,
                 contentScale: showsSplash ? Const.initialContentScale : Const.restingContentScale
             )
                 .allowsHitTesting(!showsSplash)

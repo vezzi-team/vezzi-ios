@@ -36,6 +36,23 @@
           }
         }
       }
+    },
+    "NSLocationWhenInUseUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use your location as the starting point for a shopping route."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Геопозиция нужна, чтобы построить маршрут по магазинам от вашего местоположения."
+          }
+        }
+      }
     }
   },
   "version" : "1.3"

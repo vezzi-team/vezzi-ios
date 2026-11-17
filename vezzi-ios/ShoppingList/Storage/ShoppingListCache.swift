@@ -13,16 +13,18 @@ nonisolated struct ShoppingListCacheSnapshot: Codable, Sendable {
     var plan: CachedShoppingPlan?
     /// A successful lookup can confirm that the account has no active cart.
     var hasResolvedCart: Bool
+    var origin: ShoppingCoordinate
 
     init(cart: ShoppingCart?, pending: [ShoppingCartEditTarget: [String: Int]], plan: CachedShoppingPlan?,
-         hasResolvedCart: Bool = false) {
+         hasResolvedCart: Bool = false, origin: ShoppingCoordinate? = nil) {
         self.cart = cart
         self.pending = pending
         self.plan = plan
         self.hasResolvedCart = hasResolvedCart || cart != nil
+        self.origin = origin ?? plan?.origin ?? .previewOrigin
     }
 
-    private enum CodingKeys: String, CodingKey { case cart, pending, plan, hasResolvedCart }
+    private enum CodingKeys: String, CodingKey { case cart, pending, plan, hasResolvedCart, origin }
 
     init(from decoder: any Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
@@ -31,9 +33,11 @@ nonisolated struct ShoppingListCacheSnapshot: Codable, Sendable {
         plan = try values.decodeIfPresent(CachedShoppingPlan.self, forKey: .plan)
         // Older snapshots also saved nil after a failed first request; only an actual cart is proof.
         hasResolvedCart = try values.decodeIfPresent(Bool.self, forKey: .hasResolvedCart) ?? (cart != nil)
+        origin = try values.decodeIfPresent(ShoppingCoordinate.self, forKey: .origin) ?? plan?.origin ?? .previewOrigin
     }
 
     func validate() throws {
+        guard origin.isValid else { throw ShoppingListCacheError.invalidSnapshot }
         if let cart {
             guard hasResolvedCart, cart.status == "active", cart.items.count <= 30,
                   Set(cart.items.map { $0.product.id }).count == cart.items.count,
@@ -47,7 +51,7 @@ nonisolated struct ShoppingListCacheSnapshot: Codable, Sendable {
         // Remote additions can make the cart plus local edits exceed the server's limit.
         // Preserve that conflict on disk; synchronization enforces the limit before adding items.
         if let plan {
-            guard pending[.active] == nil, let cart, pending[.cart(cart.id)] == nil, plan.matches(cart),
+            guard pending[.active] == nil, let cart, pending[.cart(cart.id)] == nil, plan.matches(cart), plan.origin == origin,
                   plan.calculatedAt.timeIntervalSince1970.isFinite,
                   plan.result.baselinePrice.map({ $0 >= .zero }) ?? true,
                   plan.result.plans.count <= 3,
@@ -62,6 +66,8 @@ nonisolated struct ShoppingListCacheSnapshot: Codable, Sendable {
                       items.allSatisfy({ (1...99).contains($0.quantity) && $0.unitPrice >= .zero
                           && ($0.cardPrice.map { $0 >= .zero } ?? true) }),
                       option.stops.allSatisfy({ !$0.id.isEmpty && $0.position > 0 && $0.subtotal >= .zero }),
+                      option.stops.allSatisfy({ ($0.walkingSeconds.map { $0 >= 0 } ?? true)
+                          && ($0.walkingMeters.map { $0 >= 0 } ?? true) }),
                       option.points.allSatisfy({ (-90...90).contains($0.latitude) && (-180...180).contains($0.longitude) }),
                       Dictionary(items.map { ($0.product.id, $0.quantity) }, uniquingKeysWith: +) == cart.quantities else {
                     throw ShoppingListCacheError.invalidSnapshot

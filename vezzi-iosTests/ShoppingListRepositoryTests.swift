@@ -323,13 +323,13 @@ final class ShoppingListRepositoryTests: XCTestCase {
         repository.setAccount(ShoppingListTestAccount.make("first"))
         repository.setPresented(true)
         await repository.refresh()
-        model.routePlan = try XCTUnwrap(model.plan)
+        model.showRoutes()
         model.showProduct(try XCTUnwrap(model.products.first))
         XCTAssertNotNil(model.selectedProductOffer)
 
         repository.setAccount(nil)
 
-        XCTAssertNil(model.routePlan)
+        XCTAssertNil(model.routes)
         XCTAssertNil(repository.planResult)
         XCTAssertNil(model.selectedProduct)
         XCTAssertNil(model.selectedProductOffer)
@@ -343,17 +343,17 @@ final class ShoppingListRepositoryTests: XCTestCase {
         await repository.refresh()
         // The view model may be created after the account has already been restored.
         let model = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: repository)
-        model.routePlan = try XCTUnwrap(model.plan)
+        model.showRoutes()
         model.showProduct(try XCTUnwrap(model.products.first))
 
         await service.replaceCart(quantities: ["2": 1])
         repository.setAccount(ShoppingListTestAccount.make("second"))
 
-        XCTAssertNil(model.routePlan)
+        XCTAssertNil(model.routes)
         XCTAssertNil(model.selectedProduct)
         XCTAssertNil(model.selectedProductOffer)
         await repository.refresh()
-        XCTAssertNil(model.routePlan, "New plans must not reopen the previous account's sheet")
+        XCTAssertNil(model.routes, "New plans must not reopen the previous account's sheet")
         XCTAssertEqual(model.products.map(\.id), ["2"])
     }
 
@@ -364,15 +364,15 @@ final class ShoppingListRepositoryTests: XCTestCase {
         repository.setPresented(true)
         await repository.refresh()
         let presented = try XCTUnwrap(model.plan)
-        model.routePlan = presented
+        model.showRoutes()
 
         repository.setAccount(ShoppingListTestAccount.make("account"))
         repository.selection.setQuantity(3, for: "1")
         await repository.refresh()
 
         XCTAssertEqual(model.plan?.total, 300)
-        XCTAssertEqual(model.routePlan?.id, presented.id)
-        XCTAssertEqual(model.routePlan?.total, 200)
+        XCTAssertEqual(model.routes?.selectedID, presented.id)
+        XCTAssertEqual(model.routes?.plans.first?.total, 200)
     }
 
     func testSelectedCatalogProductsKeepAllOffersForDetailsAsSelectionChanges() async throws {
@@ -940,10 +940,10 @@ final class ShoppingListRepositoryTests: XCTestCase {
         repository.setPresented(true)
         await repository.refresh()
         let model = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: repository)
-        model.routePlan = try XCTUnwrap(model.plan)
+        model.showRoutes()
         model.showProduct(try XCTUnwrap(model.products.first))
         repository.setAccount(ShoppingListTestAccount.make("account", sessionID: UUID()))
-        XCTAssertNil(model.routePlan)
+        XCTAssertNil(model.routes)
         XCTAssertNil(model.selectedProduct)
         XCTAssertTrue(repository.selection.quantities.isEmpty)
         await repository.refresh()
@@ -1379,6 +1379,164 @@ final class ShoppingListRepositoryTests: XCTestCase {
         XCTAssertEqual(writes, [.init(id: "2", quantity: 3, exists: true)])
     }
 
+    func testOriginChangeRejectsInflightPlanAndSerializesNewCalculation() async throws {
+        let service = ControlledShoppingService(quantities: ["1": 1])
+        let cache = MemoryShoppingListCache()
+        let repository = ShoppingListRepository(service: service, cache: cache)
+        repository.setAccount(ShoppingListTestAccount.make("account"))
+        await service.pauseNextPlan()
+        repository.setPresented(true)
+        let refresh = Task { await repository.refresh() }
+        await service.waitUntilPaused()
+        let origin = ShoppingCoordinate(latitude: 59.94, longitude: 30.31)
+        repository.setOrigin(origin)
+        XCTAssertNil(repository.planResult)
+        await service.resume()
+        await refresh.value
+        let origins = await service.origins
+        XCTAssertEqual(origins, [.previewOrigin, origin])
+        let concurrentPlans = await service.maximumActivePlans
+        XCTAssertEqual(concurrentPlans, 1)
+        let saved = await cache.snapshot("account")
+        XCTAssertEqual(saved?.origin, origin)
+        XCTAssertEqual(saved?.plan?.origin, origin)
+        XCTAssertNotNil(repository.planResult)
+    }
+
+    func testCustomOriginAndMatchingPlanRestoreOffline() async throws {
+        let service = ControlledShoppingService(quantities: ["1": 2])
+        let cache = MemoryShoppingListCache()
+        let repository = ShoppingListRepository(service: service, cache: cache)
+        repository.setAccount(ShoppingListTestAccount.make("account"))
+        let origin = ShoppingCoordinate(latitude: 59.94, longitude: 30.31)
+        repository.setOrigin(origin)
+        repository.setPresented(true)
+        await repository.refresh()
+        await service.setOffline(true)
+        let restored = ShoppingListRepository(service: service, cache: cache)
+        restored.setAccount(ShoppingListTestAccount.make("account"))
+        await restored.refresh()
+        XCTAssertEqual(restored.origin, origin)
+        XCTAssertNotNil(restored.planResult)
+        XCTAssertTrue(restored.isPlanCached)
+    }
+
+    func testLateCacheRecoveryReconcilesOriginWithExistingAndSavedPlans() async throws {
+        let customOrigin = ShoppingCoordinate(latitude: 59.94, longitude: 30.31)
+        for (savedOrigin, hasSavedPlan) in [(customOrigin, true), (customOrigin, false), (.previewOrigin, true)] {
+            let service = ControlledShoppingService(quantities: ["1": 1])
+            let cache = MemoryShoppingListCache()
+            let account = ShoppingListTestAccount.make("account")
+            let original = ShoppingListRepository(service: service, cache: cache)
+            original.setAccount(account)
+            original.setOrigin(savedOrigin)
+            original.setPresented(hasSavedPlan)
+            await original.refresh()
+            let savedPlanID = original.planResult?.plans.first?.id
+            XCTAssertEqual(savedPlanID != nil, hasSavedPlan)
+
+            await cache.setFailing(true)
+            let restored = ShoppingListRepository(service: service, cache: cache)
+            restored.setAccount(account)
+            restored.setPresented(true)
+            await restored.refresh()
+            XCTAssertTrue(restored.hasCacheFailure)
+            XCTAssertEqual(restored.origin, .previewOrigin)
+            let fallbackPlanID = try XCTUnwrap(restored.planResult?.plans.first?.id)
+
+            await cache.setFailing(false)
+            await service.setOffline(true)
+            await restored.refresh()
+
+            // Keep the newer calculation only for the same origin. Otherwise restore a matching
+            // saved calculation, or show no calculation if this point has never been planned.
+            let expectedID = savedOrigin == .previewOrigin ? fallbackPlanID : savedPlanID
+            XCTAssertEqual(restored.origin, savedOrigin)
+            XCTAssertEqual(restored.planResult?.plans.first?.id, expectedID)
+            XCTAssertEqual(restored.isPlanCached, expectedID != nil)
+            XCTAssertEqual(restored.selection.quantities, ["1": 1])
+            XCTAssertFalse(restored.hasCacheFailure)
+            let value = await cache.snapshot("account")
+            let saved = try XCTUnwrap(value)
+            XCTAssertEqual(saved.origin, savedOrigin)
+            XCTAssertEqual(saved.plan?.result.plans.first?.id, expectedID)
+            XCTAssertNoThrow(try saved.validate())
+        }
+    }
+
+    func testChoosingOriginDuringCacheReadKeepsNewPointAndDropsSavedRoute() async throws {
+        let service = ControlledShoppingService(quantities: ["1": 2])
+        let cache = MemoryShoppingListCache()
+        let repository = ShoppingListRepository(service: service, cache: cache)
+        repository.setAccount(ShoppingListTestAccount.make("account"))
+        repository.setPresented(true)
+        await repository.refresh()
+        await cache.pauseNextLoad()
+        await service.setOffline(true)
+        let restored = ShoppingListRepository(service: service, cache: cache)
+        restored.setAccount(ShoppingListTestAccount.make("account"))
+        await cache.waitUntilPaused()
+        let origin = ShoppingCoordinate(latitude: 59.94, longitude: 30.31)
+        restored.setOrigin(origin)
+        await cache.resume()
+        await restored.refresh()
+        XCTAssertEqual(restored.origin, origin)
+        XCTAssertNil(restored.planResult)
+        XCTAssertEqual(restored.selection.quantity(for: "1"), 2)
+        let saved = await cache.snapshot("account")
+        XCTAssertEqual(saved?.origin, origin)
+        XCTAssertNil(saved?.plan)
+    }
+
+    func testRouteSelectionUsesSnapshotAndChangesOnlyAfterExplicitOriginChange() async throws {
+        let repository = ShoppingListRepository(service: ControlledShoppingService(quantities: ["1": 2]))
+        repository.setAccount(ShoppingListTestAccount.make("account"))
+        repository.setPresented(true)
+        await repository.refresh()
+        let plans = try XCTUnwrap(repository.planResult?.plans)
+        let snapshot = try XCTUnwrap(ShoppingRoutesSnapshot(plans: plans, selectedID: plans[1].id,
+                                                           origin: repository.origin, isSaved: false))
+        let model = ShoppingRouteViewModel(snapshot: snapshot, list: repository, location: RouteLocationStub())
+        XCTAssertEqual(model.selectedPlan?.id, plans[1].id)
+        await repository.refresh()
+        XCTAssertEqual(model.selectedPlan?.id, plans[1].id)
+        let newOrigin = ShoppingCoordinate(latitude: 59.94, longitude: 30.31)
+        model.changeOrigin(newOrigin)
+        XCTAssertNil(model.selectedPlan)
+        await repository.refresh()
+        XCTAssertFalse(model.isRecalculating)
+        XCTAssertEqual(model.origin, newOrigin)
+        XCTAssertNotNil(model.selectedPlan)
+    }
+
+    func testInvalidOriginDoesNotInvalidateCalculatedPlans() async throws {
+        let repository = ShoppingListRepository(service: ControlledShoppingService(quantities: ["1": 2]))
+        repository.setAccount(ShoppingListTestAccount.make("account"))
+        repository.setPresented(true)
+        await repository.refresh()
+        let planID = repository.planResult?.plans.first?.id
+        for coordinate in [ShoppingCoordinate(latitude: .nan, longitude: 0), .init(latitude: 91, longitude: 0), .init(latitude: 0, longitude: 181)] {
+            repository.setOrigin(coordinate)
+            XCTAssertEqual(repository.origin, .previewOrigin)
+            XCTAssertEqual(repository.planResult?.plans.first?.id, planID)
+        }
+    }
+
+    func testGuestOriginSurvivesSignInButIsClearedOnLogout() async {
+        let service = ControlledShoppingService(quantities: ["1": 1])
+        let repository = ShoppingListRepository(service: service)
+        let chosen = ShoppingCoordinate(latitude: 59.94, longitude: 30.31)
+        repository.setOrigin(chosen)
+        repository.setAccount(ShoppingListTestAccount.make("account"))
+        repository.setPresented(true)
+        await repository.refresh()
+        XCTAssertEqual(repository.origin, chosen)
+        let sent = await service.origins
+        XCTAssertEqual(sent, [chosen])
+        repository.setAccount(nil)
+        XCTAssertEqual(repository.origin, .previewOrigin)
+    }
+
     func testChangedOriginRestoresProductsButDropsOldCalculation() async throws {
         let cache = MemoryShoppingListCache()
         let service = ControlledShoppingService(quantities: ["1": 1])
@@ -1386,17 +1544,11 @@ final class ShoppingListRepositoryTests: XCTestCase {
         original.setAccount(ShoppingListTestAccount.make("account"))
         original.setPresented(true)
         await original.refresh()
-        let value = await cache.snapshot("account")
-        var snapshot = try XCTUnwrap(value)
-        let saved = try XCTUnwrap(snapshot.plan)
-        snapshot.plan = CachedShoppingPlan(cartID: saved.cartID, quantities: saved.quantities,
-                                          origin: .init(latitude: 0, longitude: 0), calculatedAt: saved.calculatedAt, result: saved.result)
-        try await cache.save(snapshot, account: ShoppingListTestAccount.make("account"))
-
         let restored = ShoppingListRepository(service: service, cache: cache)
         await service.setOffline(true)
         restored.updateConnectivity(isConnected: false)
         restored.setAccount(ShoppingListTestAccount.make("account"))
+        restored.setOrigin(.init(latitude: 0, longitude: 0))
         await restored.refresh()
         XCTAssertEqual(restored.selection.quantities, ["1": 1])
         XCTAssertNil(restored.planResult)
@@ -1434,6 +1586,7 @@ private actor ControlledShoppingService: ShoppingListService {
     private var activePlans = 0
     private(set) var maximumActivePlans = 0
     private(set) var planRequests = 0
+    private(set) var origins: [ShoppingCoordinate] = []
 
     init(quantities: [String: Int] = [:], baselinePrice: Decimal? = nil, fastUnitPrice: Decimal = 110) {
         value = Self.cart(quantities)
@@ -1522,6 +1675,7 @@ private actor ControlledShoppingService: ShoppingListService {
     func plans(cartID: UUID, start: ShoppingCoordinate) async throws -> ShoppingPlanResult {
         try checkConnection()
         planRequests += 1
+        origins.append(start)
         if planFails { throw URLError(.notConnectedToInternet) }
         activePlans += 1
         maximumActivePlans = max(maximumActivePlans, activePlans)

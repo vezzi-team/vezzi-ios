@@ -12,9 +12,12 @@ extension Image {
     // MARK: - SF Symbols
 
     enum System {
+        static let location = Image(systemName: "location")
+        static let locationFill = Image(systemName: "location.fill")
         static let person = Image(systemName: "person.crop.circle")
         static let walk = Image(systemName: "figure.walk")
         static let chevronRight = Image(systemName: "chevron.right")
+        static let chevronLeft = Image(systemName: "chevron.left")
         static let chevronDown = Image(systemName: "chevron.down")
         static let xmark = Image(systemName: "xmark")
         static let arrowRight = Image(systemName: "arrow.right")
