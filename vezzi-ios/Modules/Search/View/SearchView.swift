@@ -163,7 +163,7 @@ struct SearchView: View {
             sectionHeading(section)
                 .padding(.horizontal, Const.contentInset)
             ProductCarousel(products: section.products, selection: selection,
-                            showsStoreBadges: section.storeID == nil) { product in
+                            showsStoreBadges: section.storeID == nil, showsPricePrefix: section.storeID == nil) { product in
                 isSearchFocused = false
                 viewModel.showProduct(product, storeID: section.storeID)
             }

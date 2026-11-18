@@ -43,10 +43,10 @@ struct AppRootView: View {
                 tabLabel(for: .shoppingList)
             }
 
-            Tab(value: AppRouter.Tab.stores) {
-                navigationStack(for: .stores)
+            Tab(value: AppRouter.Tab.catalog) {
+                navigationStack(for: .catalog)
             } label: {
-                tabLabel(for: .stores)
+                tabLabel(for: .catalog)
             }
 
             Tab(value: AppRouter.Tab.search, role: .search) {
@@ -64,11 +64,18 @@ struct AppRootView: View {
             Button(Texts.ShoppingList.understood, role: .cancel) {}
         } message: { Text(Texts.ShoppingList.limitDescription) }
         .sheet(item: presentedSheet) { sheet in
-            DestinationFactory.sheet(for: sheet, authentication: authentication)
-                .navigationTransition(.zoom(sourceID: sheet, in: profileTransition))
+            let content = DestinationFactory.sheet(for: sheet, authentication: authentication)
+            if appRouter.selectedTab == .home || appRouter.selectedTab == .catalog {
+                content.navigationTransition(.zoom(sourceID: appRouter.selectedTab, in: profileTransition))
+            } else {
+                content
+            }
         }
         .onChange(of: authentication.user) { _, user in
-            if user == nil { appRouter.popToRoot(in: .home) }
+            if user == nil {
+                appRouter.popToRoot(in: .home)
+                appRouter.popToRoot(in: .catalog)
+            }
         }
     }
 
@@ -79,7 +86,7 @@ struct AppRootView: View {
             switch tab {
             case .home: Image.System.house
             case .shoppingList: Image.System.checklist
-            case .stores: Image.System.storefront
+            case .catalog: Image.System.catalog
             case .search: Image.System.magnifyingGlass
             }
         }

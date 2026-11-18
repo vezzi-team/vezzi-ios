@@ -29,7 +29,7 @@ enum SearchMockData {
                 for (store, offer) in zip(storeRecords, product.offers) {
                     batch.offers.append(CatalogOffer(id: product.id + "." + store.id, productID: product.id,
                                                      storeID: store.id, price: offer.price, currency: offer.currency,
-                                                     inStock: true))
+                                                     inStock: true, priceType: product.id == groupID ? "promo" : "current"))
                 }
             }
         }

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct HomeCategoryFilterBar: View {
+struct CatalogCategoryFilterBar: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Binding var selectedCategory: ProductCategory?
     var categories: [ProductCategory] = ProductCategory.allCases
@@ -12,7 +12,7 @@ struct HomeCategoryFilterBar: View {
             }
             .scrollIndicators(.hidden)
             .scrollClipDisabled()
-            .accessibilityIdentifier(AccessibilityID.Home.Filters.bar)
+            .accessibilityIdentifier(AccessibilityID.Catalog.Filters.bar)
             .onChange(of: selectedCategory, initial: true) { _, category in
                 center(category, using: proxy)
             }
@@ -50,7 +50,7 @@ struct HomeCategoryFilterBar: View {
         .buttonStyle(.plain)
         .accessibilityLabel(title(for: category))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .accessibilityIdentifier(AccessibilityID.Home.Filters.category(filterID(category)))
+        .accessibilityIdentifier(AccessibilityID.Catalog.Filters.category(filterID(category)))
         .id(filterID(category))
     }
 
@@ -105,7 +105,7 @@ struct HomeCategoryFilterBar: View {
 
 #Preview("Filters — light") {
     @Previewable @State var selectedCategory: ProductCategory?
-    HomeCategoryFilterBar(selectedCategory: $selectedCategory)
+    CatalogCategoryFilterBar(selectedCategory: $selectedCategory)
         .padding(.vertical)
         .background(Color.Background.primary)
         .preferredColorScheme(.light)
@@ -113,7 +113,7 @@ struct HomeCategoryFilterBar: View {
 
 #Preview("Filters — dark, large text") {
     @Previewable @State var selectedCategory: ProductCategory? = .produce
-    HomeCategoryFilterBar(selectedCategory: $selectedCategory)
+    CatalogCategoryFilterBar(selectedCategory: $selectedCategory)
         .padding(.vertical)
         .background(Color.Background.primary)
         .preferredColorScheme(.dark)
