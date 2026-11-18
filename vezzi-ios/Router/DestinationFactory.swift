@@ -7,13 +7,12 @@ enum DestinationFactory {
                      productSelection: ProductSelection, shoppingList: ShoppingListRepository, location: any DeviceLocating) -> some View {
         Group {
             switch route {
-            case .home:
-                HomeView(repository: catalog, authentication: authentication, profileTransition: profileTransition,
-                         list: shoppingList, location: location)
+            case .home, .catalog:
+                StorefrontScreen(page: route == .home ? .home : .catalog, repository: catalog,
+                                 authentication: authentication, profileTransition: profileTransition,
+                                 list: shoppingList, location: location)
             case .shoppingList:
                 ShoppingListView(catalog: catalog, list: shoppingList, location: location)
-            case .stores:
-                StoresView()
             case .search:
                 SearchView(repository: catalog, selection: productSelection)
             case .profile:

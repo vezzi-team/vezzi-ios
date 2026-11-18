@@ -2,12 +2,14 @@ import Combine
 import Foundation
 
 @MainActor
-final class HomeViewModel: ObservableObject {
+final class StorefrontViewModel: ObservableObject {
+    @Published private(set) var shelves = HomeShelves()
+    @Published private(set) var hasProducts = false
     @Published private(set) var products: [Product] = []
     @Published private(set) var categories: [ProductCategory] = []
     @Published private(set) var catalogStatus = CatalogStatus()
     @Published private var cacheState = CatalogCacheState.disabled
-    @Published private(set) var selectedProduct: Product?
+    @Published private(set) var selectedDetail: StorefrontProductDetail?
     @Published private(set) var relatedProducts: [Product] = []
     @Published var selectedCategory: ProductCategory?
     let selection: ProductSelection
@@ -16,7 +18,7 @@ final class HomeViewModel: ObservableObject {
     private var subscriptions = Set<AnyCancellable>()
     private var relatedSubscription: AnyCancellable?
 
-    init(repository: any CatalogRepository, list: ShoppingListRepository? = nil) {
+    init(page: StorefrontPage, repository: any CatalogRepository, list: ShoppingListRepository? = nil) {
         self.repository = repository
         let list = list ?? ShoppingListRepository()
         self.list = list
@@ -27,6 +29,11 @@ final class HomeViewModel: ObservableObject {
         repository.cacheState.removeDuplicates().sink { [weak self] in self?.cacheState = $0 }.store(in: &subscriptions)
         repository.observeAllProducts().sink { [weak self] items in
             guard let self else { return }
+            self.hasProducts = !items.isEmpty
+            if page == .home {
+                self.shelves = HomeShelves(items: items)
+                return
+            }
             self.products = items.map { Product(catalog: $0) }
             self.categories = Array(Set(self.products.compactMap(\.category))).sorted { $0.title < $1.title }
             if let category = self.selectedCategory, !self.categories.contains(category) { self.selectedCategory = nil }
@@ -57,10 +64,10 @@ final class HomeViewModel: ObservableObject {
         selection.setQuantity(quantity, for: productID)
     }
 
-    func showProduct(_ product: Product) {
+    func showProduct(_ product: Product, promotion: ProductOffer? = nil) {
         relatedSubscription?.cancel()
         relatedProducts = []
-        selectedProduct = product
+        selectedDetail = StorefrontProductDetail(product: product, promotion: promotion)
         relatedSubscription = repository.observeRelatedProducts(to: product.id, storeID: nil)
             .prefix(1).sink { [weak self] in self?.relatedProducts = $0.map { Product(catalog: $0) } }
     }
@@ -68,7 +75,19 @@ final class HomeViewModel: ObservableObject {
     func dismissProduct() {
         relatedSubscription?.cancel()
         relatedSubscription = nil
-        selectedProduct = nil
+        selectedDetail = nil
         // Keep the snapshot alive until the sheet's dismissal animation ends.
     }
+}
+
+struct StorefrontProductDetail: Identifiable {
+    let product: Product
+    let promotion: ProductOffer?
+    var id: String { product.id }
+}
+
+enum StorefrontPage {
+    case home, catalog
+
+    var tab: AppRouter.Tab { self == .home ? .home : .catalog }
 }

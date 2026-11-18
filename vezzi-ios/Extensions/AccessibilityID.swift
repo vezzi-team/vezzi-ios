@@ -38,16 +38,9 @@ enum AccessibilityID {
         static let offline = "home.offline"
         static let profile = "home.profile"
         static let address = "home.address"
-        static let scrollToTop = "home.scrollToTop"
+        static let deals = "home.deals"
+        static let essentials = "home.essentials"
         static let addDinner = "home.dinner.add"
-
-        enum Filters {
-            static let bar = "home.filters"
-
-            static func category(_ id: String) -> String {
-                "home.filter.\(id)"
-            }
-        }
     }
 
     enum Product {
@@ -100,6 +93,15 @@ enum AccessibilityID {
 
     enum Catalog {
         static let banner = "catalog.status"
+        static let scrollToTop = "catalog.scrollToTop"
+
+        enum Filters {
+            static let bar = "catalog.filters"
+
+            static func category(_ id: String) -> String {
+                "catalog.filter.\(id)"
+            }
+        }
     }
 
     enum ShoppingList {

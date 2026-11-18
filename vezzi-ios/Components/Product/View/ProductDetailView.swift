@@ -8,10 +8,11 @@ struct ProductDetailView: View {
     let selection: ProductSelection
     var showsPricePrefix = true
     var selectedOffer: ProductOffer? = nil
+    var selectedStoreTitle = Texts.Product.Stores.selected
 
     var body: some View {
         NavigationStack(path: $path) {
-            productPage(for: product)
+            productPage(for: product, selectedOffer: selectedOffer)
                 .toolbar { dismissToolbar }
                 .navigationDestination(for: String.self) { productID in
                     if let product = ([product] + relatedProducts).first(where: { $0.id == productID }) {
@@ -26,10 +27,10 @@ struct ProductDetailView: View {
 
     // MARK: - Navigation
 
-    private func productPage(for product: Product) -> some View {
+    private func productPage(for product: Product, selectedOffer: ProductOffer? = nil) -> some View {
         ProductDetailPage(product: product, relatedProducts: [self.product] + relatedProducts,
                           selection: selection, showsPricePrefix: showsPricePrefix,
-                          selectedOffer: product.id == self.product.id ? selectedOffer : nil) { alternative in
+                          selectedOffer: selectedOffer, selectedStoreTitle: selectedStoreTitle) { alternative in
             path.append(alternative.id)
         }
     }
@@ -68,6 +69,7 @@ private struct ProductDetailPage: View {
     @ObservedObject var selection: ProductSelection
     let showsPricePrefix: Bool
     let selectedOffer: ProductOffer?
+    let selectedStoreTitle: String
     let selectProduct: (Product) -> Void
 
     var body: some View {
@@ -195,7 +197,7 @@ private struct ProductDetailPage: View {
 
     private func selectedStoreSection(_ offer: ProductOffer) -> some View {
         VStack(alignment: .leading, spacing: Const.rowSpacing) {
-            sectionHeading(Texts.Product.Stores.selected)
+            sectionHeading(selectedStoreTitle)
             offerRow(offer)
                 .padding(Const.selectedStoreInset)
                 .overlay {

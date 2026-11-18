@@ -33,7 +33,7 @@ extension Image {
         static let minus = Image(systemName: "minus")
         static let house = Image(systemName: "house")
         static let checklist = Image(systemName: "checklist")
-        static let storefront = Image(systemName: "storefront")
+        static let catalog = Image(systemName: "square.grid.2x2")
         static let magnifyingGlass = Image(systemName: "magnifyingglass")
 
         private static func rotatedSymbol(_ name: String) -> Image {

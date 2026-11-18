@@ -37,7 +37,7 @@ final class SearchViewModelTests: XCTestCase {
         cache.pauseLoad = true
         let repository = DefaultCatalogRepository(cache: cache)
         repository.updateConnectivity(isConnected: false)
-        let home = HomeViewModel(repository: repository)
+        let home = StorefrontViewModel(page: .home, repository: repository)
         let search = SearchViewModel(repository: repository)
         XCTAssertEqual(home.emptyState, .loading)
         XCTAssertEqual(search.emptyState, .loading)
@@ -196,8 +196,8 @@ final class SearchViewModelTests: XCTestCase {
                 ]
                 let snapshot = try CatalogSnapshot().applying(CatalogFixtures.export(batch, date: now)).snapshot.evaluated(at: now)
                 let repository = PreviewCatalogRepository(snapshot: snapshot)
-                let home = HomeViewModel(repository: repository)
-                XCTAssertEqual(home.products.first?.offers.first?.id, "available")
+                let catalog = StorefrontViewModel(page: .catalog, repository: repository)
+                XCTAssertEqual(catalog.products.first?.offers.first?.id, "available")
                 let search = SearchViewModel(repository: repository)
                 for mode in ProductSearchMode.allCases {
                     search.mode = mode
@@ -292,7 +292,7 @@ final class SearchViewModelTests: XCTestCase {
 
     func testProductQuantitiesAreSharedWithHomeAndSurviveSearchModeChanges() {
         let selection = ProductSelection()
-        let home = HomeViewModel(repository: MockSearchRepository(), list: ShoppingListRepository(selection: selection))
+        let home = StorefrontViewModel(page: .home, repository: MockSearchRepository(), list: ShoppingListRepository(selection: selection))
         let search = mockViewModel()
         let product = search.sections[0].products[0]
         selection.setQuantity(2, for: product.id)

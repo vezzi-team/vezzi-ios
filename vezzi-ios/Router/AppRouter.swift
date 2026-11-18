@@ -65,7 +65,7 @@ extension AppRouter {
     enum Tab: CaseIterable, Hashable {
         case home
         case shoppingList
-        case stores
+        case catalog
         case search
 
         var title: String {
@@ -76,7 +76,7 @@ extension AppRouter {
             switch self {
             case .home: return .home
             case .shoppingList: return .shoppingList
-            case .stores: return .stores
+            case .catalog: return .catalog
             case .search: return .search
             }
         }
@@ -90,7 +90,7 @@ extension AppRouter {
     enum Route: Hashable {
         case home
         case shoppingList
-        case stores
+        case catalog
         case search
         case profile
         case profileDetails(ProfileDestination)
@@ -100,7 +100,7 @@ extension AppRouter {
             switch self {
             case .home: return Texts.Tabbar.home
             case .shoppingList: return Texts.Tabbar.shoppingList
-            case .stores: return Texts.Tabbar.stores
+            case .catalog: return Texts.Tabbar.catalog
             case .search: return Texts.Tabbar.search
             case .profile: return Texts.Profile.Main.title
             case .profileDetails(let destination): return destination.title

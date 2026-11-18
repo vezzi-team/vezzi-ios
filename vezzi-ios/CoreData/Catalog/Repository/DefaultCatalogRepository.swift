@@ -1,13 +1,15 @@
 import Combine
 import Foundation
 import OSLog
+import Synchronization
 
 @MainActor
 final class DefaultCatalogRepository: CatalogRepository {
     private let cache: (any CatalogCache)?
     private let source: (any CatalogSource)?
     private let session = CatalogSession()
-    private let snapshot = CurrentValueSubject<CatalogSnapshot, Never>(CatalogSnapshot())
+    private let publications = CurrentValueSubject<PublishedSnapshot, Never>(PublishedSnapshot(CatalogSnapshot()))
+    private var snapshot: CatalogSnapshot { publications.value.snapshot }
     private let cacheStatus: CurrentValueSubject<CatalogCacheState, Never>
     private let searchQueue = DispatchQueue(label: "Polka.CatalogSearch", qos: .userInitiated)
     private let logger = Logger(subsystem: "vezzi.vezzi-ios", category: "CatalogCache")
@@ -33,17 +35,17 @@ final class DefaultCatalogRepository: CatalogRepository {
     nonisolated deinit {}
 
     func observeProducts(matching query: String) -> AnyPublisher<[CatalogItem], Never> {
-        observeItems { $0.items(matching: query) }
+        observeItems { $0.snapshot.items(matching: query) }
     }
 
     func observeAllProducts() -> AnyPublisher<[CatalogItem], Never> { observeItems { $0.allItems() } }
 
     func observeRelatedProducts(to productID: String, storeID: String?) -> AnyPublisher<[CatalogItem], Never> {
-        observeItems { $0.relatedItems(to: productID, storeID: storeID) }
+        observeItems { $0.snapshot.relatedItems(to: productID, storeID: storeID) }
     }
 
-    private func observeItems(_ query: @escaping @Sendable (CatalogSnapshot) -> [CatalogItem]) -> AnyPublisher<[CatalogItem], Never> {
-        snapshot
+    private func observeItems(_ query: @escaping @Sendable (PublishedSnapshot) -> [CatalogItem]) -> AnyPublisher<[CatalogItem], Never> {
+        publications
             .receive(on: searchQueue)
             .map(query)
             .removeDuplicates()
@@ -64,16 +66,16 @@ final class DefaultCatalogRepository: CatalogRepository {
         refreshID = id
         let task = Task {
             catalogStatus.value.isRefreshing = true
-            snapshot.send(snapshot.value.evaluated(at: Date()))
+            publications.send(PublishedSnapshot(snapshot.evaluated(at: Date())))
             defer { if refreshID == id { catalogStatus.value.isRefreshing = false } }
             do {
-                let result = try await source.loadCatalog(ifNoneMatch: snapshot.value.metadata?.etag)
+                let result = try await source.loadCatalog(ifNoneMatch: snapshot.metadata?.etag)
                 try Task.checkCancellation()
                 let update: CatalogSessionUpdate
                 switch result {
                 case .snapshot(let batch): update = try await session.replace(batch)
                 case .notModified:
-                    guard snapshot.value.metadata != nil else { throw APIError.invalidResponse }
+                    guard snapshot.metadata != nil else { throw APIError.invalidResponse }
                     update = await session.validate(at: Date())
                 }
                 try Task.checkCancellation()
@@ -137,7 +139,7 @@ final class DefaultCatalogRepository: CatalogRepository {
         // Concurrent actor calls can resume on MainActor in a different order.
         guard update.revision > publishedRevision else { return }
         publishedRevision = update.revision
-        snapshot.send(update.snapshot.evaluated(at: Date()))
+        publications.send(PublishedSnapshot(update.snapshot.evaluated(at: Date())))
         var status = catalogStatus.value
         status.hasSnapshot = update.snapshot.metadata != nil || !update.snapshot.products.isEmpty
         status.isSynthetic = update.snapshot.metadata?.isSynthetic ?? false
@@ -159,7 +161,7 @@ final class DefaultCatalogRepository: CatalogRepository {
             let replacing = pendingReplacement
             pendingCacheIDs = CatalogRecordIDs()
             pendingReplacement = false
-            let batch = replacing ? snapshot.value.fullCacheBatch() : snapshot.value.cacheBatch(for: ids)
+            let batch = replacing ? snapshot.fullCacheBatch() : snapshot.cacheBatch(for: ids)
             do {
                 try await cache.save(batch)
             } catch {
@@ -169,6 +171,26 @@ final class DefaultCatalogRepository: CatalogRepository {
                 logger.error("Could not write catalog cache: \(String(describing: error), privacy: .private)")
                 cacheStatus.send(.unavailable)
             }
+        }
+    }
+}
+
+/// All subscribers to the same publication reuse its full list. A new publication
+/// starts with an empty cache, including when only the price evaluation date changes.
+nonisolated private final class PublishedSnapshot: Sendable {
+    let snapshot: CatalogSnapshot
+    private let cachedItems = Mutex<[CatalogItem]?>(nil)
+
+    init(_ snapshot: CatalogSnapshot) {
+        self.snapshot = snapshot
+    }
+
+    func allItems() -> [CatalogItem] {
+        cachedItems.withLock { cached in
+            if let cached { return cached }
+            let items = snapshot.allItems()
+            cached = items
+            return items
         }
     }
 }

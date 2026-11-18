@@ -13,6 +13,12 @@ extension Color {
         static let route = Color("AccentColor")
     }
     
+    enum MotiCollection {
+        static let pasta = Color("MotiCollectionPasta")
+        static let cinema = Color("MotiCollectionCinema")
+        static let salad = Color("MotiCollectionSalad")
+    }
+
     enum Mascot {
         static let ink = Color("MotiInk")
         static let cheek = Color("MotiCheek")

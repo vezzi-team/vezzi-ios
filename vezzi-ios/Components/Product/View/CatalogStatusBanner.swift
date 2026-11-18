@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The same catalog state and retry action on Home and Search.
+/// Catalog status and retry action shared by Home and Catalog.
 struct CatalogStatusBanner: View {
     let status: CatalogStatus
     var isCacheUnavailable = false

@@ -26,13 +26,25 @@ final class Texts {
     enum Tabbar {
         static let home = NSLocalizedString("TabHome", comment: "Home")
         static let shoppingList = NSLocalizedString("TabShoppingList", comment: "List")
-        static let stores = NSLocalizedString("TabStores", comment: "Stores")
+        static let catalog = NSLocalizedString("TabCatalog", comment: "Catalog")
         static let search = NSLocalizedString("TabSearch", comment: "Search")
     }
 
     // MARK: - Home
 
     enum Home {
+        enum Discovery {
+            static let adTitle = NSLocalizedString("HomeDiscoveryAdTitle", comment: "Your ad could be here")
+            static let adSubtitle = NSLocalizedString("HomeDiscoveryAdSubtitle", comment: "But nobody chipped in :(")
+            static let adCaption = NSLocalizedString("HomeDiscoveryAdCaption", comment: "Nothing to tap")
+            static let moti = NSLocalizedString("HomeDiscoveryMoti", comment: "Moti’s picks")
+            static let deals = NSLocalizedString("HomeDiscoveryDeals", comment: "Deals shelf")
+            static let essentials = NSLocalizedString("HomeDiscoveryEssentials", comment: "Today’s essentials")
+            static let pasta = NSLocalizedString("HomeDiscoveryPasta", comment: "Pasta")
+            static let movies = NSLocalizedString("HomeDiscoveryMovies", comment: "Movie night")
+            static let salad = NSLocalizedString("HomeDiscoverySalad", comment: "Salad")
+        }
+
         enum Main {
             static let address = NSLocalizedString("HomeAddress", comment: "Address")
             static let nearbyStores = NSLocalizedString("HomeNearbyStores", comment: "5 stores nearby")
@@ -124,6 +136,7 @@ final class Texts {
         }
 
         enum Stores {
+            static let promotion = NSLocalizedString("ProductPromotionalOffer", comment: "Promotional offer")
             static let selected = NSLocalizedString("ProductSelectedStore", comment: "Selected store")
             static let showMore = NSLocalizedString("ProductShowMoreStores", comment: "Show more")
             static let showLess = NSLocalizedString("ProductShowLessStores", comment: "Show less")
