@@ -38,6 +38,7 @@ enum AccessibilityID {
         static let offline = "home.offline"
         static let profile = "home.profile"
         static let address = "home.address"
+        static let motiCollections = "home.motiCollections"
         static let deals = "home.deals"
         static let essentials = "home.essentials"
         static let addDinner = "home.dinner.add"
