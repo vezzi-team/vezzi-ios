@@ -3245,6 +3245,23 @@
         }
       }
     },
+    "RoutesCalculating" : {
+      "comment" : "Calculating routes…",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculating routes…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Рассчитываем маршруты…"
+          }
+        }
+      }
+    },
     "RoutesCollapseDetails" : {
       "comment" : "Collapse route details",
       "localizations" : {
@@ -4742,6 +4759,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не все товары доступны в выбранной области."
+          }
+        }
+      }
+    },
+    "ShoppingListRefreshForFastestRoutes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh your list when online to see the fastest routes."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновите список при подключении к интернету, чтобы увидеть самые быстрые маршруты."
           }
         }
       }

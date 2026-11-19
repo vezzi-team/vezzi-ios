@@ -62,11 +62,10 @@ nonisolated struct ShoppingListCacheSnapshot: Codable, Sendable {
                   plan.routeOptions == routeOptions,
                   plan.calculatedAt.timeIntervalSince1970.isFinite,
                   plan.result.baselinePrice.map({ $0 >= .zero }) ?? true,
-                  plan.result.plans.count <= 3,
-                  Set(plan.result.plans.map(\.id)).count == plan.result.plans.count else {
+                  plan.result.hasValidRankings else {
                 throw ShoppingListCacheError.invalidSnapshot
             }
-            for option in plan.result.plans {
+            for option in plan.result.rankedPlans {
                 let items = option.stops.flatMap(\.items)
                 guard option.total >= .zero, option.totalSeconds >= 0, option.walkingMeters >= 0, !option.stops.isEmpty,
                       option.returnWalkingSeconds.map({ $0 >= 0 }) ?? true,

@@ -69,21 +69,8 @@ final class ShoppingListViewModel: ObservableObject {
         }, uniquingKeysWith: { first, _ in first })
     }
 
-    var cheapest: ShoppingPlan? {
-        list.planResult?.plans.min {
-            if $0.total != $1.total { return $0.total < $1.total }
-            if $0.totalSeconds != $1.totalSeconds { return $0.totalSeconds < $1.totalSeconds }
-            return $0.id.uuidString < $1.id.uuidString
-        }
-    }
-
-    var fastest: ShoppingPlan? {
-        list.planResult?.plans.min {
-            if $0.totalSeconds != $1.totalSeconds { return $0.totalSeconds < $1.totalSeconds }
-            if $0.total != $1.total { return $0.total < $1.total }
-            return $0.id.uuidString < $1.id.uuidString
-        }
-    }
+    var cheapest: ShoppingPlan? { list.planResult?.plans.first }
+    var fastest: ShoppingPlan? { list.planResult?.fastestPlans?.first }
 
     var plan: ShoppingPlan? { mode == .cheaper ? cheapest : fastest }
     var comparisonPrice: Decimal? { mode == .cheaper ? fastest?.total : cheapest?.total }
@@ -93,14 +80,26 @@ final class ShoppingListViewModel: ObservableObject {
         return max(.zero, fastest.total - cheapest.total)
     }
 
-    var savedMinutes: Int { max(0, ((cheapest?.totalSeconds ?? 0) - (fastest?.totalSeconds ?? 0)) / 60) }
+    var savedMinutes: Int {
+        guard let cheapest, let fastest else { return 0 }
+        return max(0, (cheapest.totalSeconds - fastest.totalSeconds) / 60)
+    }
     var needsAuthentication: Bool { list.accountID == nil || list.failure == .authenticationRequired }
 
     var message: String? {
         let messages = [list.isBusy ? nil : synchronizationMessage,
-                        list.isPlanCached && plan != nil ? Texts.ShoppingList.cachedCalculation : nil,
+                        Texts.ShoppingList.planningProblem(for: list.planResult),
+                        cachedCalculationMessage,
                         list.hasCacheFailure ? Texts.ShoppingList.cacheError : nil].compactMap { $0 }
         return messages.isEmpty ? nil : messages.joined(separator: "\n")
+    }
+
+    private var cachedCalculationMessage: String? {
+        guard list.isPlanCached, let result = list.planResult else { return nil }
+        if mode == .faster, result.fastestPlans == nil, !result.plans.isEmpty {
+            return Texts.ShoppingList.refreshForFastestRoutes
+        }
+        return Texts.ShoppingList.cachedCalculation
     }
 
     private var synchronizationMessage: String? {
@@ -109,18 +108,14 @@ final class ShoppingListViewModel: ObservableObject {
             return contentState == .products || (contentState == .empty && list.failure == .authenticationRequired)
                 ? Texts.ShoppingList.signInDescription : nil
         }
-        if let failure = list.failure {
-            switch failure {
-            case .authenticationRequired: return Texts.ShoppingList.signInDescription
-            case .offline: return nil
-            case .limit: return Texts.ShoppingList.limitDescription
-            case .cartUnavailable: return Texts.ShoppingList.cartUnavailable
-            case .otherCartSyncFailed: return Texts.ShoppingList.otherCartSyncFailed
-            case .unavailable: return contentState == .unavailable ? nil : Texts.ShoppingList.loadError
-            }
+        switch list.failure {
+        case .none, .offline: return nil
+        case .authenticationRequired: return Texts.ShoppingList.signInDescription
+        case .limit: return Texts.ShoppingList.limitDescription
+        case .cartUnavailable: return Texts.ShoppingList.cartUnavailable
+        case .otherCartSyncFailed: return Texts.ShoppingList.otherCartSyncFailed
+        case .unavailable: return contentState == .unavailable ? nil : Texts.ShoppingList.loadError
         }
-        guard let result = list.planResult, result.plans.isEmpty else { return nil }
-        return Texts.ShoppingList.planningProblem(result.problem, requiredRadius: result.minRequiredRadiusMeters)
     }
 
     func refresh() async {
@@ -130,8 +125,8 @@ final class ShoppingListViewModel: ObservableObject {
     }
 
     func showRoutes() {
-        guard let selected = plan, let plans = list.planResult?.plans else { return }
-        routes = ShoppingRoutesSnapshot(plans: plans, selectedID: selected.id, origin: list.origin, isSaved: list.isPlanCached,
+        guard let result = list.planResult else { return }
+        routes = ShoppingRoutesSnapshot(plans: mode.plans(in: result), mode: mode, origin: list.origin, isSaved: list.isPlanCached,
                                         routeOptions: list.routeOptions, originAddress: list.originAddress)
     }
 
@@ -150,10 +145,4 @@ final class ShoppingListViewModel: ObservableObject {
         // Keep the offer and alternatives stable while the sheet is dismissing.
         selectedProduct = nil
     }
-}
-
-enum ShoppingListMode: String, CaseIterable, Identifiable {
-    case cheaper
-    case faster
-    var id: Self { self }
 }

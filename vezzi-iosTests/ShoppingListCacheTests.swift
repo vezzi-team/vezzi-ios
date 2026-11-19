@@ -205,17 +205,23 @@ final class ShoppingListCacheTests: XCTestCase {
         let loaded = try PropertyListDecoder().decode(ShoppingListCacheSnapshot.self, from: data)
         XCTAssertEqual(loaded.routeOptions, options)
         XCTAssertEqual(loaded.plan?.routeOptions, options)
+        XCTAssertEqual(loaded.plan?.result.fastestPlans?.first?.id, saved.result.fastestPlans?.first?.id)
         XCTAssertNoThrow(try loaded.validate())
 
         var legacy = try XCTUnwrap(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any])
         legacy.removeValue(forKey: "routeOptions")
         var legacyPlan = try XCTUnwrap(legacy["plan"] as? [String: Any])
         legacyPlan.removeValue(forKey: "routeOptions")
+        var legacyResult = try XCTUnwrap(legacyPlan["result"] as? [String: Any])
+        legacyResult.removeValue(forKey: "fastestPlans")
+        legacyPlan["result"] = legacyResult
         legacy["plan"] = legacyPlan
         let oldData = try PropertyListSerialization.data(fromPropertyList: legacy, format: .binary, options: 0)
         let old = try PropertyListDecoder().decode(ShoppingListCacheSnapshot.self, from: oldData)
         XCTAssertEqual(old.routeOptions, .init())
         XCTAssertEqual(old.plan?.routeOptions, .init())
+        XCTAssertNil(old.plan?.result.fastestPlans)
+        XCTAssertEqual(old.plan?.result.plans.first?.id, saved.result.plans.first?.id)
         XCTAssertNoThrow(try old.validate())
 
         var mismatched = loaded
@@ -223,11 +229,50 @@ final class ShoppingListCacheTests: XCTestCase {
         XCTAssertThrowsError(try mismatched.validate())
     }
 
+    func testFastestPlanMustMatchCartEvenWhenPriceRankingIsValid() throws {
+        var snapshot = sampleSnapshot()
+        let cached = try XCTUnwrap(snapshot.plan)
+        let plan = try XCTUnwrap(cached.result.plans.first)
+        let stop = try XCTUnwrap(plan.stops.first)
+        let item = try XCTUnwrap(stop.items.first)
+        let incorrectItem = ShoppingPlanItem(product: item.product, quantity: item.quantity + 1,
+                                             unitPrice: item.unitPrice, cardPrice: nil, priceConditions: nil)
+        let incorrectStop = ShoppingPlanStop(position: 1, store: stop.store, items: [incorrectItem], subtotal: stop.subtotal)
+        let fast = ShoppingPlan(id: UUID(), total: plan.total, savings: nil, totalSeconds: 350, walkingMeters: 400,
+                                stops: [incorrectStop], points: plan.points, usesRoadNetwork: true, isSynthetic: false)
+        let result = ShoppingPlanResult(plans: [plan], fastestPlans: [fast], baselinePrice: nil, problem: nil, isSynthetic: false)
+        snapshot.plan = CachedShoppingPlan(cartID: cached.cartID, quantities: cached.quantities, origin: cached.origin,
+                                           calculatedAt: cached.calculatedAt, result: result)
+        XCTAssertThrowsError(try snapshot.validate())
+    }
+
+    func testOfflineLegacyCalculationShowsOnlyPricesUntilFastRoutesAreFetched() async throws {
+        let folder = temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let account = ShoppingListTestAccount.make("legacy")
+        let cache = FileShoppingListCache(directory: folder)
+        let snapshot = sampleSnapshot(includeFastest: false)
+        try await cache.save(snapshot, account: account)
+        let list = ShoppingListRepository(cache: cache)
+        let model = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: list)
+        list.setAccount(account)
+        await list.refresh()
+        model.showRoutes()
+        XCTAssertEqual(model.routes?.selectedID, snapshot.plan?.result.plans.first?.id)
+        XCTAssertNil(model.comparisonPrice)
+        model.mode = .faster
+        model.showRoutes()
+        XCTAssertNil(model.routes)
+        XCTAssertNil(model.plan)
+        XCTAssertEqual(model.savedMinutes, 0)
+        XCTAssertEqual(model.message, Texts.ShoppingList.refreshForFastestRoutes)
+    }
+
     private func temporaryFolder() -> URL {
         FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
     }
 
-    private func sampleSnapshot() -> ShoppingListCacheSnapshot {
+    private func sampleSnapshot(includeFastest: Bool = true) -> ShoppingListCacheSnapshot {
         let price = Decimal(string: "90071992547409.93")!
         let product = CatalogProduct(id: "product", name: "Product", brand: "Brand",
                                      packageQuantity: Decimal(string: "0.1234567890123456789")!, packageUnit: "kg")
@@ -239,7 +284,8 @@ final class ShoppingListCacheTests: XCTestCase {
         let plan = ShoppingPlan(id: UUID(), total: price * 2, savings: Decimal(string: "0.01")!, totalSeconds: 780,
                                 walkingMeters: 800, stops: [stop], points: [.previewOrigin, .init(latitude: 60, longitude: 30)],
                                 usesRoadNetwork: true, isSynthetic: false)
-        let result = ShoppingPlanResult(plans: [plan], baselinePrice: price * 2 + 1, problem: nil, isSynthetic: false)
+        let result = ShoppingPlanResult(plans: [plan], fastestPlans: includeFastest ? [plan] : nil,
+                                        baselinePrice: price * 2 + 1, problem: nil, isSynthetic: false)
         return ShoppingListCacheSnapshot(cart: cart, pending: [:],
                                          plan: CachedShoppingPlan(cartID: cart.id, quantities: cart.quantities, origin: .previewOrigin,
                                                                   calculatedAt: Date(timeIntervalSince1970: 1_700_000_000), result: result))

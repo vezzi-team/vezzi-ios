@@ -214,14 +214,30 @@ struct ShoppingRouteView: View {
                 if let plan = viewModel.selectedPlan {
                     routeSummary(plan)
                         .accessibilityIdentifier(AccessibilityID.Routes.summary)
+                } else {
+                    recalculationStatus
                 }
-                if viewModel.snapshot.plans.count > 1 { routePicker }
+                if viewModel.availablePlans.count > 1 { routePicker }
             }
             .padding(.horizontal, Const.contentInset)
             .padding(.top, usesFloatingPanel ? .zero : Const.headerTopInset)
             .padding(.bottom, Const.contentInset)
         }
         .fixedSize(horizontal: false, vertical: true)
+    }
+
+    @ViewBuilder private var recalculationStatus: some View {
+        if viewModel.isBusy {
+            ProgressView(Texts.Routes.calculating)
+                .font(.subheadline)
+                .accessibilityIdentifier(AccessibilityID.Routes.recalculating)
+        }
+        if let message = viewModel.statusMessage {
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(Color.Label.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 
     @ViewBuilder private func routeSummary(_ plan: ShoppingPlan) -> some View {
@@ -260,11 +276,7 @@ struct ShoppingRouteView: View {
                 if viewModel.snapshot.isSaved {
                     Text(Texts.ShoppingList.cachedCalculation).font(.footnote).foregroundStyle(Color.Label.secondary)
                 }
-            } else if viewModel.isBusy {
-                ProgressView(Texts.ShoppingList.updating)
-                    .frame(maxWidth: .infinity, minHeight: Const.loadingHeight)
-            } else if let failure = viewModel.failure {
-                Text(failure).font(.subheadline).foregroundStyle(Color.Label.secondary)
+            } else if viewModel.canRetry {
                 Button(Texts.Routes.retry) { Task { await viewModel.retry() } }
                     .buttonStyle(.glass)
             }
@@ -315,7 +327,7 @@ struct ShoppingRouteView: View {
             viewModel.selectedID = id
             cameraRequest = MapCameraRequest(action: .fitRoute)
         })) {
-            ForEach(Array(viewModel.snapshot.plans.enumerated()), id: \.element.id) { index, plan in
+            ForEach(Array(viewModel.availablePlans.enumerated()), id: \.element.id) { index, plan in
                 Text(Texts.Routes.option(index + 1)).tag(plan.id)
             }
         }
@@ -437,7 +449,6 @@ struct ShoppingRouteView: View {
         static let spacing: CGFloat = 12
         static let headerTopInset: CGFloat = 20
         static let sectionSpacing: CGFloat = 20
-        static let loadingHeight: CGFloat = 140
         static let transitionDuration = 0.25
         static let secondsPerMinute = 60.0
         static let handleWidth: CGFloat = 36

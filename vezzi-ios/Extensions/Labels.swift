@@ -324,13 +324,14 @@ final class Texts {
     // MARK: - Shopping List
 
     enum ShoppingList {
-        static func planningProblem(_ reason: String?, requiredRadius: Int? = nil) -> String {
-            switch reason {
+        static func planningProblem(for result: ShoppingPlanResult?) -> String? {
+            guard let result, result.plans.isEmpty else { return nil }
+            switch result.problem {
             case "items_unavailable": return itemsUnavailable
             case "store_limit_too_low": return storeLimit
             case "time_limit_too_low": return timeLimit
             case "radius_too_small":
-                return requiredRadius.map { Routes.Settings.requiredRadius($0) } ?? radiusLimit
+                return result.minRequiredRadiusMeters.map { Routes.Settings.requiredRadius($0) } ?? radiusLimit
             case "route_unavailable": return routeUnavailable
             default: return noPlans
             }
@@ -357,6 +358,7 @@ final class Texts {
         static let cartUnavailable = NSLocalizedString("ShoppingListCartUnavailable", comment: "Saved changes belong to a list that is no longer available. They have not been applied to your current list.")
         static let otherCartSyncFailed = NSLocalizedString("ShoppingListOtherCartSyncFailed", comment: "Changes to another list could not be synced. They are kept on this device for retry. Your current list is available.")
         static let cachedCalculation = NSLocalizedString("ShoppingListCachedCalculation", comment: "Showing a saved calculation. Prices and routes may have changed.")
+        static let refreshForFastestRoutes = NSLocalizedString("ShoppingListRefreshForFastestRoutes", comment: "Refresh the list when online to see the fastest routes.")
         static let cacheError = NSLocalizedString("ShoppingListCacheError", comment: "Local storage is unavailable. Some changes may be lost when you close the app. Try again.")
         static let limitTitle = NSLocalizedString("ShoppingListLimitTitle", comment: "List limit reached")
         static let limitDescription = NSLocalizedString("ShoppingListLimitDescription", comment: "A list can contain up to 30 different products. Remove a product before adding another.")
@@ -454,6 +456,7 @@ final class Texts {
         static let collapseDetails = NSLocalizedString("RoutesCollapseDetails", comment: "Collapse route details")
         static let options = NSLocalizedString("RoutesOptions", comment: "Routes")
         static let withShopping = NSLocalizedString("RoutesWithShopping", comment: "including shopping")
+        static let calculating = NSLocalizedString("RoutesCalculating", comment: "Calculating routes…")
         static let retry = NSLocalizedString("RoutesRetry", comment: "Try again")
         static let offline = NSLocalizedString("RoutesOffline", comment: "No connection. Reconnect to calculate a route from this point.")
         static func option(_ number: Int) -> String {

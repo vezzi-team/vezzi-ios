@@ -26,6 +26,7 @@ enum AccessibilityID {
         static let origin = "routes.origin"
         static let back = "routes.back"
         static let panel = "routes.panel"
+        static let recalculating = "routes.recalculating"
         static let summary = "routes.summary"
         static let startShopping = "routes.startShopping"
         static let locate = "routes.locate"

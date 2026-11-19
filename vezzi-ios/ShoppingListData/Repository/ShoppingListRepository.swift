@@ -299,11 +299,17 @@ final class ShoppingListRepository: ObservableObject {
                 let plannedRevision = revision
                 let plannedOrigin = origin
                 let plannedOptions = routeOptions
-                let result = try await service.plans(cartID: cart.id, start: plannedOrigin, options: plannedOptions)
+                let result: ShoppingPlanResult
+                do {
+                    result = try await service.plans(cartID: cart.id, start: plannedOrigin, options: plannedOptions)
+                } catch where plannedRevision != revision {
+                    // A failed calculation for an earlier cart or route must not stop its replacement.
+                    continue
+                }
                 try check(generation)
                 // Plan requests are serialized with cart writes; an old POST cannot replace a newer calculation.
                 guard plannedRevision == revision, !needsReload else { continue }
-                for plan in result.plans {
+                for plan in result.rankedPlans {
                     let quantities = Dictionary(plan.stops.flatMap(\.items).map { ($0.product.id, $0.quantity) },
                                                 uniquingKeysWith: +)
                     guard quantities == cart.quantities else { throw APIError.invalidResponse }
