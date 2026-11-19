@@ -14,6 +14,10 @@ extension Image {
     enum System {
         static let location = Image(systemName: "location")
         static let locationFill = Image(systemName: "location.fill")
+        static let profileLocation = Image(systemName: "mappin.and.ellipse")
+        static let profileRoute = Image(systemName: "point.3.connected.trianglepath.dotted")
+        static let profileSettings = Image(systemName: "gearshape")
+        static let profileDebug = Image(systemName: "ladybug")
         static let person = Image(systemName: "person.crop.circle")
         static let walk = Image(systemName: "figure.walk")
         static let chevronRight = Image(systemName: "chevron.right")

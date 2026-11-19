@@ -150,6 +150,16 @@
 		EDAC3F3121444F6CB20B5495 /* MotiMascotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F128376C6B5C4549916BDA3C /* MotiMascotView.swift */; };
 		F3A5C60A94D047608C47E6E6 /* CatalogCategoryFilterBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAE0FA79DDA4C35B778B626 /* CatalogCategoryFilterBar.swift */; };
 		F88E77CDD2413AB49831709E /* ShoppingRouteViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E9F73950B2B5FB3BC816C0A /* ShoppingRouteViewModel.swift */; };
+		0322F20F8646723552FBD404 /* ProfileNotificationsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14303E88085A16761BF306C1 /* ProfileNotificationsViewModel.swift */; };
+		844E9DE76F7AFBB44755F84F /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E762F57BFE91685862837B /* ProfileViewModel.swift */; };
+		3A72AB4730AB34CE00A53F91 /* PolkaProfileModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A72AB4630AB34CE00A53F91 /* PolkaProfileModels.swift */; };
+		3A72AB4330AB349300A53F91 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A72AB4230AB349300A53F91 /* AboutView.swift */; };
+		3A72AB4530AB34B900A53F91 /* AddressesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A72AB4430AB34B900A53F91 /* AddressesView.swift */; };
+		3A72AB4D30AB350600A53F91 /* ShoppingModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A72AB4C30AB350600A53F91 /* ShoppingModeView.swift */; };
+		3A72AB5130AB388B00A53F91 /* PolkaProfileDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A72AB5030AB387B00A53F91 /* PolkaProfileDataView.swift */; };
+		3A72AB4B30AB34F900A53F91 /* ProfileComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A72AB4A30AB34F900A53F91 /* ProfileComponents.swift */; };
+		3A72AB4930AB34EB00A53F91 /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A72AB4830AB34EB00A53F91 /* NotificationsView.swift */; };
+		8BE86D19E48DFCE4B40B0264 /* ProfileViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 618C8742F665A70D3E95C722 /* ProfileViewModelTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -308,6 +318,16 @@
 		FABAF4F2DDB74814862FBEA5 /* SearchViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModelTests.swift; sourceTree = "<group>"; };
 		FB55D8EF7F764C0EA0E594DF /* ShoppingListModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingListModels.swift; sourceTree = "<group>"; };
 		FC534E3838804D18A1E29BA9 /* ShoppingPlanStoresView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingPlanStoresView.swift; sourceTree = "<group>"; };
+		14303E88085A16761BF306C1 /* ProfileNotificationsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileNotificationsViewModel.swift; sourceTree = "<group>"; };
+		77E762F57BFE91685862837B /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
+		3A72AB4630AB34CE00A53F91 /* PolkaProfileModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolkaProfileModels.swift; sourceTree = "<group>"; };
+		3A72AB4230AB349300A53F91 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
+		3A72AB4430AB34B900A53F91 /* AddressesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressesView.swift; sourceTree = "<group>"; };
+		3A72AB4C30AB350600A53F91 /* ShoppingModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingModeView.swift; sourceTree = "<group>"; };
+		3A72AB5030AB387B00A53F91 /* PolkaProfileDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolkaProfileDataView.swift; sourceTree = "<group>"; };
+		3A72AB4A30AB34F900A53F91 /* ProfileComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileComponents.swift; sourceTree = "<group>"; };
+		3A72AB4830AB34EB00A53F91 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
+		618C8742F665A70D3E95C722 /* ProfileViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModelTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -393,6 +413,7 @@
 		18D831BA6AD24BE79E283E53 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				3A72AB4630AB34CE00A53F91 /* PolkaProfileModels.swift */,
 				194C0DEFDCAE43B58A871BB2 /* ProfilePreferences.swift */,
 			);
 			path = Model;
@@ -439,6 +460,7 @@
 		34F2800DF1B84CBFB12EBD88 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				07BD44948D6CACD91BBA04C4 /* ViewModel */,
 				56149197BD8F4065ABA20F3F /* View */,
 				18D831BA6AD24BE79E283E53 /* Model */,
 			);
@@ -505,6 +527,12 @@
 		56149197BD8F4065ABA20F3F /* View */ = {
 			isa = PBXGroup;
 			children = (
+				3A72AB4230AB349300A53F91 /* AboutView.swift */,
+				3A72AB4430AB34B900A53F91 /* AddressesView.swift */,
+				3A72AB4C30AB350600A53F91 /* ShoppingModeView.swift */,
+				3A72AB5030AB387B00A53F91 /* PolkaProfileDataView.swift */,
+				3A72AB4A30AB34F900A53F91 /* ProfileComponents.swift */,
+				3A72AB4830AB34EB00A53F91 /* NotificationsView.swift */,
 				05DE0C07445C48EDBD5DBCA5 /* ProfileView.swift */,
 				47F3D4BF132A4BEC950695EC /* ProfileDetailView.swift */,
 			);
@@ -659,6 +687,7 @@
 				56C5FA7195DD42BDB9732373 /* RouteMapViewTests.swift */,
 				1B62E7E4133A4AF48B85291D /* ShoppingListAPITests.swift */,
 				3C7E0FD53E2A418E8FD26A90 /* ShoppingListCacheTests.swift */,
+				618C8742F665A70D3E95C722 /* ProfileViewModelTests.swift */,
 				620F9CEB802849BE822FE83E /* ShoppingListRepositoryTests.swift */,
 				20C1C43C5DA141C1997C77DE /* LoginViewModelTests.swift */,
 				B5B58E8851FF49B08143A545 /* AuthenticationServiceTests.swift */,
@@ -1007,6 +1036,15 @@
 			path = Networking;
 			sourceTree = "<group>";
 		};
+		07BD44948D6CACD91BBA04C4 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				77E762F57BFE91685862837B /* ProfileViewModel.swift */,
+				14303E88085A16761BF306C1 /* ProfileNotificationsViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1127,6 +1165,7 @@
 				72414336C8084DD7938EBA1D /* RouteMapViewTests.swift in Sources */,
 				65FAECEE9BCE468DAF94CCAB /* ShoppingListAPITests.swift in Sources */,
 				435270265F8A4EFBAE28DD25 /* ShoppingListCacheTests.swift in Sources */,
+				8BE86D19E48DFCE4B40B0264 /* ProfileViewModelTests.swift in Sources */,
 				B49E6A844FB847A3A8E1B918 /* ShoppingListRepositoryTests.swift in Sources */,
 				A4571AC65EDA43429193DFA1 /* LoginViewModelTests.swift in Sources */,
 				CC3B54FB7CFA41F7A02E6E47 /* AuthenticationServiceTests.swift in Sources */,
@@ -1188,6 +1227,15 @@
 				7A1D4E277412462F9EC696B7 /* MotiAnimationView.swift in Sources */,
 				7D87F6560ED544068DD07B94 /* MotiMotion.swift in Sources */,
 				9B7614FD3D1F459EBEF2708C /* MotiFaceGeometry.swift in Sources */,
+				0322F20F8646723552FBD404 /* ProfileNotificationsViewModel.swift in Sources */,
+				844E9DE76F7AFBB44755F84F /* ProfileViewModel.swift in Sources */,
+				3A72AB4730AB34CE00A53F91 /* PolkaProfileModels.swift in Sources */,
+				3A72AB4330AB349300A53F91 /* AboutView.swift in Sources */,
+				3A72AB4530AB34B900A53F91 /* AddressesView.swift in Sources */,
+				3A72AB4D30AB350600A53F91 /* ShoppingModeView.swift in Sources */,
+				3A72AB5130AB388B00A53F91 /* PolkaProfileDataView.swift in Sources */,
+				3A72AB4B30AB34F900A53F91 /* ProfileComponents.swift in Sources */,
+				3A72AB4930AB34EB00A53F91 /* NotificationsView.swift in Sources */,
 				649A4223ED484570BB4E9CE3 /* ProfileView.swift in Sources */,
 				34E9B086EBAA43AB8754977D /* ProfileDetailView.swift in Sources */,
 				9C4702A980F04E47B9B95794 /* ProfilePreferences.swift in Sources */,

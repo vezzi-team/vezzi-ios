@@ -1,159 +1,161 @@
 import SwiftUI
-import UIKit
-import UserNotifications
-
-enum ProfileSheet: String, Identifiable {
-    case shopping, addresses, notifications, about
-    var id: String { rawValue }
-    var isCompact: Bool { self == .shopping || self == .addresses }
-}
 
 struct ProfileView: View {
-    var name = "onton"
-    var email = "test@test.test"
-    var phone = "+7 123 (456) 78 91"
-    var onBack: (() -> Void)? = nil
-    var onTab: ((String) -> Void)? = nil
-    var onContact: (() -> Void)? = nil
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var sheet: ProfileSheet?
-    @State private var showDetails = false
-    @State private var demoMessage: String?
-    @AppStorage("polka.shoppingMode") private var mode: PolkaShoppingMode = .balanced
-    @AppStorage("polka.addresses") private var addressesData = Data()
-
-    private var addresses: [PolkaAddress] {
-        (try? JSONDecoder().decode([PolkaAddress].self, from: addressesData))
-            ?? PolkaAddress.examples
-    }
+    @ObservedObject var session: AuthenticationSession
+    @EnvironmentObject private var router: AppRouter
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        Group {
-            VStack(spacing: 0) {
-                PolkaScreenHeader(title: "Профиль") {
-                    if let onBack { onBack() } else { dismiss() }
-                }
-                ScrollView {
-                    VStack(spacing: 12) {
-                        Button { showDetails = true } label: {
-                            HStack(spacing: 14) {
-                                Text(String(name.prefix(1)).uppercased())
-                                    .font(.title3.weight(.semibold))
-                                    .frame(width: 52, height: 52)
-                                    .background(PolkaPalette.orange, in: Circle())
-                                VStack(alignment: .leading, spacing: 5) {
-                                    Text(name).font(.title3.weight(.semibold))
-                                    Text(email).font(.footnote).foregroundStyle(.secondary)
-                                }
-                                Spacer(minLength: 0)
-                                Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
-                            }
-                            .padding(16).frame(maxWidth: .infinity, minHeight: 92)
-                            .polkaCard()
-                        }.buttonStyle(.plain)
-                        HStack(alignment: .top, spacing: 12) {
-                            PolkaInfoTile(icon: "mappin.and.ellipse", title: "Мои адреса",
-                                     subtitle: addresses.first?.street ?? "Добавьте адрес") {
-                                sheet = .addresses
-                            }
-                            PolkaInfoTile(icon: "point.3.connected.trianglepath.dotted",
-                                     title: "Как покупать", subtitle: mode.title) {
-                                sheet = .shopping
-                            }
-                        }
-                        VStack(spacing: 0) {
-                            PolkaMenuRow(icon: "gearshape", title: "Уведомления") { sheet = .notifications }
-                            Divider().padding(.leading, 54)
-                            PolkaMenuRow(icon: "person", title: "О Полке") { sheet = .about }
-                        }
-                        .padding(.horizontal, 16).polkaCard().padding(.top, 12)
-
-                        Button {
-                            if let onContact {
-                                onContact()
-                            } else {
-                                demoMessage = "Контакт поддержки пока не подключён."
-                            }
-                        } label: {
-                            HStack(spacing: 12) {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text("Связаться с нами")
-                                        .font(.headline)
-                                        .foregroundStyle(PolkaPalette.ink)
-
-                                    Text("Поможем разобраться\nс ценами и покупками")
-                                        .font(.footnote)
-                                        .foregroundStyle(.secondary)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                                MotiMascotView(
-                                    state: .idle,
-                                    isMotionEnabled: false
-                                )
-                                .frame(width: 100, height: 76)
-                            }
-                            .padding(16)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .polkaCard()
-                            .contentShape(RoundedRectangle(cornerRadius: 18))
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.top, 12)
-                        .accessibilityLabel("Связаться с нами")
-                        .accessibilityHint("Обратиться в поддержку")
-                    }
-                    .padding(16)
-                }
+        ScrollView {
+            VStack(spacing: Const.spacing) {
+                accountCard
+                preferenceCards
+                settingsCard
+                contactCard
+                debugSection
             }
-            .background(PolkaPalette.background)
-            .toolbar(.hidden, for: .navigationBar)
-            .navigationDestination(isPresented: $showDetails) {
-                PolkaProfileDataView(
-                    name: name,
-                    email: email,
-                    phone: phone,
-                    onTab: handleTab
-                )
-            }
-            .sheet(item: $sheet) { item in
-                Group {
-                    switch item {
-                    case .shopping:
-                        ShoppingModeView(selection: $mode)
-                    case .addresses:
-                        AddressesView(addresses: addresses) { updated in
-                            if let data = try? JSONEncoder().encode(updated) { addressesData = data }
-                        }
-                    case .notifications:
-                        NotificationsView()
-                    case .about:
-                        AboutView()
-                    }
-                }
-                .presentationDetents(item.isCompact ? [.height(430), .large] : [.large])
-                .presentationDragIndicator(.visible)
-                .presentationCornerRadius(36)
-                .presentationBackground(item.isCompact ? .ultraThinMaterial : .regularMaterial)
-            }
-            .alert("Демо", isPresented: Binding(
-                get: { demoMessage != nil }, set: { if !$0 { demoMessage = nil } }
-            )) {
-                Button("Понятно", role: .cancel) { demoMessage = nil }
-            } message: { Text(demoMessage ?? "") }
+            .padding(Const.inset)
+            .frame(maxWidth: Const.maximumWidth)
+            .frame(maxWidth: .infinity)
         }
-        .tint(PolkaPalette.orange)
-        .foregroundStyle(PolkaPalette.ink)
-        .preferredColorScheme(.light)
+        .background(Color.Background.primary)
+        .foregroundStyle(Color.Label.primary)
+        .accessibilityIdentifier(AccessibilityID.Profile.screen)
     }
 
-    private var bottomBar: some View { PolkaBottomBar(onSelect: handleTab) }
-    private func handleTab(_ title: String) {
-        if let onTab { onTab(title) }
-        else { demoMessage = "Подключите экран «\(title)» в замыкании onTab." }
+    // MARK: - Account
+
+    private var accountCard: some View {
+        Button { router.push(.profileDetails(.personalDetails), in: .home) } label: {
+            ProfileCard {
+                HStack(spacing: Const.spacing) {
+                    Text(initial)
+                        .appTextStyle(.body, weight: .semibold)
+                        .foregroundStyle(Color.Label.white)
+                        .frame(width: Const.avatarSize, height: Const.avatarSize)
+                        .background(Color.accentColor, in: Circle())
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: Const.textSpacing) {
+                        Text(Texts.Profile.Main.yourProfile).appTextStyle(.body, weight: .semibold)
+                        Text(session.user?.email ?? Texts.Profile.Details.notProvided)
+                            .appTextStyle(.caption).foregroundStyle(Color.Label.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: Const.textSpacing)
+                    Image.System.chevronRight.accessibilityHidden(true)
+                }
+            }
+        }
+        .pressScaleEffect()
+        .accessibilityIdentifier(AccessibilityID.Profile.personalDetails)
+    }
+
+    private var initial: String { String((session.user?.email ?? "").prefix(1)).uppercased() }
+
+    // MARK: - Preferences
+
+    private var preferenceCards: some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: Const.spacing))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: Const.spacing))
+        return layout {
+            preferenceCard(title: Texts.Profile.Addresses.title,
+                           subtitle: session.preferences.address.isEmpty
+                            ? Texts.Profile.Addresses.add : session.preferences.address,
+                           image: Image.System.profileLocation, sheet: .addresses)
+            preferenceCard(title: Texts.Profile.Shopping.title,
+                           subtitle: session.preferences.priority.title,
+                           image: Image.System.profileRoute, sheet: .shopping)
+        }
+    }
+
+    private func preferenceCard(title: String, subtitle: String, image: Image, sheet: ProfileSheet) -> some View {
+        Button { router.presentProfile(sheet) } label: {
+            ProfileCard {
+                VStack(alignment: .leading, spacing: Const.textSpacing) {
+                    image.font(.title3).accessibilityHidden(true)
+                    Text(title).appTextStyle(.appText, weight: .semibold)
+                    Text(subtitle).appTextStyle(.caption).foregroundStyle(Color.Label.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, minHeight: Const.tileHeight, alignment: .topLeading)
+            }
+        }
+        .pressScaleEffect()
+        .accessibilityIdentifier(AccessibilityID.Profile.destination(sheet.rawValue))
+    }
+
+    private var settingsCard: some View {
+        ProfileCard {
+            VStack(spacing: .zero) {
+                Button { router.presentProfile(.notifications) } label: {
+                    ProfileRow(title: Texts.Profile.Main.notifications, image: Image.System.profileSettings)
+                }.pressScaleEffect()
+                Divider()
+                Button { router.presentProfile(.about) } label: {
+                    ProfileRow(title: Texts.Profile.Main.about, image: Image.System.person)
+                }.pressScaleEffect()
+            }
+        }
+    }
+
+    private var contactCard: some View {
+        Button { router.push(.profileDetails(.help), in: .home) } label: {
+            ProfileCard {
+                HStack(spacing: Const.spacing) {
+                    VStack(alignment: .leading, spacing: Const.textSpacing) {
+                        Text(Texts.Profile.Support.title).appTextStyle(.appText, weight: .semibold)
+                        Text(Texts.Profile.Support.subtitle).appTextStyle(.caption)
+                            .foregroundStyle(Color.Label.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        MotiMascotView(state: .idle, isMotionEnabled: false)
+                            .frame(width: Const.mascotWidth, height: Const.mascotHeight)
+                    }
+                }
+            }
+        }
+        .pressScaleEffect()
+        .accessibilityIdentifier(AccessibilityID.Profile.contact)
+    }
+
+    private var debugSection: some View {
+        VStack(alignment: .leading, spacing: Const.textSpacing) {
+            Text(Texts.Profile.Main.debug).appTextStyle(.caption).foregroundStyle(Color.Label.secondary)
+            Button { router.push(.motiDebug, in: .home) } label: {
+                ProfileCard { ProfileRow(title: Texts.Debug.Moti.title, image: Image.System.profileDebug) }
+            }
+            .pressScaleEffect()
+            .accessibilityIdentifier(AccessibilityID.Profile.motiDebug)
+        }
+    }
+
+    private enum Const {
+        static let inset: CGFloat = 16
+        static let spacing: CGFloat = 12
+        static let textSpacing: CGFloat = 6
+        static let avatarSize: CGFloat = 52
+        static let tileHeight: CGFloat = 92
+        static let mascotWidth: CGFloat = 100
+        static let mascotHeight: CGFloat = 76
+        static let maximumWidth: CGFloat = 680
     }
 }
 
-#Preview("Профиль") { ProfileView() }
+#Preview("Profile — light") {
+    NavigationStack {
+        ProfileView(session: .preview()).environmentObject(AppRouter())
+            .navigationTitle(Texts.Profile.Main.title)
+    }
+    .preferredColorScheme(.light)
+}
+
+#Preview("Profile — dark, large text") {
+    NavigationStack {
+        ProfileView(session: .preview()).environmentObject(AppRouter())
+            .navigationTitle(Texts.Profile.Main.title)
+    }
+    .preferredColorScheme(.dark)
+    .dynamicTypeSize(.accessibility3)
+}

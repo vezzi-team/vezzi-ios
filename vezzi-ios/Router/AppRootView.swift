@@ -84,6 +84,9 @@ struct AppRootView: View {
                 appRouter.popToRoot(in: .catalog)
             }
         }
+        .onChange(of: authentication.identity?.sessionID) {
+            if case .profile? = appRouter.presentedSheet { appRouter.dismissSheet() }
+        }
         .environmentObject(appRouter)
         .modifier(CartAdditionNoticePresenter(hasAddedProduct: productSelection.hasAddedProductThisSession,
                                              openList: appRouter.openShoppingList))

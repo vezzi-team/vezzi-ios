@@ -1,44 +1,75 @@
 import SwiftUI
-import UIKit
-import UserNotifications
 
 struct ShoppingModeView: View {
-    @Binding var selection: PolkaShoppingMode
-    @State private var draft: PolkaShoppingMode
+    @StateObject private var viewModel: ProfileViewModel
     @Environment(\.dismiss) private var dismiss
 
-    init(selection: Binding<PolkaShoppingMode>) {
-        _selection = selection
-        _draft = State(initialValue: selection.wrappedValue)
+    init(session: AuthenticationSession) {
+        _viewModel = StateObject(wrappedValue: ProfileViewModel(session: session))
     }
 
     var body: some View {
-        VStack(spacing: 18) {
-            PolkaSheetHeader(title: "Как покупать", onClose: { dismiss() }, onSave: {
-                selection = draft
-                dismiss()
-            })
-            ScrollView {
-                VStack(spacing: 12) {
-                    ForEach(PolkaShoppingMode.allCases) { mode in
-                        Button { draft = mode } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(mode.title).foregroundStyle(.primary)
-                                Text(mode.subtitle).font(.subheadline).foregroundStyle(.secondary)
-                            }
-                            .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
-                            .padding(22)
-                            .background(.white, in: RoundedRectangle(cornerRadius: 17))
-                            .overlay {
-                                RoundedRectangle(cornerRadius: 17)
-                                    .stroke(draft == mode ? PolkaPalette.orange : .clear, lineWidth: 1.5)
+        ScrollView {
+            VStack(spacing: Const.spacing) {
+                ForEach(ProfilePreferences.ShoppingPriority.allCases) { priority in
+                    Button { viewModel.priority = priority } label: {
+                        ProfileCard {
+                            HStack(spacing: Const.spacing) {
+                                VStack(alignment: .leading, spacing: Const.textSpacing) {
+                                    Text(priority.title).appTextStyle(.appText)
+                                    Text(subtitle(for: priority)).appTextStyle(.caption)
+                                        .foregroundStyle(Color.Label.secondary)
+                                }
+                                Spacer(minLength: .zero)
+                                if viewModel.priority == priority {
+                                    Image.System.checkmark.foregroundStyle(Color.accentColor)
+                                        .accessibilityHidden(true)
+                                }
                             }
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(draft == mode ? [.isSelected] : [])
+                        .overlay {
+                            RoundedRectangle(cornerRadius: Const.radius)
+                                .stroke(viewModel.priority == priority ? Color.accentColor : Color.clear,
+                                        lineWidth: Const.borderWidth)
+                        }
                     }
-                }.padding(.horizontal, 10)
+                    .pressScaleEffect()
+                    .accessibilityAddTraits(viewModel.priority == priority ? [.isSelected] : [])
+                    .accessibilityIdentifier(AccessibilityID.Profile.priority(priority.rawValue))
+                }
+                Text(Texts.Profile.Controls.temporary)
+                    .appTextStyle(.caption).foregroundStyle(Color.Label.secondary)
             }
-        }.padding(.top, 16)
+            .padding(Const.inset)
+        }
+        .foregroundStyle(Color.Label.primary)
+        .background(Color.Background.primary)
+        .navigationTitle(Texts.Profile.Shopping.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ProfileSheetToolbar(onClose: { dismiss() }, onSave: {
+                if viewModel.savePriority() { dismiss() }
+            })
+        }
     }
+
+    private func subtitle(for priority: ProfilePreferences.ShoppingPriority) -> String {
+        switch priority {
+        case .balanced: return Texts.Profile.Shopping.balancedDescription
+        case .price: return Texts.Profile.Shopping.priceDescription
+        case .time: return Texts.Profile.Shopping.timeDescription
+        }
+    }
+
+    private enum Const {
+        static let spacing: CGFloat = 12
+        static let textSpacing: CGFloat = 4
+        static let radius: CGFloat = 20
+        static let borderWidth: CGFloat = 1
+        static let inset: CGFloat = 16
+    }
+}
+
+#Preview("Shopping preference") {
+    NavigationStack { ShoppingModeView(session: .preview()) }
 }

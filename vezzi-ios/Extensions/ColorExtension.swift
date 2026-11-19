@@ -14,6 +14,10 @@ extension Color {
         static let repeatedRoute = Color("MapRepeatedRoute")
     }
     
+    enum Profile {
+        static let confirmation = Color("ProfileConfirmation")
+    }
+
     enum Mascot {
         static let ink = Color("MotiInk")
         static let cheek = Color("MotiCheek")

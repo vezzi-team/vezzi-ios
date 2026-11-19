@@ -2904,6 +2904,312 @@
         }
       }
     },
+    "ProfileAboutDescription" : {
+      "comment" : "Compare grocery prices in nearby stores and choose a convenient shopping route.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compare grocery prices in nearby stores and choose a convenient shopping route."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сравнивайте стоимость продуктов в ближайших магазинах и выбирайте удобный маршрут за покупками."
+          }
+        }
+      }
+    },
+    "ProfileAboutTagline" : {
+      "comment" : "Your list. A better choice.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your list. A better choice."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш список. Лучший вариант."
+          }
+        }
+      }
+    },
+    "ProfileAboutVersion" : {
+      "comment" : "Version %@",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Версия %@"
+          }
+        }
+      }
+    },
+    "ProfileAddressesAdd" : {
+      "comment" : "Add address",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add address"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить адрес"
+          }
+        }
+      }
+    },
+    "ProfileAddressesEditorTitle" : {
+      "comment" : "Address",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Address"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адрес"
+          }
+        }
+      }
+    },
+    "ProfileAddressesEmpty" : {
+      "comment" : "No saved addresses yet. Add your first address.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No saved addresses yet. Add your first address."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адресов пока нет. Добавьте первый адрес."
+          }
+        }
+      }
+    },
+    "ProfileAddressesHome" : {
+      "comment" : "Home",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дом"
+          }
+        }
+      }
+    },
+    "ProfileAddressesName" : {
+      "comment" : "Label, for example Home",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Label, for example Home"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Название, например Дом"
+          }
+        }
+      }
+    },
+    "ProfileAddressesStreet" : {
+      "comment" : "Street and building number",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Street and building number"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Улица и номер дома"
+          }
+        }
+      }
+    },
+    "ProfileAddressesTitle" : {
+      "comment" : "My addresses",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My addresses"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мои адреса"
+          }
+        }
+      }
+    },
+    "ProfileControlsClose" : {
+      "comment" : "Close",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрыть"
+          }
+        }
+      }
+    },
+    "ProfileControlsSave" : {
+      "comment" : "Save",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранить"
+          }
+        }
+      }
+    },
+    "ProfileControlsTemporary" : {
+      "comment" : "These preferences last for this session only. They do not change catalog results or shopping plans yet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "These preferences last for this session only. They do not change catalog results or shopping plans yet."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эти настройки действуют только в текущей сессии. Пока они не меняют каталог и расчёт покупок."
+          }
+        }
+      }
+    },
+    "ProfileDetailsName" : {
+      "comment" : "Name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Имя"
+          }
+        }
+      }
+    },
+    "ProfileDetailsNotProvided" : {
+      "comment" : "Not provided",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not provided"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не указано"
+          }
+        }
+      }
+    },
+    "ProfileDetailsPhone" : {
+      "comment" : "Phone number",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phone number"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Номер телефона"
+          }
+        }
+      }
+    },
+    "ProfileDetailsUnavailableFields" : {
+      "comment" : "The account service currently provides email only. Name and phone number are not available.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The account service currently provides email only. Name and phone number are not available."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервис аккаунта пока передаёт только почту. Имя и номер телефона недоступны."
+          }
+        }
+      }
+    },
     "ProfileInformationAbout" : {
       "comment" : "Plan your shopping, compare offers and discover ideas for dinner.",
       "localizations" : {
@@ -3210,6 +3516,258 @@
         }
       }
     },
+    "ProfileNotificationsAllow" : {
+      "comment" : "Allow notifications",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow notifications"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешить уведомления"
+          }
+        }
+      }
+    },
+    "ProfileNotificationsEnable" : {
+      "comment" : "Enable notifications",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable notifications"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включите уведомления"
+          }
+        }
+      }
+    },
+    "ProfileNotificationsEnableDescription" : {
+      "comment" : "Allow this app to show notifications. You can change permission in Settings.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow this app to show notifications. You can change permission in Settings."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешите приложению показывать уведомления. Разрешение можно изменить в настройках."
+          }
+        }
+      }
+    },
+    "ProfileNotificationsLocalOnly" : {
+      "comment" : "Preferences last for this session only. Price tracking and notification delivery are not connected yet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferences last for this session only. Price tracking and notification delivery are not connected yet."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предпочтения действуют только в текущей сессии. Отслеживание цен и отправка уведомлений пока не подключены."
+          }
+        }
+      }
+    },
+    "ProfileNotificationsNearby" : {
+      "comment" : "Nearby offers",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nearby offers"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Акции поблизости"
+          }
+        }
+      }
+    },
+    "ProfileNotificationsNearbyDescription" : {
+      "comment" : "In stores near your selected address",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In stores near your selected address"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В магазинах рядом с выбранным адресом"
+          }
+        }
+      }
+    },
+    "ProfileNotificationsOff" : {
+      "comment" : "Notifications are off",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications are off"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Уведомления выключены"
+          }
+        }
+      }
+    },
+    "ProfileNotificationsOffDescription" : {
+      "comment" : "Allow notifications in Settings to receive alerts when notification delivery is connected.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow notifications in Settings to receive alerts when notification delivery is connected."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешите уведомления в настройках, чтобы получать сообщения после подключения отправки уведомлений."
+          }
+        }
+      }
+    },
+    "ProfileNotificationsOpenSettings" : {
+      "comment" : "Open Settings",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть настройки"
+          }
+        }
+      }
+    },
+    "ProfileNotificationsPrices" : {
+      "comment" : "Prices dropped",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prices dropped"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цены снизились"
+          }
+        }
+      }
+    },
+    "ProfileNotificationsPricesDescription" : {
+      "comment" : "For products on your list",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For products on your list"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На товары из вашего списка"
+          }
+        }
+      }
+    },
+    "ProfileNotificationsReminders" : {
+      "comment" : "List reminders",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "List reminders"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Напоминания о списке"
+          }
+        }
+      }
+    },
+    "ProfileNotificationsRemindersDescription" : {
+      "comment" : "Remember your planned shopping",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remember your planned shopping"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поможем не забыть запланированные покупки"
+          }
+        }
+      }
+    },
+    "ProfileNotificationsRequestError" : {
+      "comment" : "Unable to change notification access. Try again or open the app’s notification settings manually.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to change notification access. Try again or open the app’s notification settings manually."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось изменить доступ к уведомлениям. Попробуйте ещё раз или откройте настройки уведомлений приложения вручную."
+          }
+        }
+      }
+    },
     "ProfileSettingsBalanced" : {
       "comment" : "Balance price and time",
       "localizations" : {
@@ -3325,6 +3883,132 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Выйти из аккаунта?"
+          }
+        }
+      }
+    },
+    "ProfileShoppingBalancedDescription" : {
+      "comment" : "Prefer a balance between price and travel time",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prefer a balance between price and travel time"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Баланс стоимости покупок и времени в пути"
+          }
+        }
+      }
+    },
+    "ProfileShoppingPriceDescription" : {
+      "comment" : "Prefer a lower total for your list",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prefer a lower total for your list"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приоритет низкой стоимости списка"
+          }
+        }
+      }
+    },
+    "ProfileShoppingTimeDescription" : {
+      "comment" : "Prefer less time spent shopping",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prefer less time spent shopping"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приоритет меньших затрат времени"
+          }
+        }
+      }
+    },
+    "ProfileShoppingTitle" : {
+      "comment" : "How to shop",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How to shop"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Как покупать"
+          }
+        }
+      }
+    },
+    "ProfileSupportSubtitle" : {
+      "comment" : "Help with prices and shopping",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help with prices and shopping"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поможем разобраться с ценами и покупками"
+          }
+        }
+      }
+    },
+    "ProfileSupportTitle" : {
+      "comment" : "Contact us",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contact us"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Связаться с нами"
+          }
+        }
+      }
+    },
+    "ProfileSupportUnavailable" : {
+      "comment" : "A support contact has not been configured yet. You can browse products on Home, add them to your list and compare store offers.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A support contact has not been configured yet. You can browse products on Home, add them to your list and compare store offers."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Контакт поддержки пока не настроен. На главной можно выбрать товары, добавить их в список и сравнить предложения магазинов."
           }
         }
       }
@@ -5256,50 +5940,6 @@
           }
         }
       }
-    },
-    "Адрес" : {
-    },
-    "Ваш список. Лучший вариант." : {
-    },
-    "Версия %@" : {
-    },
-    "Включите уведомления" : {
-    },
-    "Готово" : {
-    },
-    "Демо" : {
-    },
-    "Название, например Дом" : {
-    },
-    "Не удалось запросить разрешение" : {
-    },
-    "ОК" : {
-    },
-    "Обратиться в поддержку" : {
-    },
-    "Отмена" : {
-    },
-    "Поиск" : {
-    },
-    "Полка" : {
-    },
-    "Поможем разобраться\nс ценами и покупками" : {
-    },
-    "Понятно" : {
-    },
-    "Разрешите их в настройках iPhone, чтобы узнавать о снижении цен на товары из списка." : {
-    },
-    "Разрешите уведомления, чтобы узнавать о снижении цен на товары из списка." : {
-    },
-    "Связаться с нами" : {
-    },
-    "Сравнивайте стоимость продуктов в ближайших магазинах и выбирайте удобный маршрут за покупками." : {
-    },
-    "Уведомления выключены" : {
-    },
-    "Улица и номер дома" : {
-    },
-    "🧶" : {
     }
   },
   "version" : "1.3"
