@@ -12,6 +12,10 @@ extension Image {
     // MARK: - SF Symbols
 
     enum System {
+        static let profileLocation = Image(systemName: "mappin.and.ellipse")
+        static let profileRoute = Image(systemName: "point.3.connected.trianglepath.dotted")
+        static let profileSettings = Image(systemName: "gearshape")
+        static let profileDebug = Image(systemName: "ladybug")
         static let location = Image(systemName: "location")
         static let locationFill = Image(systemName: "location.fill")
         static let person = Image(systemName: "person.crop.circle")

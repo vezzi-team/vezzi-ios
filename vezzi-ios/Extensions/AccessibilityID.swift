@@ -1,3 +1,5 @@
+import Foundation
+
 /// Stable, nonlocalized identifiers used to find interface elements in UI tests.
 enum AccessibilityID {
     enum Routes {
@@ -146,6 +148,21 @@ enum AccessibilityID {
     }
 
     enum Profile {
+        static let close = "profile.close"
+        static let save = "profile.save"
+        static let contact = "profile.contact"
+        static let addAddress = "profile.address.add"
+        static let saveAddress = "profile.address.save"
+        static let addressName = "profile.address.name"
+        static let addressStreet = "profile.address.street"
+        static let priceAlerts = "profile.notifications.prices"
+        static let nearbyAlerts = "profile.notifications.nearby"
+        static let reminders = "profile.notifications.reminders"
+        static let notificationPermission = "profile.notifications.permission"
+
+        static func addressRow(_ id: UUID) -> String { "profile.address.\(id.uuidString)" }
+        static func priority(_ id: String) -> String { "profile.priority.\(id)" }
+
         static let screen = "profile.screen"
         static let motiDebug = "profile.motiDebug"
         static let personalDetails = "profile.personalDetails"

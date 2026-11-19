@@ -2,161 +2,160 @@ import SwiftUI
 
 struct ProfileView: View {
     @ObservedObject var session: AuthenticationSession
+    @EnvironmentObject private var router: AppRouter
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        List {
-            if let error = session.lastError { sessionStatus(error) }
-            Section {
-                personalDetails
-            } header: {
-                Text(Texts.Profile.Main.subtitle)
-                    .appTextStyle(.caption)
-                    .foregroundStyle(Color.Label.secondary)
-                    .textCase(nil)
+        ScrollView {
+            VStack(spacing: Const.spacing) {
+                accountCard
+                preferenceCards
+                settingsCard
+                contactCard
+                debugSection
             }
-            shoppingSection
-            settingsSection
-            debugSection
-            terms
+            .padding(Const.inset)
+            .frame(maxWidth: Const.maximumWidth)
+            .frame(maxWidth: .infinity)
         }
-        .listStyle(.insetGrouped)
-        .listSectionSpacing(Const.sectionSpacing)
-        .scrollContentBackground(.hidden)
-        .scrollIndicators(.hidden)
         .background(Color.Background.primary)
-        .navigationBarTitleDisplayMode(.large)
-        .appTextStyle(.appText)
         .foregroundStyle(Color.Label.primary)
         .accessibilityIdentifier(AccessibilityID.Profile.screen)
     }
 
-    private var personalDetails: some View {
-        NavigationLink(value: AppRouter.Route.profileDetails(.personalDetails)) {
-            HStack(spacing: Const.rowSpacing) {
-                Circle()
-                    .fill(Color.Background.placeholder)
-                    .frame(width: Const.avatarSize, height: Const.avatarSize)
-                    .shimmer()
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: Const.captionSpacing) {
-                    Text(Texts.Profile.Main.yourProfile)
+    // MARK: - Account
+
+    private var accountCard: some View {
+        Button { router.push(.profileDetails(.personalDetails), in: router.selectedTab) } label: {
+            ProfileCard {
+                HStack(spacing: Const.spacing) {
+                    Text(initial)
                         .appTextStyle(.body, weight: .semibold)
-                    Text(Texts.Profile.Main.personalDetails)
-                        .appTextStyle(.caption)
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(Color.Label.white)
+                        .frame(width: Const.avatarSize, height: Const.avatarSize)
+                        .background(Color.accentColor, in: Circle())
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: Const.textSpacing) {
+                        Text(Texts.Profile.Main.yourProfile).appTextStyle(.body, weight: .semibold)
+                        Text(session.user?.email ?? Texts.Profile.Details.notProvided)
+                            .appTextStyle(.caption).foregroundStyle(Color.Label.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: Const.textSpacing)
+                    Image.System.chevronRight.accessibilityHidden(true)
                 }
             }
-            .padding(.vertical, Const.profileInset)
         }
-        .listRowBackground(Color.Background.elevated)
+        .pressScaleEffect()
         .accessibilityIdentifier(AccessibilityID.Profile.personalDetails)
     }
 
-    private func sessionStatus(_ error: AuthenticationFailure) -> some View {
-        Section {
-            Text(error.message)
-                .foregroundStyle(Color.Label.secondary)
-            Button(Texts.Authentication.retry) {
-                Task { await session.restore(force: true) }
+    private var initial: String { String((session.user?.email ?? "").prefix(1)).uppercased() }
+
+    // MARK: - Preferences
+
+    private var preferenceCards: some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: Const.spacing))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: Const.spacing))
+        return layout {
+            preferenceCard(title: Texts.Profile.Addresses.title,
+                           subtitle: session.preferences.address.isEmpty
+                            ? Texts.Profile.Addresses.add : session.preferences.address.addressCapitalized,
+                           image: Image.System.profileLocation, sheet: .addresses)
+            preferenceCard(title: Texts.Profile.Shopping.title,
+                           subtitle: session.preferences.priority.title,
+                           image: Image.System.profileRoute, sheet: .shopping)
+        }
+    }
+
+    private func preferenceCard(title: String, subtitle: String, image: Image, sheet: ProfileSheet) -> some View {
+        Button { router.presentProfile(sheet) } label: {
+            ProfileCard {
+                VStack(alignment: .leading, spacing: Const.textSpacing) {
+                    image.font(.title3).accessibilityHidden(true)
+                    Text(title).appTextStyle(.appText, weight: .semibold)
+                    Text(subtitle).appTextStyle(.caption).foregroundStyle(Color.Label.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, minHeight: Const.tileHeight, alignment: .topLeading)
             }
-            .disabled(session.isVerifying || session.isSigningOut)
         }
-        .listRowBackground(Color.Background.elevated)
+        .pressScaleEffect()
+        .accessibilityIdentifier(AccessibilityID.Profile.destination(sheet.rawValue))
     }
 
-    private var shoppingSection: some View {
-        Section {
-            row(.address, subtitle: session.preferences.address.addressCapitalized)
-            row(.priority, subtitle: session.preferences.priority.title)
-        } header: {
-            sectionTitle(Texts.Profile.Main.shopping)
-        }
-        .listRowBackground(Color.Background.elevated)
-    }
-
-    private var settingsSection: some View {
-        Section {
-            NavigationLink(value: AppRouter.Route.profileDetails(.notifications)) {
-                LabeledContent(Texts.Profile.Main.notifications,
-                               value: session.preferences.notificationsEnabled
-                               ? Texts.Profile.Settings.enabled : Texts.Profile.Settings.disabled)
+    private var settingsCard: some View {
+        ProfileCard {
+            VStack(spacing: .zero) {
+                Button { router.presentProfile(.notifications) } label: {
+                    ProfileRow(title: Texts.Profile.Main.notifications, image: Image.System.profileSettings)
+                }.pressScaleEffect()
+                Divider()
+                Button { router.presentProfile(.about) } label: {
+                    ProfileRow(title: Texts.Profile.Main.about, image: Image.System.person)
+                }.pressScaleEffect()
             }
-            .accessibilityIdentifier(AccessibilityID.Profile.destination(ProfileDestination.notifications.rawValue))
-            row(.help)
-            row(.about)
-        } header: {
-            sectionTitle(Texts.Profile.Main.settings)
-        }
-        .listRowBackground(Color.Background.elevated)
-    }
-
-    private var debugSection: some View {
-        Section {
-            NavigationLink(value: AppRouter.Route.motiDebug) {
-                Text(Texts.Debug.Moti.title)
-            }
-            .accessibilityIdentifier(AccessibilityID.Profile.motiDebug)
-        } header: {
-            sectionTitle(Texts.Profile.Main.debug)
-        }
-        .listRowBackground(Color.Background.elevated)
-    }
-
-    private var terms: some View {
-        Section {
-            NavigationLink(value: AppRouter.Route.profileDetails(.terms)) {
-                Text(Texts.Profile.Main.terms)
-                    .appTextStyle(.caption)
-                    .foregroundStyle(Color.accentColor)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
-            }
-            .listRowBackground(Color.clear)
-            .accessibilityIdentifier(AccessibilityID.Profile.destination(ProfileDestination.terms.rawValue))
         }
     }
 
-    private func row(_ destination: ProfileDestination, subtitle: String? = nil) -> some View {
-        NavigationLink(value: AppRouter.Route.profileDetails(destination)) {
-            VStack(alignment: .leading, spacing: Const.captionSpacing) {
-                Text(destination.title)
-                if let subtitle {
-                    Text(subtitle)
-                        .appTextStyle(.caption)
-                        .foregroundStyle(Color.Label.secondary)
+    private var contactCard: some View {
+        Button { router.push(.profileDetails(.help), in: router.selectedTab) } label: {
+            ProfileCard {
+                HStack(spacing: Const.spacing) {
+                    VStack(alignment: .leading, spacing: Const.textSpacing) {
+                        Text(Texts.Profile.Support.title).appTextStyle(.appText, weight: .semibold)
+                        Text(Texts.Profile.Support.subtitle).appTextStyle(.caption)
+                            .foregroundStyle(Color.Label.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        MotiMascotView(state: .idle, isMotionEnabled: false)
+                            .frame(width: Const.mascotWidth, height: Const.mascotHeight)
+                    }
                 }
             }
         }
-        .accessibilityIdentifier(AccessibilityID.Profile.destination(destination.rawValue))
+        .pressScaleEffect()
+        .accessibilityIdentifier(AccessibilityID.Profile.contact)
     }
 
-    private func sectionTitle(_ title: String) -> some View {
-        Text(title)
-            .appTextStyle(.body, weight: .semibold)
-            .foregroundStyle(Color.Label.primary)
-            .textCase(nil)
+    private var debugSection: some View {
+        VStack(alignment: .leading, spacing: Const.textSpacing) {
+            Text(Texts.Profile.Main.debug).appTextStyle(.caption).foregroundStyle(Color.Label.secondary)
+            Button { router.push(.motiDebug, in: router.selectedTab) } label: {
+                ProfileCard { ProfileRow(title: Texts.Debug.Moti.title, image: Image.System.profileDebug) }
+            }
+            .pressScaleEffect()
+            .accessibilityIdentifier(AccessibilityID.Profile.motiDebug)
+        }
     }
 
     private enum Const {
-        static let sectionSpacing: CGFloat = 24
-        static let rowSpacing: CGFloat = 16
-        static let captionSpacing: CGFloat = 4
+        static let inset: CGFloat = 16
+        static let spacing: CGFloat = 12
+        static let textSpacing: CGFloat = 6
         static let avatarSize: CGFloat = 52
-        static let profileInset: CGFloat = 6
+        static let tileHeight: CGFloat = 92
+        static let mascotWidth: CGFloat = 100
+        static let mascotHeight: CGFloat = 76
+        static let maximumWidth: CGFloat = 680
     }
 }
 
-#Preview("Profile") {
+#Preview("Profile — light") {
     NavigationStack {
-        ProfileView(session: AuthenticationSession.preview())
+        ProfileView(session: .preview()).environmentObject(AppRouter())
             .navigationTitle(Texts.Profile.Main.title)
     }
+    .preferredColorScheme(.light)
 }
 
-#Preview("Profile — dark") {
+#Preview("Profile — dark, large text") {
     NavigationStack {
-        ProfileView(session: AuthenticationSession.preview())
+        ProfileView(session: .preview()).environmentObject(AppRouter())
             .navigationTitle(Texts.Profile.Main.title)
     }
     .preferredColorScheme(.dark)
+    .dynamicTypeSize(.accessibility3)
 }

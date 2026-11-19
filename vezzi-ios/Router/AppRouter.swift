@@ -49,12 +49,17 @@ final class AppRouter: ObservableObject {
         presentedSheet = .authentication
     }
 
+    func presentProfile(_ sheet: ProfileSheet) {
+        presentedSheet = .profile(sheet)
+    }
+
     func dismissSheet() {
         presentedSheet = nil
     }
 
-    enum Sheet: String, Identifiable {
+    enum Sheet: Hashable, Identifiable {
         case authentication
+        case profile(ProfileSheet)
         var id: Self { self }
     }
 }

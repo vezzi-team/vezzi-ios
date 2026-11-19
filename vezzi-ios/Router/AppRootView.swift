@@ -65,7 +65,7 @@ struct AppRootView: View {
         } message: { Text(Texts.ShoppingList.limitDescription) }
         .sheet(item: presentedSheet) { sheet in
             let content = DestinationFactory.sheet(for: sheet, authentication: authentication)
-            if appRouter.selectedTab == .home || appRouter.selectedTab == .catalog {
+            if sheet == .authentication, appRouter.selectedTab == .home || appRouter.selectedTab == .catalog {
                 content.navigationTransition(.zoom(sourceID: appRouter.selectedTab, in: profileTransition))
             } else {
                 content
@@ -75,6 +75,12 @@ struct AppRootView: View {
             if user == nil {
                 appRouter.popToRoot(in: .home)
                 appRouter.popToRoot(in: .catalog)
+            }
+        }
+        .onChange(of: authentication.identity?.sessionID) { previous, current in
+            guard previous != current else { return }
+            if case .profile(_)? = appRouter.presentedSheet {
+                appRouter.dismissSheet()
             }
         }
     }
