@@ -1,85 +1,108 @@
 import SwiftUI
-import UIKit
-import UserNotifications
 
 struct AddressesView: View {
-    @State private var draft: [PolkaAddress]
-    @State private var editing: PolkaAddress?
-    let onSave: ([PolkaAddress]) -> Void
+    @StateObject private var viewModel: ProfileViewModel
     @Environment(\.dismiss) private var dismiss
 
-    init(addresses: [PolkaAddress], onSave: @escaping ([PolkaAddress]) -> Void) {
-        _draft = State(initialValue: addresses)
-        self.onSave = onSave
+    init(session: AuthenticationSession) {
+        _viewModel = StateObject(wrappedValue: ProfileViewModel(session: session))
     }
 
     var body: some View {
-        VStack(spacing: 20) {
-            PolkaSheetHeader(title: "Мои адреса", onClose: { dismiss() }, onSave: {
-                onSave(draft)
-                dismiss()
+        ScrollView {
+            VStack(spacing: Const.spacing) {
+                if viewModel.addresses.isEmpty {
+                    ProfileCard {
+                        Text(Texts.Profile.Addresses.empty).appTextStyle(.appText)
+                    }
+                } else {
+                    addressList
+                }
+                Button(action: viewModel.addAddress) {
+                    Text(Texts.Profile.Addresses.add).frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glassProminent)
+                .controlSize(.large)
+                .tint(.accentColor)
+                .accessibilityIdentifier(AccessibilityID.Profile.addAddress)
+                Text(Texts.Profile.Controls.temporary)
+                    .appTextStyle(.caption).foregroundStyle(Color.Label.secondary)
+            }.padding(Const.inset)
+        }
+        .foregroundStyle(Color.Label.primary)
+        .background(Color.Background.primary)
+        .navigationTitle(Texts.Profile.Addresses.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ProfileSheetToolbar(onClose: { dismiss() }, onSave: {
+                if viewModel.saveAddresses() { dismiss() }
             })
-            ScrollView {
-                VStack(spacing: 12) {
-                    VStack(spacing: 0) {
-                        ForEach(Array(draft.enumerated()), id: \.element.id) { index, address in
-                            Button { editing = address } label: {
-                                HStack(spacing: 24) {
-                                    Image(systemName: address.icon).font(.title3).frame(width: 22)
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text(address.title)
-                                        Text(address.street).font(.subheadline).foregroundStyle(.secondary)
-                                    }
-                                    Spacer(minLength: 0)
-                                    Image(systemName: "chevron.right").font(.footnote).foregroundStyle(.tertiary)
-                                }.padding(16)
-                            }.buttonStyle(.plain)
-                            if index < draft.count - 1 { Divider().padding(.leading, 62) }
-                        }
-                    }.background(.white, in: RoundedRectangle(cornerRadius: 18))
-                    PolkaOrangeButton(title: "Добавить адрес") {
-                        editing = PolkaAddress(title: "", street: "")
-                    }.padding(.horizontal, 6)
-                }.padding(.horizontal, 10)
+        }
+        .sheet(item: $viewModel.editingAddress) { address in
+            ProfileAddressEditor(address: address, onSave: viewModel.updateAddress)
+        }
+    }
+
+    private var addressList: some View {
+        ProfileCard {
+            VStack(spacing: .zero) {
+                ForEach(viewModel.addresses) { address in
+                    if address.id != viewModel.addresses.first?.id { Divider() }
+                    Button { viewModel.editingAddress = address } label: {
+                        ProfileRow(title: address.title, image: Image.System.profileLocation,
+                                   subtitle: address.street)
+                    }
+                    .pressScaleEffect()
+                    .accessibilityIdentifier(AccessibilityID.Profile.addressRow(address.id))
+                }
             }
         }
-        .padding(.top, 16)
-        .sheet(item: $editing) { address in
-            AddressEditor(address: address) { updated in
-                if let index = draft.firstIndex(where: { $0.id == updated.id }) {
-                    draft[index] = updated
-                } else { draft.append(updated) }
+    }
+
+    private enum Const {
+        static let spacing: CGFloat = 12
+        static let inset: CGFloat = 16
+    }
+}
+
+private struct ProfileAddressEditor: View {
+    @State var address: ProfileAddress
+    let onSave: (ProfileAddress) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField(Texts.Profile.Addresses.name, text: $address.title)
+                        .accessibilityIdentifier(AccessibilityID.Profile.addressName)
+                    TextField(Texts.Profile.Addresses.street, text: $address.street, axis: .vertical)
+                        .textContentType(.fullStreetAddress)
+                        .accessibilityIdentifier(AccessibilityID.Profile.addressStreet)
+                }
+                .listRowBackground(Color.Background.secondary)
+            }
+            .scrollContentBackground(.hidden)
+            .background(Color.Background.primary)
+            .navigationTitle(Texts.Profile.Addresses.editorTitle)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(Texts.Authentication.cancel) { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(Texts.Profile.Controls.save) {
+                        onSave(address.trimmed)
+                        dismiss()
+                    }
+                    .disabled(!address.isValid)
+                    .accessibilityIdentifier(AccessibilityID.Profile.saveAddress)
+                }
             }
         }
     }
 }
 
-struct AddressEditor: View {
-    @State var address: PolkaAddress
-    let onSave: (PolkaAddress) -> Void
-    @Environment(\.dismiss) private var dismiss
-    private var valid: Bool {
-        !address.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !address.street.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-    var body: some View {
-        NavigationStack {
-            Form {
-                TextField("Название, например Дом", text: $address.title)
-                TextField("Улица и номер дома", text: $address.street)
-            }
-            .navigationTitle("Адрес").navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Отмена") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Готово") {
-                        address.title = address.title.trimmingCharacters(in: .whitespacesAndNewlines)
-                        address.street = address.street.trimmingCharacters(in: .whitespacesAndNewlines)
-                        onSave(address)
-                        dismiss()
-                    }.disabled(!valid)
-                }
-            }
-        }
-    }
+#Preview("Addresses — empty") {
+    NavigationStack { AddressesView(session: .preview()) }
 }

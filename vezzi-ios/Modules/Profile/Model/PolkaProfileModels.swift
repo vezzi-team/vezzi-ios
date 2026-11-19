@@ -1,33 +1,26 @@
-import SwiftUI
-import UIKit
-import UserNotifications
+import Foundation
 
-enum PolkaShoppingMode: String, CaseIterable, Identifiable {
-    case balanced, cheapest, fastest
-    var id: String { rawValue }
-    var title: String {
-        switch self {
-        case .balanced: return "Баланс цены и времени"
-        case .cheapest: return "Выгоднее"
-        case .fastest: return "Быстрее"
-        }
-    }
-    var subtitle: String {
-        switch self {
-        case .balanced: return "Чуть дороже, если заметно ближе"
-        case .cheapest: return "Минимальная сумма за весь список"
-        case .fastest: return "Один магазин и меньше времени"
-        }
-    }
-}
-
-struct PolkaAddress: Identifiable, Codable {
+/// In-memory values only; the profile API does not expose saved addresses yet.
+struct ProfileAddress: Identifiable, Equatable {
     var id = UUID()
     var title: String
     var street: String
-    var icon: String { title.lowercased() == "дом" ? "house" : "mappin.and.ellipse" }
-    static let examples = [
-        PolkaAddress(title: "Дом", street: "Ленинский проспект, 6"),
-        PolkaAddress(title: "Работа", street: "Улица Вавилова, 19")
-    ]
+
+    var isValid: Bool {
+        !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !street.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var trimmed: Self {
+        var copy = self
+        copy.title = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        copy.street = street.trimmingCharacters(in: .whitespacesAndNewlines)
+        return copy
+    }
+}
+
+enum ProfileSheet: String, Identifiable, Hashable {
+    case shopping, addresses, notifications, about
+    var id: Self { self }
+    var isCompact: Bool { self == .shopping || self == .addresses }
 }

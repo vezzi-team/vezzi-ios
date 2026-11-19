@@ -61,11 +61,21 @@ struct AppRootView: View {
             Button(Texts.ShoppingList.understood, role: .cancel) {}
         } message: { Text(Texts.ShoppingList.limitDescription) }
         .sheet(item: presentedSheet) { sheet in
-            DestinationFactory.sheet(for: sheet, authentication: authentication)
-                .navigationTransition(.zoom(sourceID: sheet, in: profileTransition))
+            if sheet == .authentication {
+                DestinationFactory.sheet(for: sheet, authentication: authentication)
+                    .navigationTransition(.zoom(sourceID: sheet, in: profileTransition))
+            } else {
+                DestinationFactory.sheet(for: sheet, authentication: authentication)
+            }
         }
         .onChange(of: authentication.user) { _, user in
             if user == nil { appRouter.popToRoot(in: .home) }
+        }
+        .onChange(of: authentication.identity?.sessionID) { previous, current in
+            guard previous != current else { return }
+            if case .profile(_)? = appRouter.presentedSheet {
+                appRouter.dismissSheet()
+            }
         }
     }
 

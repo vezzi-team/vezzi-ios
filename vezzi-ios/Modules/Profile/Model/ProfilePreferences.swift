@@ -1,9 +1,24 @@
 import Foundation
 
 struct ProfilePreferences {
-    var address = Texts.Home.Mock.homeAddress
+    var addresses: [ProfileAddress] = []
+    // Compatibility for existing native editors; the first address is the summary.
+    var address: String {
+        get { addresses.first?.street ?? "" }
+        set {
+            if addresses.isEmpty {
+                if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    addresses.append(ProfileAddress(title: Texts.Profile.Addresses.home, street: newValue))
+                }
+            } else {
+                addresses[0].street = newValue
+            }
+        }
+    }
     var priority: ShoppingPriority = .balanced
     var notificationsEnabled = true
+    var nearbyOffersEnabled = true
+    var listRemindersEnabled = false
 
     enum ShoppingPriority: String, CaseIterable, Identifiable {
         case balanced
