@@ -4,7 +4,7 @@ import Foundation
 @MainActor
 final class StorefrontViewModel: ObservableObject {
     @Published private(set) var shelves = HomeShelves()
-    @Published private(set) var hasProducts = false
+    @Published private var catalogHasProducts: Bool?
     @Published private(set) var products: [Product] = []
     @Published private(set) var categories: [ProductCategory] = []
     @Published private(set) var catalogStatus = CatalogStatus()
@@ -29,14 +29,17 @@ final class StorefrontViewModel: ObservableObject {
         repository.cacheState.removeDuplicates().sink { [weak self] in self?.cacheState = $0 }.store(in: &subscriptions)
         repository.observeAllProducts().sink { [weak self] items in
             guard let self else { return }
-            self.hasProducts = !items.isEmpty
-            if page == .home {
+            self.catalogHasProducts = !items.isEmpty
+            switch page {
+            case .home:
                 self.shelves = HomeShelves(items: items)
-                return
+            case .collection(let collection):
+                self.products = collection.products(from: items)
+            case .catalog:
+                self.products = items.map { Product(catalog: $0) }
+                self.categories = Array(Set(self.products.compactMap(\.category))).sorted { $0.title < $1.title }
+                if let category = self.selectedCategory, !self.categories.contains(category) { self.selectedCategory = nil }
             }
-            self.products = items.map { Product(catalog: $0) }
-            self.categories = Array(Set(self.products.compactMap(\.category))).sorted { $0.title < $1.title }
-            if let category = self.selectedCategory, !self.categories.contains(category) { self.selectedCategory = nil }
         }.store(in: &subscriptions)
     }
 
@@ -44,7 +47,11 @@ final class StorefrontViewModel: ObservableObject {
 
     var quantities: [String: Int] { selection.quantities }
     var isCacheUnavailable: Bool { cacheState == .unavailable }
-    var emptyState: CatalogEmptyState { CatalogEmptyState(status: catalogStatus, cacheState: cacheState) }
+    var hasProducts: Bool { catalogHasProducts == true }
+    var emptyState: CatalogEmptyState {
+        guard catalogHasProducts != nil else { return .loading }
+        return CatalogEmptyState(status: catalogStatus, cacheState: cacheState)
+    }
     var filteredProducts: [Product] { products(in: selectedCategory) }
 
     func refresh() async {
@@ -86,8 +93,9 @@ struct StorefrontProductDetail: Identifiable {
     var id: String { product.id }
 }
 
-enum StorefrontPage {
+enum StorefrontPage: Equatable {
     case home, catalog
+    case collection(MotiCollection)
 
-    var tab: AppRouter.Tab { self == .home ? .home : .catalog }
+    var tab: AppRouter.Tab { self == .catalog ? .catalog : .home }
 }

@@ -5,7 +5,7 @@ struct StorefrontScreen: View {
 
     @StateObject private var viewModel: StorefrontViewModel
     @ObservedObject var authentication: AuthenticationSession
-    let profileTransition: Namespace.ID
+    let storefrontTransition: Namespace.ID
     @EnvironmentObject private var router: AppRouter
     @State private var showsAddress = false
     private let location: any DeviceLocating
@@ -13,25 +13,31 @@ struct StorefrontScreen: View {
 
     let page: StorefrontPage
 
-    init(page: StorefrontPage, repository: any CatalogRepository, authentication: AuthenticationSession, profileTransition: Namespace.ID,
+    init(page: StorefrontPage, repository: any CatalogRepository, authentication: AuthenticationSession, storefrontTransition: Namespace.ID,
          list: ShoppingListRepository, location: any DeviceLocating) {
         self.page = page
         self.authentication = authentication
-        self.profileTransition = profileTransition
+        self.storefrontTransition = storefrontTransition
         self.location = location
         _viewModel = StateObject(wrappedValue: StorefrontViewModel(page: page, repository: repository, list: list))
     }
 
     var body: some View {
         GeometryReader { geometry in
-            feed(viewportHeight: geometry.size.height)
-                .toolbar { navigationToolbar(availableWidth: geometry.size.width) }
+            if case .collection = page {
+                collectionFeed(viewportHeight: geometry.size.height)
+            } else {
+                feed(viewportHeight: geometry.size.height)
+                    .toolbar { navigationToolbar(availableWidth: geometry.size.width) }
+                    .navigationTitle("")
+                    .navigationBarTitleDisplayMode(.inline)
+            }
         }
-        .refreshable { await viewModel.refresh() }
-        .environment(\.isShimmerEnabled, viewModel.selectedDetail == nil && router.presentedSheet == nil && !showsAddress)
+        // The scroll view can retain its refresh action after the cover is dismissed.
+        .refreshable { [weak viewModel] in await viewModel?.refresh() }
+        .environment(\.isShimmerEnabled, viewModel.selectedDetail == nil && router.presentedSheet == nil &&
+                     (page != .home || router.presentedCollection == nil) && !showsAddress)
         .background(Color.Background.primary.ignoresSafeArea())
-        .navigationTitle("")
-        .navigationBarTitleDisplayMode(.inline)
         .sheet(item: selectedDetail) { detail in
             ProductDetailView(product: detail.product, relatedProducts: viewModel.relatedProducts,
                               selection: viewModel.selection, selectedOffer: detail.promotion,
@@ -59,8 +65,25 @@ struct StorefrontScreen: View {
         } else if page == .catalog {
             CatalogView(viewModel: viewModel, viewportHeight: viewportHeight) { header }
         } else {
-            HomeView(shelves: viewModel.shelves, selection: viewModel.selection, open: viewModel.showProduct) { header }
+            HomeView(shelves: viewModel.shelves, selection: viewModel.selection, open: viewModel.showProduct,
+                     collectionTransition: storefrontTransition, openCollection: { router.presentedCollection = $0 }) { header }
         }
+    }
+
+    private func collectionFeed(viewportHeight: CGFloat) -> some View {
+        ScrollView {
+            if viewModel.products.isEmpty {
+                emptyContent
+                    .frame(maxWidth: .infinity, minHeight: viewportHeight)
+            } else {
+                ProductGrid(products: viewModel.products, selection: viewModel.selection) { viewModel.showProduct($0) }
+                    .padding(Const.contentInset)
+                    .frame(maxWidth: Self.maximumContentWidth)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .scrollIndicators(.hidden, axes: .vertical)
+        .accessibilityIdentifier(AccessibilityID.Home.collectionProducts)
     }
 
     @ViewBuilder private var header: some View {
@@ -120,7 +143,7 @@ struct StorefrontScreen: View {
             .disabled(authentication.isRestoring || authentication.isSigningOut)
             .accessibilityIdentifier(AccessibilityID.Home.profile)
         }
-        .matchedTransitionSource(id: page.tab, in: profileTransition)
+        .matchedTransitionSource(id: page.tab, in: storefrontTransition)
     }
 
     private var addressPicker: some View {
@@ -171,8 +194,12 @@ struct StorefrontScreen: View {
             MotiStateView.offline
                 .accessibilityIdentifier(AccessibilityID.Home.offline)
         case .empty:
-            MotiStateView(title: Texts.Search.emptyTitle, description: Texts.Search.emptyDescription)
-                .accessibilityIdentifier(AccessibilityID.Home.empty)
+            if case .collection = page {
+                MotiStateView(title: Texts.Home.Discovery.emptyCollection)
+            } else {
+                MotiStateView(title: Texts.Search.emptyTitle, description: Texts.Search.emptyDescription)
+                    .accessibilityIdentifier(AccessibilityID.Home.empty)
+            }
         }
     }
 

@@ -117,6 +117,7 @@ Paths below are relative to the repository root.
 - `AppRouter` owns selection and paths. Use `selectTab`, `push`, `pop`, `popToRoot`, and `setPath` rather than adding competing navigation state to feature views.
 - `selectTab` resets that tab's path when called with the already selected tab. Switching to a different tab preserves the other tabs' paths.
 - `DestinationFactory` maps routes to module screens and applies navigation titles. Keep destination construction centralized here.
+- Home presents the selected Moti collection in a full-screen cover with its own navigation stack. Match the zoom to the selected card and use the native Close button. Trigger pager haptics when horizontal dragging starts.
 - Routes should contain simple, hashable navigation data, such as an item ID. Do not put views, view models, or UI animation namespaces in route values.
 - When adding a section or destination, update the appropriate `Tab` / `Route` cases, destination factory, tab composition, and localized labels together.
 - The navigation reference was [SmartRecorder](https://github.com/WoTRemboy/SmartRecorder/tree/main/SmartRecorder/Router). The local implementation is the source of truth; there is no dependency on that repository.

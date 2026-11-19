@@ -44,6 +44,7 @@
 		435270265F8A4EFBAE28DD25 /* ShoppingListCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C7E0FD53E2A418E8FD26A90 /* ShoppingListCacheTests.swift */; };
 		4AD9050872784E80A9054096 /* StoreLogoPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A090DA642004942A755C541 /* StoreLogoPlaceholder.swift */; };
 		4B525271FD684D9DBA6B305A /* ProductCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A535F553F2D4262B69DAADF /* ProductCarousel.swift */; };
+		2EAC3C37CBC3F05621575C2E /* ProductGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FDF04774228E6309B339466 /* ProductGrid.swift */; };
 		4BB8EDB2278A42DE9CF9DB4B /* MotiSplash.json in Resources */ = {isa = PBXBuildFile; fileRef = 29E3F99A531F433D9143AB54 /* MotiSplash.json */; };
 		4BCC8E6294D3483DB4D17BAD /* FileShoppingListCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C25D51CDC1F488190401B37 /* FileShoppingListCache.swift */; };
 		4D7B5ED24A79459DAC281A39 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4423B24AC7F4471FA448674F /* APIClient.swift */; };
@@ -139,6 +140,7 @@
 		F3A5C60A94D047608C47E6E6 /* CatalogCategoryFilterBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAE0FA79DDA4C35B778B626 /* CatalogCategoryFilterBar.swift */; };
 		F88E77CDD2413AB49831709E /* ShoppingRouteViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E9F73950B2B5FB3BC816C0A /* ShoppingRouteViewModel.swift */; };
 		2459B801E3E24BCC8C4AE43B /* HomeShelves.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37D5C3575A054F8DA11F1A96 /* HomeShelves.swift */; };
+		B23B4ADB23FA363103A57AAA /* MotiCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 351B61457C55D71F38EA1B01 /* MotiCollection.swift */; };
 		E8D2449A15E2420B9E14B4C1 /* MotiCollectionPager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D13CDBCBF984B749C6F5B3F /* MotiCollectionPager.swift */; };
 		7F774F6C67C84D709CC5BF48 /* StorefrontScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4CFB15F6764AB58252C947 /* StorefrontScreen.swift */; };
 /* End PBXBuildFile section */
@@ -214,6 +216,7 @@
 		74489B575A254779A2832B68 /* MotiFaceGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotiFaceGeometry.swift; sourceTree = "<group>"; };
 		753C6740DC2BEA99B0799055 /* CatalogRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogRepository.swift; sourceTree = "<group>"; };
 		7A535F553F2D4262B69DAADF /* ProductCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCarousel.swift; sourceTree = "<group>"; };
+		7FDF04774228E6309B339466 /* ProductGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductGrid.swift; sourceTree = "<group>"; };
 		7C398C83B996D48D9FE88501 /* LocationPickerViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPickerViewModelTests.swift; sourceTree = "<group>"; };
 		02FECFD033B54C27930BB3E1 /* AddressDisplayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressDisplayTests.swift; sourceTree = "<group>"; };
 		814931BEE56B4C259A7087F1 /* CatalogSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogSession.swift; sourceTree = "<group>"; };
@@ -288,6 +291,7 @@
 		FB55D8EF7F764C0EA0E594DF /* ShoppingListModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingListModels.swift; sourceTree = "<group>"; };
 		FC534E3838804D18A1E29BA9 /* ShoppingPlanStoresView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingPlanStoresView.swift; sourceTree = "<group>"; };
 		37D5C3575A054F8DA11F1A96 /* HomeShelves.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeShelves.swift; sourceTree = "<group>"; };
+		351B61457C55D71F38EA1B01 /* MotiCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotiCollection.swift; sourceTree = "<group>"; };
 		3D13CDBCBF984B749C6F5B3F /* MotiCollectionPager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotiCollectionPager.swift; sourceTree = "<group>"; };
 		8C4CFB15F6764AB58252C947 /* StorefrontScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorefrontScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -461,6 +465,7 @@
 				39486FF511284E31A693D851 /* ProductActions.swift */,
 				6EB5FA6C65BD496DB652EDAB /* ProductDetailView.swift */,
 				7A535F553F2D4262B69DAADF /* ProductCarousel.swift */,
+				7FDF04774228E6309B339466 /* ProductGrid.swift */,
 				2A090DA642004942A755C541 /* StoreLogoPlaceholder.swift */,
 			);
 			path = View;
@@ -581,6 +586,7 @@
 			isa = PBXGroup;
 			children = (
 				37D5C3575A054F8DA11F1A96 /* HomeShelves.swift */,
+				351B61457C55D71F38EA1B01 /* MotiCollection.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -1143,6 +1149,7 @@
 				E799E4921A6B464C947C82C5 /* SearchSection.swift in Sources */,
 				4AD9050872784E80A9054096 /* StoreLogoPlaceholder.swift in Sources */,
 				4B525271FD684D9DBA6B305A /* ProductCarousel.swift in Sources */,
+				2EAC3C37CBC3F05621575C2E /* ProductGrid.swift in Sources */,
 				2C31BE39EB70456399705838 /* ProductSelection.swift in Sources */,
 				064631660337493BA6298C05 /* MotiDebugView.swift in Sources */,
 				7A1D4E277412462F9EC696B7 /* MotiAnimationView.swift in Sources */,
@@ -1196,6 +1203,7 @@
 				F3A5C60A94D047608C47E6E6 /* CatalogCategoryFilterBar.swift in Sources */,
 				2E8DEAA5A2024160A646AB80 /* ProductQuantityControl.swift in Sources */,
 				2459B801E3E24BCC8C4AE43B /* HomeShelves.swift in Sources */,
+				B23B4ADB23FA363103A57AAA /* MotiCollection.swift in Sources */,
 				E8D2449A15E2420B9E14B4C1 /* MotiCollectionPager.swift in Sources */,
 				7F774F6C67C84D709CC5BF48 /* StorefrontScreen.swift in Sources */,
 				C0DE00000000000000000017 /* HomeView.swift in Sources */,

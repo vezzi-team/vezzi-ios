@@ -34,6 +34,7 @@ final class Texts {
 
     enum Home {
         enum Discovery {
+            static let emptyCollection = NSLocalizedString("HomeDiscoveryEmptyCollection", comment: "No products in this collection yet")
             static let adTitle = NSLocalizedString("HomeDiscoveryAdTitle", comment: "Your ad could be here")
             static let adSubtitle = NSLocalizedString("HomeDiscoveryAdSubtitle", comment: "But nobody chipped in :(")
             static let adCaption = NSLocalizedString("HomeDiscoveryAdCaption", comment: "Nothing to tap")

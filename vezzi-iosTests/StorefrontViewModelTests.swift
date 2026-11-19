@@ -3,6 +3,32 @@ import XCTest
 
 @MainActor
 final class StorefrontViewModelTests: XCTestCase {
+    func testMotiCollectionsKeepAvailableThemedProductsAndStableIDsWhenPricesChange() throws {
+        let types = ["Макаронные изделия", "Снеки и чипсы", "Овощи"]
+        var batch = CatalogFixtures.catalog()
+        batch.products = (0..<30).map { index in
+            CatalogProduct(id: String(index), name: "Item \(index)", productType: types[index % types.count])
+        }
+        batch.offers = batch.products.map { product in
+            CatalogOffer(id: product.id, productID: product.id, storeID: "s1", price: 20, currency: "RUB", inStock: product.id != "0")
+        }
+        let items = try CatalogFixtures.snapshot(batch).allItems()
+        for index in batch.offers.indices { batch.offers[index].price = 30 }
+        let refreshed = try CatalogFixtures.snapshot(batch).allItems()
+        for (collection, count, type) in [(MotiCollection.pasta, 5, types[0]), (.movies, 6, types[1]), (.salad, 4, types[2])] {
+            let ids = collection.products(from: items).map(\.id)
+            XCTAssertEqual(Set(ids).count, count)
+            XCTAssertTrue(ids.allSatisfy { id in id != "0" && batch.products.contains { $0.id == id && $0.productType == type } })
+
+            let products = collection.products(from: refreshed.reversed())
+            XCTAssertEqual(products.map(\.id), ids)
+            XCTAssertTrue(products.allSatisfy { $0.lowestPrice == 30 })
+        }
+        let oneItem = items.filter { $0.id == "1" }
+        XCTAssertEqual(MotiCollection.salad.products(from: oneItem).map(\.id), ["1"])
+        XCTAssertTrue(MotiCollection.movies.products(from: []).isEmpty)
+    }
+
     func testHomeSharesSelectedOriginAndQuantitiesWithList() {
         let list = ShoppingListRepository()
         let repository = MockSearchRepository()

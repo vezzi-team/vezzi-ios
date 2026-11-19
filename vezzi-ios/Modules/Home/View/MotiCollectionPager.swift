@@ -1,14 +1,18 @@
 import SwiftUI
 
 struct MotiCollectionPager: View {
+    let transition: Namespace.ID
+    let open: (MotiCollection) -> Void
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var dragFeedback = false
     @State private var selection = Const.initialPage
     @State private var progress = CGFloat(Const.initialPage)
     @State private var scrollPosition = ScrollPosition(idType: Int.self)
 
-    private static let titles = [Texts.Home.Discovery.pasta, Texts.Home.Discovery.movies, Texts.Home.Discovery.salad]
+    private static let collections = MotiCollection.allCases
     // One extra scroll target at either end connects the last and first cards.
-    private static let pages = -1...titles.count
+    private static let pages = -1...collections.count
 
     var body: some View {
         VStack(spacing: Const.indicatorInset) {
@@ -18,8 +22,12 @@ struct MotiCollectionPager: View {
         .frame(maxWidth: Const.width)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Texts.Home.Discovery.moti)
-        .accessibilityValue(Self.titles[selection])
+        .accessibilityValue(Self.collections[selection].title)
         .accessibilityIdentifier(AccessibilityID.Home.motiCollections)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction {
+            open(Self.collections[selection])
+        }
         .accessibilityAdjustableAction { direction in
             switch direction {
             case .increment: select(selection + 1)
@@ -27,7 +35,7 @@ struct MotiCollectionPager: View {
             @unknown default: break
             }
         }
-        .sensoryFeedback(.selection, trigger: selection)
+        .sensoryFeedback(.selection, trigger: dragFeedback)
         .frame(maxWidth: .infinity)
     }
 
@@ -42,7 +50,7 @@ struct MotiCollectionPager: View {
                         Color.clear
                             .frame(width: width, height: geometry.size.height)
                             .contentShape(.rect)
-                            .onTapGesture { point in selectExposedCard(at: point.x, width: width, page: page) }
+                            .onTapGesture { point in handleTap(at: point.x, width: width, page: page) }
                             .id(page)
                     }
                 }
@@ -56,11 +64,15 @@ struct MotiCollectionPager: View {
                 progress = newValue
             }
             .onScrollPhaseChange { _, phase, context in
-                if phase == .idle { settle(at: Int(pageProgress(context.geometry).rounded())) }
+                if phase == .interacting {
+                    dragFeedback.toggle()
+                } else if phase == .idle {
+                    settle(at: Int(pageProgress(context.geometry).rounded()))
+                }
             }
             .overlay {
                 ZStack {
-                    ForEach(Self.titles.indices, id: \.self) { index in card(index, width: width) }
+                    ForEach(Self.collections.indices, id: \.self) { index in card(index, width: width) }
                 }
                 .allowsHitTesting(false)
             }
@@ -71,9 +83,9 @@ struct MotiCollectionPager: View {
     private var visualPage: CGFloat { reduceMotion ? CGFloat(selection) : progress }
 
     private func card(_ index: Int, width: CGFloat) -> some View {
-        let angle = (CGFloat(index) - visualPage) * (2 * .pi / CGFloat(Self.titles.count))
+        let angle = (CGFloat(index) - visualPage) * (2 * .pi / CGFloat(Self.collections.count))
         let depth = cos(angle)
-        let side = sin(angle) / sin(2 * .pi / CGFloat(Self.titles.count))
+        let side = sin(angle) / sin(2 * .pi / CGFloat(Self.collections.count))
         // Separate the passing edges at mid-swipe, before the two cards exchange depth.
         let turn = pow(sin(.pi * visualPage), 2)
         let size = width / Const.width
@@ -83,6 +95,9 @@ struct MotiCollectionPager: View {
             .overlay(RoundedRectangle(cornerRadius: Const.cornerRadius).strokeBorder(Color.Border.primary))
             .shadow(color: Color.Shadow.primary.opacity(Const.shadowOpacity), radius: Const.shadowRadius, y: Const.shadowOffset)
             .frame(width: Const.cardWidth * size, height: Const.cardHeight * size)
+            .matchedTransitionSource(id: Self.collections[index], in: transition) { source in
+                source.clipShape(.rect(cornerRadius: Const.cornerRadius))
+            }
             .scaleEffect(1 - Const.depthScale * (1 - depth))
             .rotationEffect(.degrees(Const.fanAngle * side))
             .rotation3DEffect(.degrees(-Const.turnAngle * side * turn), axis: (x: 0, y: 1, z: 0), perspective: 0)
@@ -92,9 +107,9 @@ struct MotiCollectionPager: View {
 
     private var indicators: some View {
         HStack(spacing: Const.dotSize) {
-            ForEach(Self.titles.indices, id: \.self) { index in
+            ForEach(Self.collections.indices, id: \.self) { index in
                 let distance = abs(CGFloat(index) - visualPage)
-                let emphasis = max(0, 1 - min(distance, CGFloat(Self.titles.count) - distance))
+                let emphasis = max(0, 1 - min(distance, CGFloat(Self.collections.count) - distance))
                 Capsule()
                     .fill(Color.Label.tertiary)
                     .overlay { Capsule().fill(Color.Label.secondary).opacity(emphasis) }
@@ -110,11 +125,16 @@ struct MotiCollectionPager: View {
         return min(max(first, page), CGFloat(Self.pages.upperBound))
     }
 
-    private func selectExposedCard(at x: CGFloat, width: CGFloat, page: Int) {
+    private func handleTap(at x: CGFloat, width: CGFloat, page: Int) {
         let margin = width * (1 - Const.cardWidth / Const.width) / 2
         let index = collectionIndex(for: page)
-        if x < margin { select(index - 1) }
-        if x > width - margin { select(index + 1) }
+        if x < margin {
+            select(index - 1)
+        } else if x > width - margin {
+            select(index + 1)
+        } else if index == selection {
+            open(Self.collections[index])
+        }
     }
 
     private func select(_ page: Int) {
@@ -140,7 +160,7 @@ struct MotiCollectionPager: View {
     }
 
     private func collectionIndex(for page: Int) -> Int {
-        (page + Self.titles.count) % Self.titles.count
+        (page + Self.collections.count) % Self.collections.count
     }
 
     private enum Const {

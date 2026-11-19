@@ -1751,6 +1751,23 @@
         }
       }
     },
+    "HomeDiscoveryEmptyCollection" : {
+      "comment" : "No products in this collection yet",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No products in this collection yet"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В этой подборке пока нет товаров"
+          }
+        }
+      }
+    },
     "HomeDiscoveryEssentials" : {
       "comment" : "Today’s essentials",
       "localizations" : {
