@@ -33,7 +33,7 @@ final class ShoppingListAPITests: XCTestCase {
 
     func testPlansDecodeKopecksExactlyAndPreserveRouteProvenance() async throws {
         let client = ShoppingRequestStub(responses: [try json(plans())])
-        let result = try await APIShoppingListService(client: client).plans(cartID: cartID, start: .previewOrigin)
+        let result = try await APIShoppingListService(client: client).plans(cartID: cartID, start: .previewOrigin, options: .init())
         let plan = try XCTUnwrap(result.plans.first)
         XCTAssertEqual(plan.total, Decimal(string: "199.98"))
         XCTAssertEqual(plan.stops.first?.items.first?.unitPrice, Decimal(string: "99.99"))
@@ -41,6 +41,8 @@ final class ShoppingListAPITests: XCTestCase {
         XCTAssertEqual(result.baselinePrice, Decimal(string: "210.10"))
         XCTAssertTrue(result.isSynthetic)
         XCTAssertFalse(plan.usesRoadNetwork)
+        XCTAssertEqual(plan.stops.first?.walkingSeconds, 240)
+        XCTAssertEqual(plan.stops.first?.walkingMeters, 350)
         XCTAssertEqual(plan.points, [.previewOrigin])
         let firstRequest = await client.firstRequest()
         let request = try XCTUnwrap(firstRequest)
@@ -48,6 +50,8 @@ final class ShoppingListAPITests: XCTestCase {
         XCTAssertEqual(body["max_stores"] as? Int, 3)
         XCTAssertEqual(body["max_total_minutes"] as? Int, 60)
         XCTAssertNotNil(body["start"])
+        XCTAssertEqual(body["return_to_start"] as? Bool, false)
+        XCTAssertNil(body["radius_meters"])
         XCTAssertEqual(request.method, "POST")
         XCTAssertEqual(request.path, "carts/\(cartID.uuidString)/plans")
     }
@@ -67,7 +71,7 @@ final class ShoppingListAPITests: XCTestCase {
         invalid["plans"] = values
         let badRoute = ShoppingRequestStub(responses: [try json(invalid)])
         do {
-            _ = try await APIShoppingListService(client: badRoute).plans(cartID: cartID, start: .previewOrigin)
+            _ = try await APIShoppingListService(client: badRoute).plans(cartID: cartID, start: .previewOrigin, options: .init())
             XCTFail("Invalid coordinates must not reach MapKit")
         } catch { XCTAssertEqual(error as? APIError, .invalidResponse) }
     }
@@ -76,13 +80,47 @@ final class ShoppingListAPITests: XCTestCase {
         let client = ShoppingRequestStub(responses: [try json(["status": "no_plans", "plans": [], "baseline": NSNull(),
                                                              "problem": ["reason": "items_unavailable"], "data_is_synthetic": false])])
         let service = APIShoppingListService(client: client)
-        let result = try await service.plans(cartID: cartID, start: .previewOrigin)
+        let result = try await service.plans(cartID: cartID, start: .previewOrigin, options: .init())
         XCTAssertEqual(result.problem, "items_unavailable")
         XCTAssertTrue(result.plans.isEmpty)
         do {
             _ = try await service.updateItem(cartID: cartID, productID: "../other", quantity: 1, exists: false)
             XCTFail("Invalid product identifiers must not be sent")
         } catch { XCTAssertEqual(error as? APIError, .invalidResponse) }
+        let count = await client.requests.count
+        XCTAssertEqual(count, 1)
+    }
+
+    func testRouteConstraintsAndReturnLegUseServerFieldNames() async throws {
+        var response = plans()
+        var values = try XCTUnwrap(response["plans"] as? [[String: Any]])
+        values[0]["return_walk_seconds"] = 120
+        values[0]["return_walk_meters"] = 160
+        response["plans"] = values
+        let client = ShoppingRequestStub(responses: [try json(response)])
+        let options = ShoppingRouteOptions(returnToStart: true, radiusMeters: 750)
+        let result = try await APIShoppingListService(client: client).plans(cartID: cartID, start: .previewOrigin, options: options)
+        XCTAssertEqual(result.plans.first?.returnWalkingSeconds, 120)
+        XCTAssertEqual(result.plans.first?.returnWalkingMeters, 160)
+        let request = await client.firstRequest()
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request?.body)) as? [String: Any])
+        XCTAssertEqual(body["radius_meters"] as? Int, 750)
+        XCTAssertEqual(body["return_to_start"] as? Bool, true)
+    }
+
+    func testRadiusFailurePreservesSuggestionAndInvalidRadiusDoesNotSendRequest() async throws {
+        let client = ShoppingRequestStub(responses: [try json(["status": "no_plans", "plans": [], "baseline": NSNull(),
+            "problem": ["reason": "radius_too_small", "min_required_radius_meters": 1275], "data_is_synthetic": false])])
+        let service = APIShoppingListService(client: client)
+        let result = try await service.plans(cartID: cartID, start: .previewOrigin, options: .init(radiusMeters: 500))
+        XCTAssertEqual(result.problem, "radius_too_small")
+        XCTAssertEqual(result.minRequiredRadiusMeters, 1275)
+        for radius in [99, 5001] {
+            do {
+                _ = try await service.plans(cartID: cartID, start: .previewOrigin, options: .init(radiusMeters: radius))
+                XCTFail("Invalid constraints must not be sent")
+            } catch { XCTAssertEqual(error as? APIError, .invalidResponse) }
+        }
         let count = await client.requests.count
         XCTAssertEqual(count, 1)
     }
@@ -101,7 +139,8 @@ final class ShoppingListAPITests: XCTestCase {
                                    "latitude": 60.01, "longitude": 30.26, "format": "supermarket"]
         let plan: [String: Any] = ["id": UUID().uuidString, "total_kopecks": 19998, "savings_kopecks": 1012, "total_seconds": 600,
                                   "walking_meters": 800, "data_is_synthetic": true,
-                                  "stops": [["position": 1, "store": store, "items": [item], "subtotal_kopecks": 19998]],
+                                  "stops": [["position": 1, "store": store, "items": [item], "subtotal_kopecks": 19998,
+                                             "walk_from_previous_seconds": 240, "walk_from_previous_meters": 350]],
                                   "route": ["uses_road_network": false, "points": [["latitude": 60.0087, "longitude": 30.2582]]]]
         return ["status": "ok", "plans": [plan], "baseline": ["total_kopecks": 21010], "problem": NSNull(), "data_is_synthetic": true]
     }

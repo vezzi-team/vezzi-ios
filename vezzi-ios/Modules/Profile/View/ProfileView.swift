@@ -26,7 +26,7 @@ struct ProfileView: View {
     // MARK: - Account
 
     private var accountCard: some View {
-        Button { router.push(.profileDetails(.personalDetails), in: .home) } label: {
+        Button { router.push(.profileDetails(.personalDetails), in: router.selectedTab) } label: {
             ProfileCard {
                 HStack(spacing: Const.spacing) {
                     Text(initial)
@@ -61,7 +61,7 @@ struct ProfileView: View {
         return layout {
             preferenceCard(title: Texts.Profile.Addresses.title,
                            subtitle: session.preferences.address.isEmpty
-                            ? Texts.Profile.Addresses.add : session.preferences.address,
+                            ? Texts.Profile.Addresses.add : session.preferences.address.addressCapitalized,
                            image: Image.System.profileLocation, sheet: .addresses)
             preferenceCard(title: Texts.Profile.Shopping.title,
                            subtitle: session.preferences.priority.title,
@@ -100,7 +100,7 @@ struct ProfileView: View {
     }
 
     private var contactCard: some View {
-        Button { router.push(.profileDetails(.help), in: .home) } label: {
+        Button { router.push(.profileDetails(.help), in: router.selectedTab) } label: {
             ProfileCard {
                 HStack(spacing: Const.spacing) {
                     VStack(alignment: .leading, spacing: Const.textSpacing) {
@@ -123,7 +123,7 @@ struct ProfileView: View {
     private var debugSection: some View {
         VStack(alignment: .leading, spacing: Const.textSpacing) {
             Text(Texts.Profile.Main.debug).appTextStyle(.caption).foregroundStyle(Color.Label.secondary)
-            Button { router.push(.motiDebug, in: .home) } label: {
+            Button { router.push(.motiDebug, in: router.selectedTab) } label: {
                 ProfileCard { ProfileRow(title: Texts.Debug.Moti.title, image: Image.System.profileDebug) }
             }
             .pressScaleEffect()

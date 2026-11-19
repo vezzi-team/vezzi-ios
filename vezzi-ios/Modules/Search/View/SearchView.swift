@@ -163,7 +163,7 @@ struct SearchView: View {
             sectionHeading(section)
                 .padding(.horizontal, Const.contentInset)
             ProductCarousel(products: section.products, selection: selection,
-                            showsStoreBadges: section.storeID == nil) { product in
+                            showsStoreBadges: section.storeID == nil, showsPricePrefix: section.storeID == nil) { product in
                 isSearchFocused = false
                 viewModel.showProduct(product, storeID: section.storeID)
             }
@@ -227,10 +227,10 @@ struct SearchView: View {
         case .loading:
             ProgressView()
         case .offline:
-            MotiEmptyStateView.offline
+            MotiStateView.offline
                 .accessibilityIdentifier(AccessibilityID.Search.offline)
         case .empty:
-            MotiEmptyStateView(
+            MotiStateView(
                 title: emptyTitle,
                 description: viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                     ? Texts.Search.emptyDescription : Texts.Search.noResultsDescription)

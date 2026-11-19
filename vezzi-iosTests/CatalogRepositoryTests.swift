@@ -4,6 +4,30 @@ import XCTest
 
 @MainActor
 final class CatalogRepositoryTests: XCTestCase {
+    func testFullListReplaysCurrentPublicationAndKeepsExistingSubscribersUpToDate() async throws {
+        let repository = DefaultCatalogRepository()
+        try await repository.importCatalog(CatalogFixtures.catalog(price: 41))
+        let stream = repository.observeAllProducts()
+        let initial = expectation(description: "First observer sees the initial price")
+        let updated = expectation(description: "Existing observer sees the updated price")
+        let first = stream.sink { items in
+            switch items.first?.offers.first?.offer.price {
+            case 41: initial.fulfill()
+            case 37: updated.fulfill()
+            default: XCTFail("Unexpected full-catalog value")
+            }
+        }
+        defer { first.cancel() }
+        await fulfillment(of: [initial], timeout: 5)
+
+        let replay = await publishedItems(repository.observeAllProducts(), where: { _ in true })
+        XCTAssertEqual(replay.first?.offers.first?.offer.price, 41)
+        try await repository.importCatalog(CatalogFixtures.catalog(price: 37))
+        let latest = await publishedItems(stream, where: { _ in true })
+        XCTAssertEqual(latest.first?.offers.first?.offer.price, 37)
+        await fulfillment(of: [updated], timeout: 5)
+    }
+
     func testRefreshErrorSurvivesQueriesAndClearsOnlyAfterSuccessfulRefresh() async throws {
         let source = ControlledCatalogSource()
         let repository = DefaultCatalogRepository(source: source)
@@ -119,7 +143,7 @@ final class CatalogRepositoryTests: XCTestCase {
         cache.snapshot = try CatalogSnapshot().applying(CatalogFixtures.export()).snapshot
         let source = ControlledCatalogSource()
         let repository = DefaultCatalogRepository(cache: cache, source: source)
-        let home = HomeViewModel(repository: repository)
+        let home = StorefrontViewModel(page: .home, repository: repository)
         let search = SearchViewModel(repository: repository)
         await repository.prepareCache()
         await home.refresh()

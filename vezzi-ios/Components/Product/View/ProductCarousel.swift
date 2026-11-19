@@ -7,6 +7,7 @@ struct ProductCarousel: View {
     let products: [Product]
     @ObservedObject var selection: ProductSelection
     var showsStoreBadges = true
+    var showsPricePrefix = true
     let open: (Product) -> Void
 
     var body: some View {
@@ -14,7 +15,7 @@ struct ProductCarousel: View {
             LazyHStack(alignment: .top, spacing: Const.spacing) {
                 ForEach(products) { product in
                     ProductCard(product: product, showsStoreBadges: showsStoreBadges,
-                                showsPricePrefix: showsStoreBadges, quantity: quantityBinding(for: product.id)) {
+                                showsPricePrefix: showsPricePrefix, quantity: quantityBinding(for: product.id)) {
                         open(product)
                     }
                     .frame(width: cardWidth)

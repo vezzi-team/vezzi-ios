@@ -16,9 +16,12 @@ extension Image {
         static let profileRoute = Image(systemName: "point.3.connected.trianglepath.dotted")
         static let profileSettings = Image(systemName: "gearshape")
         static let profileDebug = Image(systemName: "ladybug")
+        static let location = Image(systemName: "location")
+        static let locationFill = Image(systemName: "location.fill")
         static let person = Image(systemName: "person.crop.circle")
         static let walk = Image(systemName: "figure.walk")
         static let chevronRight = Image(systemName: "chevron.right")
+        static let chevronLeft = Image(systemName: "chevron.left")
         static let chevronDown = Image(systemName: "chevron.down")
         static let xmark = Image(systemName: "xmark")
         static let arrowRight = Image(systemName: "arrow.right")
@@ -34,7 +37,7 @@ extension Image {
         static let minus = Image(systemName: "minus")
         static let house = Image(systemName: "house")
         static let checklist = Image(systemName: "checklist")
-        static let storefront = Image(systemName: "storefront")
+        static let catalog = Image(systemName: "square.grid.2x2")
         static let magnifyingGlass = Image(systemName: "magnifyingglass")
 
         private static func rotatedSymbol(_ name: String) -> Image {
@@ -73,6 +76,14 @@ extension Image {
 
 // Core Animation uses the same asset catalog as SwiftUI images.
 extension UIImage {
+    enum System {
+        static var startPin: UIImage? {
+            UIImage(systemName: "mappin")
+        }
+        static var roundTripPin: UIImage? {
+            UIImage(systemName: "mappin.and.ellipse")
+        }
+    }
     enum Brand {
         static let motiYarn = UIImage(named: "MotiYarn")
     }

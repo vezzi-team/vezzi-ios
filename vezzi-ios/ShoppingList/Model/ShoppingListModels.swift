@@ -32,8 +32,22 @@ nonisolated struct ShoppingCoordinate: Codable, Sendable, Equatable {
     let latitude: Double
     let longitude: Double
 
-    // Temporary origin in the area covered by the current catalog; never a device location.
+    var isValid: Bool { (-90...90).contains(latitude) && (-180...180).contains(longitude) }
+
+    // Prospekt Korolyova, 34 k2: a street address near the center of the supported area.
+    static let defaultOrigin = Self(latitude: 60.014550, longitude: 30.258000)
+
+    // Kept for fixtures and decoding legacy snapshots that predate the origin field.
     static let previewOrigin = Self(latitude: 60.0087, longitude: 30.2582)
+}
+
+/// Route constraints travel with the calculation and its cache identity.
+nonisolated struct ShoppingRouteOptions: Codable, Sendable, Equatable {
+    var returnToStart = false
+    var radiusMeters: Int?
+
+    static let radiusRange = 100...5000
+    var isValid: Bool { radiusMeters.map(Self.radiusRange.contains) ?? true }
 }
 
 nonisolated struct ShoppingPlanResult: Codable, Sendable {
@@ -41,6 +55,7 @@ nonisolated struct ShoppingPlanResult: Codable, Sendable {
     let baselinePrice: Decimal?
     let problem: String?
     let isSynthetic: Bool
+    var minRequiredRadiusMeters: Int? = nil
 }
 
 nonisolated struct ShoppingPlan: Codable, Identifiable, Sendable {
@@ -53,6 +68,8 @@ nonisolated struct ShoppingPlan: Codable, Identifiable, Sendable {
     let points: [ShoppingCoordinate]
     let usesRoadNetwork: Bool
     let isSynthetic: Bool
+    var returnWalkingSeconds: Int? = nil
+    var returnWalkingMeters: Int? = nil
 }
 
 nonisolated struct ShoppingPlanStop: Codable, Identifiable, Sendable {
@@ -61,6 +78,9 @@ nonisolated struct ShoppingPlanStop: Codable, Identifiable, Sendable {
     let store: CatalogStore
     let items: [ShoppingPlanItem]
     let subtotal: Decimal
+    // Optional for previously cached calculations which did not retain leg metrics.
+    var walkingSeconds: Int? = nil
+    var walkingMeters: Int? = nil
 }
 
 nonisolated struct ShoppingPlanItem: Codable, Sendable {

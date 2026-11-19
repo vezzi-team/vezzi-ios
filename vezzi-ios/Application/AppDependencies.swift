@@ -6,6 +6,7 @@ final class AppDependencies: ObservableObject {
     let catalog: DefaultCatalogRepository
     let authentication: AuthenticationSession
     let shoppingList: ShoppingListRepository
+    let location: any DeviceLocating = DeviceLocationService()
     private var networkMonitor: NetworkMonitor?
     private var hasLoaded = false
     private var hasStarted = false
@@ -17,7 +18,8 @@ final class AppDependencies: ObservableObject {
         let authentication = DefaultAuthenticationService()
         self.init(cache: CoreDataCatalogCache(persistence: PersistenceController()),
                   source: APICatalogSource(client: authentication), authenticationService: authentication,
-                  shoppingListService: APIShoppingListService(client: authentication), shoppingListCache: FileShoppingListCache())
+                  shoppingListService: APIShoppingListService(client: authentication), shoppingListCache: FileShoppingListCache(),
+                  addressResolver: MapKitAddressResolver())
         networkMonitor = NetworkMonitor { [weak self] connected in
             self?.catalog.updateConnectivity(isConnected: connected)
             self?.shoppingList.updateConnectivity(isConnected: connected)
@@ -29,11 +31,12 @@ final class AppDependencies: ObservableObject {
         source: (any CatalogSource)? = nil,
         authenticationService: any AuthenticationService = DefaultAuthenticationService(),
         shoppingListService: (any ShoppingListService)? = nil,
-        shoppingListCache: (any ShoppingListCache)? = nil
+        shoppingListCache: (any ShoppingListCache)? = nil,
+        addressResolver: (any AddressResolving)? = nil
     ) {
         catalog = DefaultCatalogRepository(cache: cache, source: source)
         authentication = AuthenticationSession(service: authenticationService, startsRestoring: true)
-        shoppingList = ShoppingListRepository(service: shoppingListService, cache: shoppingListCache)
+        shoppingList = ShoppingListRepository(service: shoppingListService, cache: shoppingListCache, addressResolver: addressResolver)
         accountSubscription = authentication.$identity.map { identity in
             identity.map { ShoppingListAccount(id: $0.user.id.uuidString, sessionID: $0.sessionID) }
         }.removeDuplicates().sink { [weak self] account in

@@ -169,6 +169,6 @@ nonisolated enum StoreDisplayText {
         let shortened = address.replacingOccurrences(
             of: #"^(?:(?:г\.?\s*|город\s+)?Санкт-Петербург|Saint Petersburg|St\.?\s+Petersburg)\s*,\s*"#,
             with: "", options: [.regularExpression, .caseInsensitive])
-        return shortened.isEmpty ? address : shortened
+        return (shortened.isEmpty ? address : shortened).addressCapitalized
     }
 }

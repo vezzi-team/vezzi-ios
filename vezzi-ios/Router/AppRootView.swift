@@ -5,6 +5,7 @@ struct AppRootView: View {
     @StateObject private var appRouter: AppRouter
     @ObservedObject private var productSelection: ProductSelection
     private let shoppingList: ShoppingListRepository
+    private let location: any DeviceLocating
     @ObservedObject private var authentication: AuthenticationSession
     @Namespace private var profileTransition
     private let catalog: any CatalogRepository
@@ -14,6 +15,7 @@ struct AppRootView: View {
         catalog: any CatalogRepository,
         authentication: AuthenticationSession,
         shoppingList: ShoppingListRepository? = nil,
+        location: (any DeviceLocating)? = nil,
         initialTab: AppRouter.Tab = .home,
         contentScale: CGFloat = Const.defaultContentScale
     ) {
@@ -21,6 +23,7 @@ struct AppRootView: View {
         self.authentication = authentication
         let list = shoppingList ?? ShoppingListRepository()
         self.shoppingList = list
+        self.location = location ?? DeviceLocationService()
         self.productSelection = list.selection
         self.contentScale = contentScale
         _appRouter = StateObject(wrappedValue: AppRouter(selectedTab: initialTab))
@@ -40,10 +43,10 @@ struct AppRootView: View {
                 tabLabel(for: .shoppingList)
             }
 
-            Tab(value: AppRouter.Tab.stores) {
-                navigationStack(for: .stores)
+            Tab(value: AppRouter.Tab.catalog) {
+                navigationStack(for: .catalog)
             } label: {
-                tabLabel(for: .stores)
+                tabLabel(for: .catalog)
             }
 
             Tab(value: AppRouter.Tab.search, role: .search) {
@@ -61,15 +64,18 @@ struct AppRootView: View {
             Button(Texts.ShoppingList.understood, role: .cancel) {}
         } message: { Text(Texts.ShoppingList.limitDescription) }
         .sheet(item: presentedSheet) { sheet in
-            if sheet == .authentication {
-                DestinationFactory.sheet(for: sheet, authentication: authentication)
-                    .navigationTransition(.zoom(sourceID: sheet, in: profileTransition))
+            let content = DestinationFactory.sheet(for: sheet, authentication: authentication)
+            if sheet == .authentication, appRouter.selectedTab == .home || appRouter.selectedTab == .catalog {
+                content.navigationTransition(.zoom(sourceID: appRouter.selectedTab, in: profileTransition))
             } else {
-                DestinationFactory.sheet(for: sheet, authentication: authentication)
+                content
             }
         }
         .onChange(of: authentication.user) { _, user in
-            if user == nil { appRouter.popToRoot(in: .home) }
+            if user == nil {
+                appRouter.popToRoot(in: .home)
+                appRouter.popToRoot(in: .catalog)
+            }
         }
         .onChange(of: authentication.identity?.sessionID) { previous, current in
             guard previous != current else { return }
@@ -86,7 +92,7 @@ struct AppRootView: View {
             switch tab {
             case .home: Image.System.house
             case .shoppingList: Image.System.checklist
-            case .stores: Image.System.storefront
+            case .catalog: Image.System.catalog
             case .search: Image.System.magnifyingGlass
             }
         }
@@ -102,10 +108,10 @@ struct AppRootView: View {
     private func navigationStack(for tab: AppRouter.Tab) -> some View {
         NavigationStack(path: pathBinding(for: tab)) {
             DestinationFactory.view(for: tab.rootRoute, catalog: catalog, authentication: authentication,
-                                    profileTransition: profileTransition, productSelection: productSelection, shoppingList: shoppingList)
+                                    profileTransition: profileTransition, productSelection: productSelection, shoppingList: shoppingList, location: location)
                 .navigationDestination(for: AppRouter.Route.self) { route in
                     DestinationFactory.view(for: route, catalog: catalog, authentication: authentication,
-                                            profileTransition: profileTransition, productSelection: productSelection, shoppingList: shoppingList)
+                                            profileTransition: profileTransition, productSelection: productSelection, shoppingList: shoppingList, location: location)
                 }
         }
         .scaleEffect(contentScale, anchor: .top)

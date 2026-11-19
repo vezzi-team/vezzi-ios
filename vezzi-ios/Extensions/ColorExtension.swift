@@ -8,6 +8,10 @@
 import SwiftUI
 
 extension Color {
+    enum Map {
+        // Explicit asset lookup also resolves correctly in UIKit style expressions.
+        static let route = Color("AccentColor")
+    }
     
     enum Profile {
         static let confirmation = Color("ProfileConfirmation")

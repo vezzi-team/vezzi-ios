@@ -8,7 +8,7 @@ final class ShoppingListViewModel: ObservableObject {
     @Published private(set) var selectedProduct: Product?
     @Published private(set) var selectedProductOffer: ProductOffer?
     @Published private(set) var relatedProducts: [Product] = []
-    @Published var routePlan: ShoppingPlan?
+    @Published var routes: ShoppingRoutesSnapshot?
     @Published private var catalogItems: [String: CatalogItem] = [:]
     let list: ShoppingListRepository
     private let catalog: any CatalogRepository
@@ -21,7 +21,7 @@ final class ShoppingListViewModel: ObservableObject {
         list.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }.store(in: &subscriptions)
         list.selection.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }.store(in: &subscriptions)
         list.$account.removeDuplicates().dropFirst().sink { [weak self] _ in
-            self?.routePlan = nil
+            self?.routes = nil
             self?.dismissProduct()
             self?.selectedProductOffer = nil
         }.store(in: &subscriptions)
@@ -120,20 +120,19 @@ final class ShoppingListViewModel: ObservableObject {
             }
         }
         guard let result = list.planResult, result.plans.isEmpty else { return nil }
-        switch result.problem {
-        case "items_unavailable": return Texts.ShoppingList.itemsUnavailable
-        case "store_limit_too_low": return Texts.ShoppingList.storeLimit
-        case "time_limit_too_low": return Texts.ShoppingList.timeLimit
-        case "radius_too_small": return Texts.ShoppingList.radiusLimit
-        case "route_unavailable": return Texts.ShoppingList.routeUnavailable
-        default: return Texts.ShoppingList.noPlans
-        }
+        return Texts.ShoppingList.planningProblem(result.problem, requiredRadius: result.minRequiredRadiusMeters)
     }
 
     func refresh() async {
         async let refreshList: Void = list.refresh()
         if catalog.canRefresh { try? await catalog.refresh() }
         await refreshList
+    }
+
+    func showRoutes() {
+        guard let selected = plan, let plans = list.planResult?.plans else { return }
+        routes = ShoppingRoutesSnapshot(plans: plans, selectedID: selected.id, origin: list.origin, isSaved: list.isPlanCached,
+                                        routeOptions: list.routeOptions, originAddress: list.originAddress)
     }
 
     func showProduct(_ product: Product) {
