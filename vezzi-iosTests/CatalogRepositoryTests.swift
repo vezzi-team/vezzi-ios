@@ -419,7 +419,7 @@ final class CatalogRepositoryTests: XCTestCase {
         XCTAssertEqual(items.map(\.id), ["p1"])
     }
 
-    func testSlowCacheDoesNotDelayOrRollBackSourceResults() async throws {
+    func testFirstRefreshPublishesWhileCacheIsStalledAndKeepsNewerResults() async throws {
         let cache = ControlledCatalogCache()
         cache.pauseLoad = true
         let started = expectation(description: "Cache load started")
@@ -427,13 +427,13 @@ final class CatalogRepositoryTests: XCTestCase {
         var fresh = CatalogFixtures.catalog(price: 120, date: Date(timeIntervalSince1970: 200))
         fresh.products[0].name = "Fresh product"
         let repository = DefaultCatalogRepository(cache: cache, source: FixedCatalogSource(batch: fresh))
-        let preparing = Task { await repository.prepareCache() }
+        let refresh = Task { try await repository.refresh() }
         await fulfillment(of: [started], timeout: 5)
-        try await repository.refresh()
-        let before = await catalogItems(from: repository)
+        let before = await catalogItems(from: repository, where: { !$0.isEmpty })
         XCTAssertEqual(before.first?.product.name, "Fresh product")
         cache.finishLoading(try CatalogFixtures.snapshot(CatalogFixtures.catalog(price: 90)))
-        await preparing.value
+        try await refresh.value
+        await repository.prepareCache()
         let after = await catalogItems(from: repository)
         XCTAssertEqual(after.first?.product.name, "Fresh product")
         XCTAssertEqual(after.first?.offers.first?.offer.price, 120)

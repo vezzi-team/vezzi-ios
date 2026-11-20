@@ -16,6 +16,7 @@ final class DefaultCatalogRepository: CatalogRepository {
     private var cachePreparation: Task<Void, Never>?
     private var cacheWrite: Task<Void, Never>?
     private var refreshTask: Task<Void, Error>?
+    private var hasCheckedInitialCache = false
     private var publishedRevision = 0
     private var pendingCacheIDs = CatalogRecordIDs()
     private var pendingReplacement = false
@@ -69,6 +70,7 @@ final class DefaultCatalogRepository: CatalogRepository {
                 catalogStatus.value.isRefreshing = false
             }
             do {
+                await waitForInitialCache()
                 let result = try await source.loadCatalog(ifNoneMatch: snapshot.metadata?.etag)
                 try Task.checkCancellation()
                 let update: CatalogSessionUpdate
@@ -100,12 +102,30 @@ final class DefaultCatalogRepository: CatalogRepository {
         catalogStatus.value.isOffline = !isConnected
     }
 
-    /// Cache opening and recovery never block source results or active queries.
+    private func waitForInitialCache() async {
+        guard !hasCheckedInitialCache else { return }
+        hasCheckedInitialCache = true
+        guard cacheStatus.value == .loading else { return }
+
+        startCachePreparation()
+        // A slow disk read continues even if the first export has to start without an ETag.
+        let readiness = cacheStatus.first { $0 != .loading }
+            .timeout(.milliseconds(500), scheduler: DispatchQueue.main)
+        var iterator = readiness.values.makeAsyncIterator()
+        _ = await iterator.next()
+    }
+
     func prepareCache() async {
-        guard let cache, cacheStatus.value != .available else { return }
-        if let cachePreparation { return await cachePreparation.value }
+        await startCachePreparation()?.value
+    }
+
+    @discardableResult
+    private func startCachePreparation() -> Task<Void, Never>? {
+        guard let cache, cacheStatus.value != .available else { return nil }
+        if let cachePreparation { return cachePreparation }
         cacheStatus.send(.loading)
         let task = Task {
+            defer { cachePreparation = nil }
             do {
                 let stored = try await cache.loadSnapshot()
                 accept(await session.mergeCache(stored))
@@ -117,8 +137,7 @@ final class DefaultCatalogRepository: CatalogRepository {
             }
         }
         cachePreparation = task
-        await task.value
-        cachePreparation = nil
+        return task
     }
 
     private func accept(_ update: CatalogSessionUpdate) {

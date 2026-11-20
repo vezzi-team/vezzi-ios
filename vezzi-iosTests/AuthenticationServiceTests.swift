@@ -760,6 +760,43 @@ final class AuthenticationServiceTests: XCTestCase {
         XCTAssertTrue(server.requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == nil })
     }
 
+    func testFirstGuestRequestUsesReopenedSQLiteSnapshotForNotModified() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("Catalog.sqlite")
+        let original = CatalogFixtures.export(version: 7, date: CatalogFixtures.cachedAt)
+        let seed = PersistenceController(storeURL: url)
+        try await CoreDataCatalogCache(persistence: seed).save(original)
+        try closeStore(seed)
+
+        let reopened = PersistenceController(storeURL: url)
+        defer { try? closeStore(reopened) }
+        let cache = RecordingCatalogCache(storage: CoreDataCatalogCache(persistence: reopened))
+        let saved = expectation(description: "Validation persisted")
+        cache.onSaved = { saved.fulfill() }
+        let (client, server) = makeClient { request, _ in
+            request.value(forHTTPHeaderField: "If-None-Match") == "\"7\""
+                ? HTTPStubReply(status: 304) : .json(CatalogAPIFixture.json)
+        }
+        let auth = DefaultAuthenticationService(client: client, store: MemoryAuthenticationStore())
+        let app = AppDependencies(cache: cache, source: APICatalogSource(client: client), authenticationService: auth)
+        await app.load()
+        await fulfillment(of: [saved], timeout: 5)
+
+        XCTAssertEqual(server.requests.map { $0.url?.path }, ["/api/v1/catalog/export"])
+        let request = try XCTUnwrap(server.requests.first)
+        XCTAssertEqual(request.value(forHTTPHeaderField: "If-None-Match"), original.metadata?.etag)
+        XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+        let items = await catalogItems(from: app.catalog)
+        XCTAssertEqual(items.map(\.id), ["p1"])
+        XCTAssertEqual(items.first?.offers.first?.cachedAt, CatalogFixtures.cachedAt)
+        XCTAssertEqual(cache.writes.count, 1)
+        let write = try XCTUnwrap(cache.writes.first)
+        XCTAssertFalse(write.replacesCatalog)
+        XCTAssertTrue(write.products.isEmpty && write.stores.isEmpty && write.offers.isEmpty)
+        XCTAssertGreaterThan(try XCTUnwrap(write.metadata?.validatedAt), CatalogFixtures.cachedAt)
+    }
+
     func testPublicCatalogFailureDoesNotRefreshOrInvalidateSignedInSession() async throws {
         let (client, server) = makeClient { request, _ in
             request.url?.path == "/api/v1/users/me" ? .json(AuthFixtures.userJSON) : HTTPStubReply(status: 401)

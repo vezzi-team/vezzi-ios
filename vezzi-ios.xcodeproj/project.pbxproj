@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01C63D9250A94049913E222E /* RouteLineRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21FB3A55AC44C8BB9427E8C /* RouteLineRenderer.swift */; };
 		03C2DB445D8723AB81251191 /* AppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2F65272448A03EEEFEFCDDD /* AppDependencies.swift */; };
 		03D0BB35C66A469D8FEF703F /* RouteRevealGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E33EF1B90FB4E5892993FF6 /* RouteRevealGeometryTests.swift */; };
 		05DCAD64ED5D48FCA23594FF /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AE3A3009B9C241658C3C9EDA /* PrivacyInfo.xcprivacy */; };
@@ -136,7 +137,6 @@
 		E22C697E9C25DCB6E4A3EC5B /* CatalogRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 753C6740DC2BEA99B0799055 /* CatalogRepository.swift */; };
 		E33C14BCBE4C4FD1BBD202FD /* StorefrontViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5631CF446F124C069A1EFFE1 /* StorefrontViewModelTests.swift */; };
 		E4F15B36A846424FB4B8C2E5 /* RouteRevealGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF0A28807DA436F8DA83BFB /* RouteRevealGeometry.swift */; };
-		01C63D9250A94049913E222E /* RouteLineRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21FB3A55AC44C8BB9427E8C /* RouteLineRenderer.swift */; };
 		E799E4921A6B464C947C82C5 /* SearchSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB5F66F9ECB46AB89854D39 /* SearchSection.swift */; };
 		E8D2449A15E2420B9E14B4C1 /* MotiCollectionPager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D13CDBCBF984B749C6F5B3F /* MotiCollectionPager.swift */; };
 		EB65944FDCDF499E89BD5C26 /* ProductCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E8B8AA9B5924DEDB3AF7C50 /* ProductCard.swift */; };
@@ -231,6 +231,7 @@
 		8E8B8AA9B5924DEDB3AF7C50 /* ProductCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCard.swift; sourceTree = "<group>"; };
 		8FC4DE1043DA49BDB6E8C570 /* MotiStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotiStateView.swift; sourceTree = "<group>"; };
 		9214D5599DBF4DC985AFCB89 /* SplashViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewModelTests.swift; sourceTree = "<group>"; };
+		A21FB3A55AC44C8BB9427E8C /* RouteLineRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteLineRenderer.swift; sourceTree = "<group>"; };
 		A40EE60E2C2FB6F6D4DFC3B9 /* CatalogEntities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogEntities.swift; sourceTree = "<group>"; };
 		A51A36D587BA4911A26B34C6 /* PressScaleEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PressScaleEffect.swift; sourceTree = "<group>"; };
 		A95A5716AD8E452C9EC30802 /* MotiAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotiAnimationView.swift; sourceTree = "<group>"; };
@@ -256,7 +257,6 @@
 		C89D6FA56791477796A077AA /* ProductSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductSelection.swift; sourceTree = "<group>"; };
 		C8E3E7B5C75343698472C449 /* CatalogStatusBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogStatusBanner.swift; sourceTree = "<group>"; };
 		CBF0A28807DA436F8DA83BFB /* RouteRevealGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteRevealGeometry.swift; sourceTree = "<group>"; };
-		A21FB3A55AC44C8BB9427E8C /* RouteLineRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteLineRenderer.swift; sourceTree = "<group>"; };
 		CEEFF9B302FF8538C5F191F4 /* RouteMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteMapView.swift; sourceTree = "<group>"; };
 		CF1895E0AC454C29B3D927AA /* ShoppingListService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingListService.swift; sourceTree = "<group>"; };
 		D4921C0B307D51EC0071715F /* vezzi-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "vezzi-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1371,7 +1371,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = GTBZ6M3J83;
+				DEVELOPMENT_TEAM = LWMZJ4RMQN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Polka;
@@ -1387,8 +1387,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = "vezzi.vezzi-ios";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.vezzi.vezzi-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1411,7 +1411,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = GTBZ6M3J83;
+				DEVELOPMENT_TEAM = LWMZJ4RMQN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Polka;
@@ -1427,8 +1427,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = "vezzi.vezzi-ios";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.vezzi.vezzi-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
