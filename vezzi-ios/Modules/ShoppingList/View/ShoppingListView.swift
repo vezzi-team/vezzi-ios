@@ -42,7 +42,7 @@ struct ShoppingListView: View {
         .safeAreaBar(edge: .bottom) {
             if viewModel.contentState == .products || viewModel.contentState == .empty { bottomAction }
         }
-        .refreshable { await viewModel.refresh() }
+        .refreshable { [weak viewModel] in await viewModel?.refresh() }
         .onAppear { viewModel.list.setPresented(true) }
         .onDisappear { if viewModel.routes == nil { viewModel.list.setPresented(false) } }
         .sheet(item: selectedProduct) { product in
@@ -66,22 +66,28 @@ struct ShoppingListView: View {
             addressButton
                 .padding(.horizontal, viewModel.contentState == .products ? Const.contentInset : Const.routeHorizontalInset)
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { addressHeight = $0 }
-            if viewModel.contentState == .products {
-                modePicker.padding(.horizontal, Const.contentInset)
-                summarySection
-            } else {
-                VStack(spacing: Const.sectionSpacing) {
-                    emptyContent
-                    feedback.padding(.horizontal, Const.routeHorizontalInset)
-                }
-                .frame(maxWidth: .infinity,
-                       minHeight: max(.zero, viewportHeight - addressHeight - Const.sectionSpacing - Const.contentInset * 2))
-            }
+            listBody.screenStateFade(for: viewModel.contentState)
         }
         .padding(.vertical, Const.contentInset)
         .frame(maxWidth: Const.maximumWidth)
         .frame(maxWidth: .infinity)
         .coordinateSpace(name: Const.contentCoordinateSpace)
+    }
+
+    @ViewBuilder private var listBody: some View {
+        if viewModel.contentState == .products {
+            VStack(spacing: Const.sectionSpacing) {
+                modePicker.padding(.horizontal, Const.contentInset)
+                summarySection
+            }
+        } else {
+            VStack(spacing: Const.sectionSpacing) {
+                emptyContent
+                feedback.padding(.horizontal, Const.routeHorizontalInset)
+            }
+            .frame(maxWidth: .infinity,
+                   minHeight: max(.zero, viewportHeight - addressHeight - Const.sectionSpacing - Const.contentInset * 2))
+        }
     }
 
     @ViewBuilder private var emptyContent: some View {
@@ -303,12 +309,15 @@ struct ShoppingListView: View {
     private var bottomAction: some View {
         Button {
             if viewModel.contentState == .empty {
-                router.popToRoot(in: .home)
-                router.selectTab(.home)
+                router.popToRoot(in: .catalog)
+                router.selectTab(.catalog)
+            } else {
+                viewModel.showRoutes()
             }
-            else { viewModel.showRoutes() }
         } label: {
             Text(viewModel.contentState == .empty ? Texts.ShoppingList.findProducts : Texts.ShoppingList.showRoute)
+                .contentTransition(reduceMotion ? .identity : .opacity)
+                .animation(reduceMotion ? nil : .screenStateFade, value: viewModel.contentState == .empty)
                 .font(.headline).frame(maxWidth: .infinity)
         }
         .buttonStyle(.glassProminent)

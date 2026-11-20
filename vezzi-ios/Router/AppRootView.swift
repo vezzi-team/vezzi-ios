@@ -65,12 +65,7 @@ struct AppRootView: View {
             Button(Texts.ShoppingList.understood, role: .cancel) {}
         } message: { Text(Texts.ShoppingList.limitDescription) }
         .sheet(item: presentedSheet) { sheet in
-            let content = DestinationFactory.sheet(for: sheet, authentication: authentication)
-            if appRouter.selectedTab == .home || appRouter.selectedTab == .catalog {
-                content.navigationTransition(.zoom(sourceID: appRouter.selectedTab, in: storefrontTransition))
-            } else {
-                content
-            }
+            DestinationFactory.sheet(for: sheet, authentication: authentication)
         }
         .fullScreenCover(item: $appRouter.presentedCollection) { collection in
             let cover = DestinationFactory.collection(collection, catalog: catalog, authentication: authentication,

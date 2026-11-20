@@ -25,7 +25,9 @@ struct SearchView: View {
                 results
             }
         }
-        .background(viewModel.items.isEmpty ? Color.Background.iOSPrimary : Color.Background.primary)
+        .animation(reduceMotion ? nil : .screenStateFade) { content in
+            content.background(viewModel.items.isEmpty ? Color.Background.iOSPrimary : Color.Background.primary)
+        }
         .toolbar(horizontalSizeClass == .compact ? .hidden : .automatic, for: .navigationBar)
         .toolbar { searchToolbar }
         .safeAreaBar(edge: .top, spacing: .zero) {
@@ -89,16 +91,8 @@ struct SearchView: View {
 
     private var results: some View {
         ScrollView {
-            ZStack(alignment: .topLeading) {
-                if viewModel.sections.isEmpty {
-                    emptyContent
-                        .frame(maxWidth: .infinity, minHeight: viewportHeight)
-                } else {
-                    resultsContent
-                        .id(viewModel.mode)
-                        .transition(resultsTransition)
-                }
-            }
+            visibleResults
+                .screenStateFade(for: viewModel.sections.isEmpty ? viewModel.emptyState : nil)
         }
         .scrollIndicators(.hidden)
         .scrollPosition($scrollPosition)
@@ -123,6 +117,18 @@ struct SearchView: View {
         .animation(reduceMotion ? nil : .easeOut(duration: Const.resultsTransitionDuration),
                    value: viewModel.items.map(\.id))
         .environment(\.isShimmerEnabled, viewModel.selectedProduct == nil)
+    }
+
+    @ViewBuilder private var visibleResults: some View {
+        if viewModel.sections.isEmpty {
+            emptyContent.frame(maxWidth: .infinity, minHeight: viewportHeight)
+        } else {
+            ZStack(alignment: .topLeading) {
+                resultsContent
+                    .id(viewModel.mode)
+                    .transition(resultsTransition)
+            }
+        }
     }
 
     private var resultsContent: some View {

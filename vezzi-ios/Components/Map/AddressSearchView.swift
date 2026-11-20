@@ -18,11 +18,13 @@ struct AddressSearchView: View {
             results
                 .navigationTitle(Texts.Routes.AddressSearch.title)
                 .navigationBarTitleDisplayMode(.inline)
-                .searchable(text: Binding(get: { viewModel.query }, set: viewModel.updateQuery),
+                .searchable(text: queryBinding,
                             placement: .navigationBarDrawer(displayMode: .always),
                             prompt: Texts.Routes.AddressSearch.prompt)
                 .searchFocused($isSearchFocused)
-                .onSubmit(of: .search) { isSearchFocused = false }
+                .onSubmit(of: .search) { [focus = $isSearchFocused] in
+                    focus.wrappedValue = false
+                }
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         dismissButton
@@ -44,6 +46,14 @@ struct AddressSearchView: View {
         }
     }
 
+    // The native search field can keep its callbacks after the sheet closes.
+    private var queryBinding: Binding<String> {
+        Binding(
+            get: { [weak viewModel] in viewModel?.query ?? "" },
+            set: { [weak viewModel] in viewModel?.updateQuery($0) }
+        )
+    }
+
     private var dismissButton: some View {
         Button { dismiss() } label: {
             Label { Text(Texts.Routes.AddressSearch.dismiss) } icon: { Image.System.chevronDown }
@@ -61,6 +71,7 @@ struct AddressSearchView: View {
                 suggestions
             }
         }
+        .screenStateFade(for: viewModel.suggestions.isEmpty)
         .scrollDismissesKeyboard(.interactively)
         .accessibilityIdentifier(AccessibilityID.Routes.AddressSearch.results)
     }

@@ -91,6 +91,7 @@
 		A572598AA874414899F5CD48 /* Product.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06230B146B154DE68133123D /* Product.swift */; };
 		A812D324791641149E3D7831 /* StorefrontViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 289EDAD8F9F049BF9DF8A210 /* StorefrontViewModel.swift */; };
 		A97418A8CDBD40D6965BC855 /* AddressSearchViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0705691AC92F4A8A86931002 /* AddressSearchViewModelTests.swift */; };
+		AA24C342957345C8AB029197 /* ScreenLifetimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0796B1D8EA204E38A41E34D5 /* ScreenLifetimeTests.swift */; };
 		ABD1AC6AEBCE0C5920B8A3B0 /* CatalogEntities.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40EE60E2C2FB6F6D4DFC3B9 /* CatalogEntities.swift */; };
 		ABFCE46C349C2DA2C59C1090 /* CatalogSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE1F076D48EC51DCAEFEDDC6 /* CatalogSnapshot.swift */; };
 		B1625ED588FFE15B58CB0EAD /* CatalogModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1967D38999E1D0A020EEE1B9 /* CatalogModels.swift */; };
@@ -165,6 +166,7 @@
 		05FBFDF795B14F9DBD1563FD /* CatalogRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogRepositoryTests.swift; sourceTree = "<group>"; };
 		06230B146B154DE68133123D /* Product.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Product.swift; sourceTree = "<group>"; };
 		0705691AC92F4A8A86931002 /* AddressSearchViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressSearchViewModelTests.swift; sourceTree = "<group>"; };
+		0796B1D8EA204E38A41E34D5 /* ScreenLifetimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenLifetimeTests.swift; sourceTree = "<group>"; };
 		07B55DFCAF48456D90866DE4 /* Shimmer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shimmer.swift; sourceTree = "<group>"; };
 		09E92B033DB748199B198025 /* SplashViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewModel.swift; sourceTree = "<group>"; };
 		0A4426D2AF04363FE91D4697 /* CoreDataCatalogCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataCatalogCache.swift; sourceTree = "<group>"; };
@@ -642,6 +644,7 @@
 				7C398C83B996D48D9FE88501 /* LocationPickerViewModelTests.swift */,
 				02FECFD033B54C27930BB3E1 /* AddressDisplayTests.swift */,
 				0705691AC92F4A8A86931002 /* AddressSearchViewModelTests.swift */,
+				0796B1D8EA204E38A41E34D5 /* ScreenLifetimeTests.swift */,
 				8E33EF1B90FB4E5892993FF6 /* RouteRevealGeometryTests.swift */,
 				56C5FA7195DD42BDB9732373 /* RouteMapViewTests.swift */,
 				1B62E7E4133A4AF48B85291D /* ShoppingListAPITests.swift */,
@@ -1099,6 +1102,7 @@
 				54B48A7969FF574B6565582C /* LocationPickerViewModelTests.swift in Sources */,
 				08459281EC4D4EDE8323D307 /* AddressDisplayTests.swift in Sources */,
 				A97418A8CDBD40D6965BC855 /* AddressSearchViewModelTests.swift in Sources */,
+				AA24C342957345C8AB029197 /* ScreenLifetimeTests.swift in Sources */,
 				03D0BB35C66A469D8FEF703F /* RouteRevealGeometryTests.swift in Sources */,
 				72414336C8084DD7938EBA1D /* RouteMapViewTests.swift in Sources */,
 				65FAECEE9BCE468DAF94CCAB /* ShoppingListAPITests.swift in Sources */,

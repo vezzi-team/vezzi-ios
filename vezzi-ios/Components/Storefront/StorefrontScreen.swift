@@ -28,6 +28,7 @@ struct StorefrontScreen: View {
                 collectionFeed(viewportHeight: geometry.size.height)
             } else {
                 feed(viewportHeight: geometry.size.height)
+                    .screenStateFade(for: viewModel.hasProducts)
                     .toolbar { navigationToolbar(availableWidth: geometry.size.width) }
                     .navigationTitle("")
                     .navigationBarTitleDisplayMode(.inline)
@@ -57,6 +58,7 @@ struct StorefrontScreen: View {
                     header
                     Spacer(minLength: 0)
                     emptyContent
+                        .screenStateFade(for: viewModel.emptyState)
                     Spacer(minLength: 0)
                 }
                 .frame(maxWidth: Self.maximumContentWidth, minHeight: viewportHeight)
@@ -72,18 +74,22 @@ struct StorefrontScreen: View {
 
     private func collectionFeed(viewportHeight: CGFloat) -> some View {
         ScrollView {
-            if viewModel.products.isEmpty {
-                emptyContent
-                    .frame(maxWidth: .infinity, minHeight: viewportHeight)
-            } else {
-                ProductGrid(products: viewModel.products, selection: viewModel.selection) { viewModel.showProduct($0) }
-                    .padding(Const.contentInset)
-                    .frame(maxWidth: Self.maximumContentWidth)
-                    .frame(maxWidth: .infinity)
-            }
+            collectionContent(viewportHeight: viewportHeight)
+                .screenStateFade(for: viewModel.products.isEmpty ? viewModel.emptyState : nil)
         }
         .scrollIndicators(.hidden, axes: .vertical)
         .accessibilityIdentifier(AccessibilityID.Home.collectionProducts)
+    }
+
+    @ViewBuilder private func collectionContent(viewportHeight: CGFloat) -> some View {
+        if viewModel.products.isEmpty {
+            emptyContent.frame(maxWidth: .infinity, minHeight: viewportHeight)
+        } else {
+            ProductGrid(products: viewModel.products, selection: viewModel.selection) { viewModel.showProduct($0) }
+                .padding(Const.contentInset)
+                .frame(maxWidth: Self.maximumContentWidth)
+                .frame(maxWidth: .infinity)
+        }
     }
 
     @ViewBuilder private var header: some View {
@@ -143,7 +149,6 @@ struct StorefrontScreen: View {
             .disabled(authentication.isRestoring || authentication.isSigningOut)
             .accessibilityIdentifier(AccessibilityID.Home.profile)
         }
-        .matchedTransitionSource(id: page.tab, in: storefrontTransition)
     }
 
     private var addressPicker: some View {
