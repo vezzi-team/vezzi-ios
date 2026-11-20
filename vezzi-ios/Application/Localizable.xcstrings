@@ -898,57 +898,6 @@
         }
       }
     },
-    "CatalogSignIn" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign in"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Войти"
-          }
-        }
-      }
-    },
-    "CatalogSignInMessage" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The catalog requires sign-in. Saved products remain available."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Для загрузки каталога нужен вход. Сохранённые товары остаются доступны."
-          }
-        }
-      }
-    },
-    "CatalogSignInTitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign in to load products"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Войдите, чтобы загрузить товары"
-          }
-        }
-      }
-    },
     "CatalogStaleMessage" : {
       "extractionState" : "manual",
       "localizations" : {

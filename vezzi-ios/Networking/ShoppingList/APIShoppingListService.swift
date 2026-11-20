@@ -1,6 +1,6 @@
 import Foundation
 
-/// All account requests share authentication and token rotation with the catalog.
+/// Cart and planning requests use the signed-in account's session.
 nonisolated struct APIShoppingListService: ShoppingListService {
     let client: any AuthorizedRequestPerforming
 

@@ -2,11 +2,11 @@ import Foundation
 
 /// Decodes the server's complete, versioned catalog away from the main actor.
 nonisolated struct APICatalogSource: CatalogSource {
-    let client: any AuthorizedRequestPerforming
+    let client: APIClient
 
     @concurrent func loadCatalog(ifNoneMatch: String?) async throws -> CatalogSourceResult {
         let headers = ifNoneMatch.map { ["If-None-Match": $0] } ?? [:]
-        let response = try await client.authorizedResponse(for: APIRequest(path: "catalog/export", headers: headers))
+        let response = try await client.response(for: APIRequest(path: "catalog/export", headers: headers))
         try Task.checkCancellation()
         if response.status == 304 {
             guard ifNoneMatch != nil else { throw APIError.invalidResponse }

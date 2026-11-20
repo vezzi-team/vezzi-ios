@@ -178,11 +178,7 @@ struct StorefrontScreen: View {
 
     private var catalogBanner: some View {
         CatalogStatusBanner(status: viewModel.catalogStatus, isCacheUnavailable: viewModel.isCacheUnavailable) {
-            if viewModel.catalogStatus.failure == .authenticationRequired && !viewModel.catalogStatus.isOffline {
-                router.presentAuthentication()
-            } else {
-                Task { await viewModel.refresh() }
-            }
+            Task { await viewModel.refresh() }
         }
     }
 

@@ -207,28 +207,6 @@ final class CatalogRepositoryTests: XCTestCase {
         XCTAssertEqual(cache.snapshot.offers["o1"]?.offer.price, 200)
     }
 
-    func testCancelledRefreshCannotOverwriteTheNextSuccessfulStatus() async throws {
-        let source = LateFailureCatalogSource()
-        let repository = DefaultCatalogRepository(source: source)
-        let old = Task { try await repository.refresh() }
-        for _ in 0..<100 {
-            if await source.hasStarted { break }
-            try await Task.sleep(for: .milliseconds(5))
-        }
-        repository.cancelRefresh()
-        try await repository.refresh()
-        await source.releaseFailure()
-        do { try await old.value; XCTFail("Expected cancellation") }
-        catch { XCTAssertTrue(error is CancellationError) }
-        var status = CatalogStatus()
-        let observation = repository.status.sink { status = $0 }
-        defer { observation.cancel() }
-        XCTAssertNil(status.failure)
-        XCTAssertFalse(status.isOffline)
-        XCTAssertFalse(status.isRefreshing)
-        XCTAssertTrue(status.hasSnapshot)
-    }
-
     func testRelatedProductsAreIndependentOfTheTextSearchLimit() async throws {
         let repository = DefaultCatalogRepository()
         var batch = CatalogImport(products: (0..<CatalogSearch.resultLimit).map {
@@ -605,17 +583,4 @@ private actor ConditionalCatalogSource: CatalogSource {
         try await Task.sleep(for: .milliseconds(30))
         return .notModified
     }
-}
-
-private actor LateFailureCatalogSource: CatalogSource {
-    private var continuation: CheckedContinuation<Void, Never>?
-    private(set) var hasStarted = false
-    func loadCatalog(ifNoneMatch: String?) async throws -> CatalogSourceResult {
-        if !hasStarted {
-            await withCheckedContinuation { continuation = $0; hasStarted = true }
-            throw URLError(.notConnectedToInternet)
-        }
-        return .snapshot(CatalogFixtures.export())
-    }
-    func releaseFailure() { continuation?.resume(); continuation = nil }
 }

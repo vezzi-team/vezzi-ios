@@ -706,8 +706,8 @@ final class AuthenticationServiceTests: XCTestCase {
         XCTAssertTrue(server.requests.isEmpty)
     }
 
-    func testCatalogExportDecodesExactAmountsAndSupportsConditionalRequests() async throws {
-        let (service, server) = makeService { request, _ in
+    func testPublicCatalogExportDecodesExactAmountsAndSupportsConditionalRequests() async throws {
+        let (client, server) = makeClient { request, _ in
             if request.value(forHTTPHeaderField: "If-None-Match") == "\"7\"" {
                 return HTTPStubReply(status: 304, headers: ["ETag": "\"7\""])
             }
@@ -715,7 +715,7 @@ final class AuthenticationServiceTests: XCTestCase {
             reply.headers["ETag"] = "\"7\""
             return reply
         }
-        let source = APICatalogSource(client: service)
+        let source = APICatalogSource(client: client)
         guard case .snapshot(let batch) = try await source.loadCatalog(ifNoneMatch: nil) else { return XCTFail("Expected snapshot") }
         XCTAssertEqual(batch.products.first?.id, "42")
         XCTAssertEqual(batch.products.first?.packageQuantity, Decimal(string: "930.5"))
@@ -728,31 +728,82 @@ final class AuthenticationServiceTests: XCTestCase {
         XCTAssertEqual(batch.metadata?.etag, "\"7\"")
         XCTAssertEqual(batch.metadata?.isSynthetic, true)
         guard case .notModified = try await source.loadCatalog(ifNoneMatch: batch.metadata?.etag) else { return XCTFail("Expected 304") }
-        XCTAssertTrue(server.requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == "Bearer access-1" })
+        XCTAssertEqual(server.requests.map { $0.url?.path }, ["/api/v1/catalog/export", "/api/v1/catalog/export"])
+        XCTAssertEqual(server.requests.map { $0.value(forHTTPHeaderField: "If-None-Match") }, [nil, "\"7\""])
+        XCTAssertTrue(server.requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == nil })
     }
 
-    func testCatalogAndProfileShareRefreshAndRejectResponsesAfterLogout() async throws {
+    func testGuestLoadsCatalogOnFirstLaunchAndRestoresItOffline() async throws {
+        let (client, server) = makeClient { _, requests in
+            requests.count == 1 ? .json(CatalogAPIFixture.json) : .failure(.notConnectedToInternet)
+        }
+        let cache = ControlledCatalogCache()
+        let saved = expectation(description: "Guest catalog saved")
+        cache.onSaved = { saved.fulfill() }
+        func launch() async -> AppDependencies {
+            let service = DefaultAuthenticationService(client: client, store: MemoryAuthenticationStore())
+            let app = AppDependencies(cache: cache, source: APICatalogSource(client: client), authenticationService: service)
+            await app.load()
+            return app
+        }
+        let online = await launch()
+        let fresh = await catalogItems(from: online.catalog)
+        XCTAssertNil(online.authentication.user)
+        XCTAssertEqual(fresh.map(\.id), ["42"])
+        await fulfillment(of: [saved], timeout: 5)
+        cache.onSaved = nil
+
+        let offline = await launch()
+        let restored = await catalogItems(from: offline.catalog)
+        XCTAssertEqual(restored, fresh)
+        XCTAssertEqual(server.requests.map { $0.url?.path }, ["/api/v1/catalog/export", "/api/v1/catalog/export"])
+        XCTAssertTrue(server.requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == nil })
+    }
+
+    func testPublicCatalogFailureDoesNotRefreshOrInvalidateSignedInSession() async throws {
+        let (client, server) = makeClient { request, _ in
+            request.url?.path == "/api/v1/users/me" ? .json(AuthFixtures.userJSON) : HTTPStubReply(status: 401)
+        }
+        let saved = AuthFixtures.saved()
+        let store = MemoryAuthenticationStore(saved)
+        let service = DefaultAuthenticationService(client: client, store: store)
+        let app = AppDependencies(cache: nil, source: APICatalogSource(client: client), authenticationService: service)
+        var status = CatalogStatus()
+        let observation = app.catalog.status.sink { status = $0 }
+        defer { observation.cancel() }
+        await app.load()
+        XCTAssertEqual(status.failure, .unavailable)
+        XCTAssertEqual(app.authentication.identity?.sessionID, saved.id)
+        XCTAssertEqual(store.snapshot?.tokens, saved.tokens)
+        XCTAssertEqual(server.count("auth/refresh"), 0)
+        XCTAssertEqual(server.count("users/me"), 1)
+        let export = try XCTUnwrap(server.requests.first { $0.url?.path == "/api/v1/catalog/export" })
+        XCTAssertNil(export.value(forHTTPHeaderField: "Authorization"))
+    }
+
+    func testCartAndProfileShareRefreshAndRejectResponsesAfterLogout() async throws {
         let (service, server) = makeService(store: MemoryAuthenticationStore(AuthFixtures.saved(expired: true))) { request, _ in
             if request.url!.path.hasSuffix("refresh") { return .json(AuthFixtures.rotatedTokens, delay: 0.05) }
-            if request.url!.path.hasSuffix("catalog/export") { return .json(CatalogAPIFixture.json, delay: 0.05) }
+            if request.url!.path.hasSuffix("carts") { return .json("[]", delay: 0.05) }
             return .json(AuthFixtures.userJSON)
         }
         async let user = service.currentUser()
-        async let catalog = APICatalogSource(client: service).loadCatalog(ifNoneMatch: nil)
-        _ = try await (user, catalog)
+        let carts = APIShoppingListService(client: service)
+        async let cart = carts.activeCart()
+        _ = try await (user, cart)
         XCTAssertEqual(server.count("auth/refresh"), 1)
-        let pending = Task { try await APICatalogSource(client: service).loadCatalog(ifNoneMatch: nil) }
-        await waitUntil { server.count("catalog/export") == 2 }
+        let pending = Task { try await carts.activeCart() }
+        await waitUntil { server.count("carts") == 2 }
         try await service.signOut()
-        do { _ = try await pending.value; XCTFail("Late catalog must be rejected") }
+        do { _ = try await pending.value; XCTFail("Late cart must be rejected") }
         catch { XCTAssertTrue(error is CancellationError) }
     }
 
     func testInvalidExportCannotBeImportedAndUnexpected304IsRejected() async throws {
         for response in [HTTPStubReply.json(CatalogAPIFixture.json.replacingOccurrences(of: "\"store_id\":7", with: "\"store_id\":8")),
                          HTTPStubReply(status: 304)] {
-            let (service, _) = makeService { _, _ in response }
-            do { _ = try await APICatalogSource(client: service).loadCatalog(ifNoneMatch: nil); XCTFail("Expected rejection") }
+            let (client, _) = makeClient { _, _ in response }
+            do { _ = try await APICatalogSource(client: client).loadCatalog(ifNoneMatch: nil); XCTFail("Expected rejection") }
             catch { XCTAssertTrue(error is CatalogError || error is APIError) }
         }
     }
@@ -760,6 +811,12 @@ final class AuthenticationServiceTests: XCTestCase {
     private func makeService(store: any AuthenticationSessionStore = MemoryAuthenticationStore(AuthFixtures.saved()),
                              handler: @escaping @Sendable (URLRequest, [URLRequest]) -> HTTPStubReply)
         -> (DefaultAuthenticationService, AuthenticationHTTPStub) {
+        let (client, server) = makeClient(handler: handler)
+        return (DefaultAuthenticationService(client: client, store: store), server)
+    }
+
+    private func makeClient(handler: @escaping @Sendable (URLRequest, [URLRequest]) -> HTTPStubReply)
+        -> (APIClient, AuthenticationHTTPStub) {
         let server = AuthenticationHTTPStub(handler: handler)
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [AuthenticationURLProtocol.self]
@@ -769,7 +826,7 @@ final class AuthenticationServiceTests: XCTestCase {
             session.invalidateAndCancel()
             AuthenticationURLProtocol.unregister(server.host)
         }
-        return (DefaultAuthenticationService(client: client, store: store), server)
+        return (client, server)
     }
 
     private func waitUntil(_ condition: () -> Bool, file: StaticString = #filePath, line: UInt = #line) async {
