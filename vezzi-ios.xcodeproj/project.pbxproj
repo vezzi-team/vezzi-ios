@@ -128,6 +128,7 @@
 		D4AD4CD830975797002BDC87 /* DemoViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CD730975793002BDC87 /* DemoViewModel.swift */; };
 		D4AD4CDA30975D03002BDC87 /* DemoSubtitleToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD4CD930975D02002BDC87 /* DemoSubtitleToggle.swift */; };
 		D4AD4CDC30975F22002BDC87 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D4AD4CDB30975F22002BDC87 /* InfoPlist.xcstrings */; };
+		D4B2C1FD621B4E0980341EB9 /* MainIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D4B793725BCE4DEC8BCBC90A /* MainIcon.icon */; };
 		D4CB6FA630A739D000DDD48D /* MapLibre in Frameworks */ = {isa = PBXBuildFile; productRef = D4CB6FA530A739D000DDD48D /* MapLibre */; };
 		D4CE185430994DB300F347F8 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = D4CE185330994DB300F347F8 /* Lottie */; };
 		D75A8DE983A6FC393ECB48B3 /* RouteMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEFF9B302FF8538C5F191F4 /* RouteMapView.swift */; };
@@ -272,6 +273,7 @@
 		D4AD4CD730975793002BDC87 /* DemoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoViewModel.swift; sourceTree = "<group>"; };
 		D4AD4CD930975D02002BDC87 /* DemoSubtitleToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSubtitleToggle.swift; sourceTree = "<group>"; };
 		D4AD4CDB30975F22002BDC87 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = InfoPlist.xcstrings; path = "vezzi-ios/Application/InfoPlist.xcstrings"; sourceTree = SOURCE_ROOT; };
+		D4B793725BCE4DEC8BCBC90A /* MainIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = MainIcon.icon; sourceTree = "<group>"; };
 		D79E30AC8B3940E5A64F935B /* FontExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontExtension.swift; sourceTree = "<group>"; };
 		D8AA3C00EB4AA4DCBC0DE1F3 /* LocationPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPickerView.swift; sourceTree = "<group>"; };
 		D8FADDAB6A9B47CCAFC607FA /* KeychainSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainSessionStore.swift; sourceTree = "<group>"; };
@@ -861,6 +863,7 @@
 				AE3A3009B9C241658C3C9EDA /* PrivacyInfo.xcprivacy */,
 				45A3B7C400B448C7966850E0 /* LaunchScreen.storyboard */,
 				D4AD4CB830974B04002BDC87 /* Assets.xcassets */,
+				D4B793725BCE4DEC8BCBC90A /* MainIcon.icon */,
 			);
 			path = SupportingFiles;
 			sourceTree = "<group>";
@@ -1081,6 +1084,7 @@
 				D4AD4CDC30975F22002BDC87 /* InfoPlist.xcstrings in Resources */,
 				D4AD4CCD30974C8C002BDC87 /* Localizable.xcstrings in Resources */,
 				D4AD4CBC30974B04002BDC87 /* Assets.xcassets in Resources */,
+				D4B2C1FD621B4E0980341EB9 /* MainIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1367,7 +1371,7 @@
 		D4921C17307D51ED0071715F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = MainIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1407,7 +1411,7 @@
 		D4921C18307D51ED0071715F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = MainIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
