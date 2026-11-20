@@ -136,6 +136,7 @@
 		E22C697E9C25DCB6E4A3EC5B /* CatalogRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 753C6740DC2BEA99B0799055 /* CatalogRepository.swift */; };
 		E33C14BCBE4C4FD1BBD202FD /* StorefrontViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5631CF446F124C069A1EFFE1 /* StorefrontViewModelTests.swift */; };
 		E4F15B36A846424FB4B8C2E5 /* RouteRevealGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF0A28807DA436F8DA83BFB /* RouteRevealGeometry.swift */; };
+		01C63D9250A94049913E222E /* RouteLineRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21FB3A55AC44C8BB9427E8C /* RouteLineRenderer.swift */; };
 		E799E4921A6B464C947C82C5 /* SearchSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB5F66F9ECB46AB89854D39 /* SearchSection.swift */; };
 		E8D2449A15E2420B9E14B4C1 /* MotiCollectionPager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D13CDBCBF984B749C6F5B3F /* MotiCollectionPager.swift */; };
 		EB65944FDCDF499E89BD5C26 /* ProductCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E8B8AA9B5924DEDB3AF7C50 /* ProductCard.swift */; };
@@ -255,6 +256,7 @@
 		C89D6FA56791477796A077AA /* ProductSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductSelection.swift; sourceTree = "<group>"; };
 		C8E3E7B5C75343698472C449 /* CatalogStatusBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogStatusBanner.swift; sourceTree = "<group>"; };
 		CBF0A28807DA436F8DA83BFB /* RouteRevealGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteRevealGeometry.swift; sourceTree = "<group>"; };
+		A21FB3A55AC44C8BB9427E8C /* RouteLineRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteLineRenderer.swift; sourceTree = "<group>"; };
 		CEEFF9B302FF8538C5F191F4 /* RouteMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteMapView.swift; sourceTree = "<group>"; };
 		CF1895E0AC454C29B3D927AA /* ShoppingListService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingListService.swift; sourceTree = "<group>"; };
 		D4921C0B307D51EC0071715F /* vezzi-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "vezzi-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -777,6 +779,7 @@
 				8B8D540EE46C4C1288B0E4D2 /* MapControlsView.swift */,
 				CEEFF9B302FF8538C5F191F4 /* RouteMapView.swift */,
 				CBF0A28807DA436F8DA83BFB /* RouteRevealGeometry.swift */,
+				A21FB3A55AC44C8BB9427E8C /* RouteLineRenderer.swift */,
 				05C339344EBE4A9F8376CEC1 /* MapPointSelection.swift */,
 			);
 			path = Map;
@@ -1121,6 +1124,7 @@
 				5AB6DA7E5F354504BF5E03E0 /* MapControlsView.swift in Sources */,
 				D75A8DE983A6FC393ECB48B3 /* RouteMapView.swift in Sources */,
 				E4F15B36A846424FB4B8C2E5 /* RouteRevealGeometry.swift in Sources */,
+				01C63D9250A94049913E222E /* RouteLineRenderer.swift in Sources */,
 				5137763D679B49EF9BF1DD57 /* MapPointSelection.swift in Sources */,
 				68605D4D146C424BAB780E28 /* AddressResolver.swift in Sources */,
 				C243084F0CDE42B682A382F8 /* MapSelectionAreaOverlay.swift in Sources */,

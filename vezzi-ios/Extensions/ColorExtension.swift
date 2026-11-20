@@ -11,6 +11,7 @@ extension Color {
     enum Map {
         // Explicit asset lookup also resolves correctly in UIKit style expressions.
         static let route = Color("AccentColor")
+        static let repeatedRoute = Color("MapRepeatedRoute")
     }
     
     enum Mascot {
