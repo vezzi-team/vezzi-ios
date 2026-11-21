@@ -4264,23 +4264,6 @@
         }
       }
     },
-    "SearchResultLimit" : {
-      "comment" : "Up to 50 products are shown. Refine your search to find more.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Up to 50 products are shown. Refine your search to find more."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показано до 50 товаров. Уточните запрос, чтобы найти нужный."
-          }
-        }
-      }
-    },
     "SearchUnknownPriceDate" : {
       "comment" : "Price update date unknown",
       "localizations" : {

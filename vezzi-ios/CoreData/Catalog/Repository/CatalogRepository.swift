@@ -6,9 +6,12 @@ protocol CatalogRepository: AnyObject {
     var canRefresh: Bool { get }
     var cacheState: AnyPublisher<CatalogCacheState, Never> { get }
     var status: AnyPublisher<CatalogStatus, Never> { get }
+    var networkAvailable: AnyPublisher<Bool, Never> { get }
 
     /// Each subscription owns its query. Results are delivered on the main queue.
     func observeProducts(matching query: String) -> AnyPublisher<[CatalogItem], Never>
+    /// Resolves the text once, then observes catalog prices and stores for those matches.
+    func searchProducts(matching query: String) async -> CatalogSearchResult
     func observeAllProducts() -> AnyPublisher<[CatalogItem], Never>
     /// Matches the product's group across the catalog, independently of text search.
     /// A store scope includes only items with an offer not marked out of stock at that active store.
@@ -21,6 +24,12 @@ protocol CatalogRepository: AnyObject {
 }
 
 extension CatalogRepository {
+    var networkAvailable: AnyPublisher<Bool, Never> { Just(true).eraseToAnyPublisher() }
+
+    func searchProducts(matching query: String) async -> CatalogSearchResult {
+        .items(observeProducts(matching: query))
+    }
+
     var status: AnyPublisher<CatalogStatus, Never> { Just(CatalogStatus()).eraseToAnyPublisher() }
     func observeAllProducts() -> AnyPublisher<[CatalogItem], Never> { observeProducts(matching: "") }
     var cacheState: AnyPublisher<CatalogCacheState, Never> {
@@ -28,6 +37,11 @@ extension CatalogRepository {
     }
 
     func prepareCache() async {}
+}
+
+enum CatalogSearchResult {
+    case noServerMatches
+    case items(AnyPublisher<[CatalogItem], Never>)
 }
 
 nonisolated enum CatalogCacheState: Equatable, Sendable {
@@ -47,6 +61,10 @@ protocol CatalogCache: AnyObject {
 /// A future API or file adapter maps its input into the application's import model.
 nonisolated protocol CatalogSource: Sendable {
     func loadCatalog(ifNoneMatch: String?) async throws -> CatalogSourceResult
+}
+
+nonisolated protocol CatalogProductSearching: Sendable {
+    func searchProducts(matching query: String) async throws -> [CatalogProduct]
 }
 
 nonisolated enum CatalogError: Error, Equatable {

@@ -706,6 +706,23 @@ final class AuthenticationServiceTests: XCTestCase {
         XCTAssertTrue(server.requests.isEmpty)
     }
 
+    func testPublicProductSearchEncodesQueryAndDecodesDistinctProductIDs() async throws {
+        let row = #"{"id":42,"name":"Сыр","brand":null,"category":"Сыры","product_type":null,"package_amount":150.5,"package_unit":"g"}"#
+        let (client, server) = makeClient { _, _ in .json("[\(row),\(row)]") }
+        let query = "Сыр + 50% & хлеб"
+        let matches = try await APICatalogSource(client: client).searchProducts(matching: query)
+        XCTAssertEqual(matches.map(\.id), ["42"])
+        XCTAssertEqual(matches.first?.packageQuantity, Decimal(string: "150.5"))
+        let request = try XCTUnwrap(server.requests.first)
+        XCTAssertEqual(request.httpMethod, "GET")
+        XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+        let url = try XCTUnwrap(request.url)
+        XCTAssertEqual(url.path, "/api/v1/products/search")
+        let components = try XCTUnwrap(URLComponents(url: url, resolvingAgainstBaseURL: false))
+        XCTAssertTrue(components.percentEncodedQuery?.contains("%2B") == true)
+        XCTAssertEqual(components.queryItems, [URLQueryItem(name: "q", value: query), URLQueryItem(name: "limit", value: "10")])
+    }
+
     func testPublicCatalogExportDecodesExactAmountsAndSupportsConditionalRequests() async throws {
         let (client, server) = makeClient { request, _ in
             if request.value(forHTTPHeaderField: "If-None-Match") == "\"7\"" {

@@ -2,6 +2,8 @@ import Foundation
 
 nonisolated enum CatalogSearch {
     static let resultLimit = 50
+    static let serverResultLimit = 10
+    static let serverQueryLimit = 100
 }
 
 // Value types can cross queues; Core Data objects never leave the storage layer.

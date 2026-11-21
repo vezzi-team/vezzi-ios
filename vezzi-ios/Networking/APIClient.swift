@@ -71,7 +71,11 @@ nonisolated struct APIClient: Sendable {
         guard var components = URLComponents(url: baseURL.appendingPathComponent(input.path), resolvingAgainstBaseURL: false) else {
             throw APIError.invalidResponse
         }
-        if !input.queryItems.isEmpty { components.queryItems = input.queryItems }
+        if !input.queryItems.isEmpty {
+            components.queryItems = input.queryItems
+            // Form-style query decoders interpret a literal plus as a space.
+            components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+        }
         guard let url = components.url else { throw APIError.invalidResponse }
         var request = URLRequest(url: url)
         request.httpMethod = input.method

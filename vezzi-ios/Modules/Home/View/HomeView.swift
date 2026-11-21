@@ -26,7 +26,8 @@ struct HomeView<Header: View>: View {
     private var dealsShelf: some View {
         VStack(alignment: .leading, spacing: 6) {
             sectionTitle(Texts.Home.Discovery.deals)
-            ProductCarousel(products: shelves.deals, selection: selection, showsPricePrefix: false) { product in
+            ProductCarousel(products: shelves.deals, selection: selection,
+                            showsPricePrefix: false, revealsNextCard: true) { product in
                 open(product, product.promotion?.offer)
             }
             .accessibilityIdentifier(AccessibilityID.Home.deals)

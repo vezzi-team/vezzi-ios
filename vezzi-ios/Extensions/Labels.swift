@@ -333,7 +333,6 @@ final class Texts {
         static let noResultsDescription = NSLocalizedString("SearchNoResultsDescription", comment: "Try another name or check your search for typos.")
         static let noOffers = NSLocalizedString("SearchNoOffers", comment: "No store offers available")
         static let unknownPriceDate = NSLocalizedString("SearchUnknownPriceDate", comment: "Price update date unknown")
-        static let resultLimit = NSLocalizedString("SearchResultLimit", comment: "Up to 50 products are shown. Refine your search to find more.")
     }
 
     // MARK: - Shopping List

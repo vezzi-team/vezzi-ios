@@ -21,10 +21,12 @@ final class DefaultCatalogRepository: CatalogRepository {
     private var pendingCacheIDs = CatalogRecordIDs()
     private var pendingReplacement = false
     private let catalogStatus = CurrentValueSubject<CatalogStatus, Never>(CatalogStatus())
+    private let networkPath = CurrentValueSubject<Bool, Never>(true)
 
     var canRefresh: Bool { source != nil }
     var cacheState: AnyPublisher<CatalogCacheState, Never> { cacheStatus.eraseToAnyPublisher() }
     var status: AnyPublisher<CatalogStatus, Never> { catalogStatus.eraseToAnyPublisher() }
+    var networkAvailable: AnyPublisher<Bool, Never> { networkPath.eraseToAnyPublisher() }
 
     init(cache: (any CatalogCache)? = nil, source: (any CatalogSource)? = nil) {
         self.cache = cache
@@ -36,6 +38,16 @@ final class DefaultCatalogRepository: CatalogRepository {
 
     func observeProducts(matching query: String) -> AnyPublisher<[CatalogItem], Never> {
         observeItems { $0.snapshot.items(matching: query) }
+    }
+
+    func searchProducts(matching query: String) async -> CatalogSearchResult {
+        if let search = source as? any CatalogProductSearching, networkPath.value,
+           !query.isEmpty, query.unicodeScalars.count <= CatalogSearch.serverQueryLimit,
+           let matches = try? await search.searchProducts(matching: query) {
+            guard !matches.isEmpty else { return .noServerMatches }
+            return .items(observeItems { $0.snapshot.items(for: matches) })
+        }
+        return .items(observeProducts(matching: query))
     }
 
     func observeAllProducts() -> AnyPublisher<[CatalogItem], Never> { observeItems { $0.allItems() } }
@@ -100,6 +112,16 @@ final class DefaultCatalogRepository: CatalogRepository {
 
     func updateConnectivity(isConnected: Bool) {
         catalogStatus.value.isOffline = !isConnected
+        guard networkPath.value != isConnected else { return }
+        networkPath.send(isConnected)
+        guard isConnected, source != nil, refreshTask != nil || catalogStatus.value.failure != nil else { return }
+        // The reconnect can arrive before the interrupted export reports its failure.
+        let pending = refreshTask
+        Task {
+            try? await pending?.value
+            guard networkPath.value, catalogStatus.value.failure != nil else { return }
+            try? await refresh()
+        }
     }
 
     private func waitForInitialCache() async {

@@ -26,7 +26,7 @@ struct SearchView: View {
             }
         }
         .animation(reduceMotion ? nil : .screenStateFade) { content in
-            content.background(viewModel.items.isEmpty ? Color.Background.iOSPrimary : Color.Background.primary)
+            content.background(viewModel.showsModePicker ? Color.Background.primary : Color.Background.iOSPrimary)
         }
         .toolbar(horizontalSizeClass == .compact ? .hidden : .automatic, for: .navigationBar)
         .toolbar { searchToolbar }
@@ -92,7 +92,7 @@ struct SearchView: View {
     private var results: some View {
         ScrollView {
             visibleResults
-                .screenStateFade(for: viewModel.sections.isEmpty ? viewModel.emptyState : nil)
+                .screenStateFade(for: viewModel.showsSections ? nil : viewModel.emptyState)
         }
         .scrollIndicators(.hidden)
         .scrollPosition($scrollPosition)
@@ -120,7 +120,7 @@ struct SearchView: View {
     }
 
     @ViewBuilder private var visibleResults: some View {
-        if viewModel.sections.isEmpty {
+        if !viewModel.showsSections {
             emptyContent.frame(maxWidth: .infinity, minHeight: viewportHeight)
         } else {
             ZStack(alignment: .topLeading) {
@@ -128,6 +128,8 @@ struct SearchView: View {
                     .id(viewModel.mode)
                     .transition(resultsTransition)
             }
+            .disabled(!viewModel.resultsMatchQuery)
+            .accessibilityHidden(!viewModel.resultsMatchQuery)
         }
     }
 
@@ -137,18 +139,12 @@ struct SearchView: View {
                 productSection(section)
                     .transition(resultsTransition)
             }
-            if viewModel.isResultLimitReached {
-                Text(Texts.Search.resultLimit)
-                    .font(.footnote)
-                    .foregroundStyle(Color.Label.secondary)
-                    .padding(.horizontal, Const.contentInset)
-            }
         }
         .padding(.bottom, Const.contentInset)
     }
 
     private var scrollToTopButton: some View {
-        ScrollToTopButton(isVisible: isPastScrollTopThreshold && !viewModel.sections.isEmpty,
+        ScrollToTopButton(isVisible: isPastScrollTopThreshold && viewModel.showsSections,
                           accessibilityIdentifier: AccessibilityID.Search.scrollToTop) {
             isSearchFocused = false
             scrollPosition.scrollTo(edge: .top)

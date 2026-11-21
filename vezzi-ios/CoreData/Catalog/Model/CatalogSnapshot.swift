@@ -134,6 +134,10 @@ nonisolated struct CatalogSnapshot: Sendable {
         return Array(candidates)
     }
 
+    func items(for matches: [CatalogProduct]) -> [CatalogItem] {
+        matches.map { item(for: products[$0.id] ?? $0) }
+    }
+
     private func item(for product: CatalogProduct) -> CatalogItem {
         let availableOffers = (offerIDsByProduct[product.id] ?? []).compactMap { id -> CachedOffer? in
             guard let record = offers[id], let store = stores[record.offer.storeID], store.isActive else { return nil }
