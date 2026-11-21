@@ -168,31 +168,21 @@ struct ProductCard: View {
             .aspectRatio(Const.artworkAspectRatio, contentMode: .fit)
             .allowsHitTesting(false)
             .overlay(alignment: .bottom) {
-                ViewThatFits(in: .horizontal) {
-                    artworkControlsRow
-                    artworkControlsColumn
-                }
-                .padding(.horizontal, Const.artworkControlsInset)
-                .padding(.bottom, Const.artworkControlsInset)
+                artworkControlsRow
+                    .padding(.horizontal, Const.artworkControlsInset)
+                    .padding(.bottom, Const.artworkControlsInset)
             }
     }
 
     private var artworkControlsRow: some View {
-        HStack(alignment: .bottom, spacing: Const.controlsSpacing) {
+        HStack(alignment: .bottom, spacing: Const.artworkControlSpacing) {
             if showsStoreBadges {
                 storeBadges.padding(.bottom, Const.storeBottomInset)
             }
-            Spacer(minLength: .zero)
             quantityControl
-                .layoutPriority(1)
+                .fixedSize(horizontal: true, vertical: false)
         }
-    }
-
-    private var artworkControlsColumn: some View {
-        VStack(alignment: .leading, spacing: Const.controlsSpacing) {
-            if showsStoreBadges { storeBadges }
-            quantityControl.frame(maxWidth: .infinity, alignment: .trailing)
-        }
+        .frame(maxWidth: .infinity, alignment: .trailing)
     }
 
     private var accessibleControls: some View {
@@ -204,23 +194,25 @@ struct ProductCard: View {
         .padding(.bottom, Const.bottomInset)
     }
 
-    private var storeBadges: some View {
-        storeIcons(Array(availableStores.prefix(Const.maximumStoreCount)))
-            .fixedSize()
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Texts.Product.offeredAtStores)
-            .accessibilityValue(availableStores.map(\.name).joined(separator: ", "))
-            .accessibilityHidden(availableStores.isEmpty)
+    @ViewBuilder private var storeBadges: some View {
+        let stores = product.offers.filter { $0.inStock != false }
+        if !stores.isEmpty {
+            GeometryReader { geometry in
+                storeIcons(stores, fitting: geometry.size.width)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Texts.Product.offeredAtStores)
+                    .accessibilityValue(stores.map(\.name).joined(separator: ", "))
+            }
+            .frame(height: Const.storeSize)
+        }
     }
 
-    private var availableStores: [ProductOffer] {
-        // The shared catalog mapper keeps one representative offer per store ID.
-        product.offers.filter { $0.inStock != false }
-    }
-
-    private func storeIcons(_ offers: [ProductOffer]) -> some View {
-        HStack(spacing: Const.storeOverlap) {
-            ForEach(Array(offers.enumerated()), id: \.element.storeID) { index, _ in
+    private func storeIcons(_ stores: [ProductOffer], fitting width: CGFloat) -> some View {
+        let visible = stores.prefix(Const.maximumStoreCount).enumerated().prefix { index, _ in
+            Const.storeSize + CGFloat(index) * (Const.storeSize + Const.storeOverlap) <= width
+        }
+        return HStack(spacing: Const.storeOverlap) {
+            ForEach(Array(visible), id: \.element.storeID) { index, _ in
                 StoreLogoPlaceholder(style: .lighter)
                     .frame(width: Const.storeSize, height: Const.storeSize)
                     .overlay(Circle().strokeBorder(Color.Background.elevated, lineWidth: Const.borderWidth))
@@ -229,7 +221,7 @@ struct ProductCard: View {
             }
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: Const.offerTransitionDuration),
-                   value: offers.map(\.storeID))
+                   value: visible.map(\.element.storeID))
     }
 
     private var quantityControl: some View {
@@ -248,6 +240,7 @@ struct ProductCard: View {
         static let controlsSpacing: CGFloat = 8
         static let descriptionSpacing: CGFloat = 2
         static let artworkControlsInset: CGFloat = 6
+        static let artworkControlSpacing: CGFloat = 16
         static let storeBottomInset: CGFloat = 5
         static let contentInset: CGFloat = 10
         static let bottomInset: CGFloat = 10

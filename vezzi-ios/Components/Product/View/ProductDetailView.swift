@@ -397,20 +397,13 @@ private struct ProductDetailPage: View {
     }
 
     private var alternativeProducts: some View {
-        LazyVGrid(columns: alternativeColumns, alignment: .leading, spacing: Const.contentInset) {
+        LazyVGrid(columns: ProductGridLayout.columns(for: dynamicTypeSize), alignment: .leading, spacing: Const.contentInset) {
             ForEach(alternatives) { alternative in
                 ProductCard(product: alternative, showsPricePrefix: showsPricePrefix, quantity: quantityBinding(for: alternative.id)) {
                     selectProduct(alternative)
                 }
             }
         }
-    }
-
-    private var alternativeColumns: [GridItem] {
-        if dynamicTypeSize.isAccessibilitySize {
-            return [GridItem(.flexible())]
-        }
-        return [GridItem(.adaptive(minimum: Const.minimumCardWidth), spacing: Const.contentInset, alignment: .top)]
     }
 
     // MARK: - Bottom Action
@@ -451,7 +444,6 @@ private struct ProductDetailPage: View {
         static let selectedStoreInset: CGFloat = 12
         static let selectedStoreRadius: CGFloat = 16
         static let selectedStoreBorderWidth: CGFloat = 1.5
-        static let minimumCardWidth: CGFloat = 150
         static let artworkHeight: CGFloat = 226
         static let compactArtworkHeight: CGFloat = 120
         static let artworkCornerRadius: CGFloat = 10

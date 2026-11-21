@@ -78,7 +78,7 @@ struct CatalogView<Header: View>: View {
         LazyVStack(spacing: .zero, pinnedViews: [.sectionHeaders]) {
             Section {
                 productGrid
-                    .padding(.horizontal, Const.contentInset)
+                    .padding(.horizontal, ProductGridLayout.contentInset)
                     .padding(.bottom, Const.contentInset)
                     // A short filtered feed must still leave enough room to pin its header.
                     .frame(minHeight: max(.zero, viewportHeight - filterBarHeight), alignment: .top)
@@ -100,7 +100,7 @@ struct CatalogView<Header: View>: View {
     }
 
     private var productGrid: some View {
-        LazyVGrid(columns: columns, alignment: .leading, spacing: Const.gridSpacing) {
+        LazyVGrid(columns: ProductGridLayout.columns(for: dynamicTypeSize), alignment: .leading, spacing: Const.gridSpacing) {
             ForEach(viewModel.products(in: displayedFilter)) { product in
                 ProductCard(product: product, quantity: quantityBinding(for: product.id)) {
                     viewModel.showProduct(product)
@@ -110,13 +110,6 @@ struct CatalogView<Header: View>: View {
         }
         .animation(reduceMotion ? nil : .easeOut(duration: Const.filterTransitionDuration),
                    value: displayedFilter)
-    }
-
-    private var columns: [GridItem] {
-        if dynamicTypeSize.isAccessibilitySize {
-            return [GridItem(.flexible())]
-        }
-        return [GridItem(.adaptive(minimum: Const.minimumCardWidth), spacing: Const.gridSpacing, alignment: .top)]
     }
 
     private func quantityBinding(for productID: String) -> Binding<Int> {
@@ -137,5 +130,4 @@ private enum Const {
     static let gridSpacing: CGFloat = 16
     static let filterScrollDuration: TimeInterval = 0.22
     static let filterTransitionDuration: TimeInterval = 0.18
-    static let minimumCardWidth: CGFloat = 150
 }

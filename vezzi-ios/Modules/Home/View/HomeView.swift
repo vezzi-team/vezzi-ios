@@ -37,7 +37,7 @@ struct HomeView<Header: View>: View {
         VStack(alignment: .leading, spacing: 12) {
             sectionTitle(Texts.Home.Discovery.essentials)
             ProductGrid(products: shelves.essentials, selection: selection) { open($0, nil) }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, ProductGridLayout.contentInset)
                 .accessibilityIdentifier(AccessibilityID.Home.essentials)
         }
     }
