@@ -51,6 +51,31 @@ final class ProductDisplayNameTests: XCTestCase {
         XCTAssertEqual(product("Бренд, 450 г", brand: "Бренд", quantity: 450, unit: "g").displayName, "Бренд")
     }
 
+    func testDetailsClassifyOnlyCompleteMassAndVolumeMeasurements() {
+        let cases: [(Decimal?, String?, Product.PackageDimension?)] = [
+            (650, "g", .weight), (1, "кг", .weight), (250, "ml", .volume), (1, "L", .volume),
+            (10, "pcs", nil), (2, "m", nil), (10, "unknown", nil), (1, nil, nil),
+            (nil, "kg", nil), (0, "ml", nil), (-1, "kg", nil)
+        ]
+        for (quantity, unit, expected) in cases {
+            XCTAssertEqual(product("Product", quantity: quantity, unit: unit).packageDimension, expected)
+        }
+    }
+
+    func testPackageLocalizesKnownUnitAliasesAndPreservesUnknownUnits() {
+        let cases: [(String, String)] = [
+            (" г ", Texts.Product.Unit.gram), ("ГР.", Texts.Product.Unit.gram),
+            ("КГ", Texts.Product.Unit.kilogram), ("мл", Texts.Product.Unit.milliliter),
+            ("ML", Texts.Product.Unit.milliliter), ("л", Texts.Product.Unit.liter),
+            ("шт.", Texts.Product.Unit.piece), ("м", Texts.Product.Unit.meter), ("fl oz", "fl oz")
+        ]
+        for (unit, title) in cases {
+            let item = product("Product", quantity: 2, unit: unit)
+            XCTAssertEqual(item.package, "2 \(title)", unit)
+            XCTAssertEqual(item.packageUnit, unit)
+        }
+    }
+
     private func product(_ name: String, brand: String = "", quantity: Decimal?, unit: String?) -> Product {
         Product(id: "p", name: name, brand: brand, packageQuantity: quantity, packageUnit: unit, category: nil, offers: [])
     }

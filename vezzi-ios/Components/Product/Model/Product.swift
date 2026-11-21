@@ -1,6 +1,10 @@
 import Foundation
 
 struct Product: Identifiable {
+    enum PackageDimension {
+        case weight, volume
+    }
+
     let id: String
     let name: String
     let brand: String
@@ -16,7 +20,13 @@ struct Product: Identifiable {
     }
 
     var package: String {
-        [packageQuantity.map { $0.formatted() }, packageUnit.map { Self.unitTitle($0) }].compactMap { $0 }.joined(separator: " ")
+        let unit = packageUnit.map { ProductPackageUnit($0)?.title ?? $0 }
+        return [packageQuantity?.formatted(), unit].compactMap { $0 }.joined(separator: " ")
+    }
+
+    var packageDimension: PackageDimension? {
+        guard let packageQuantity, let packageUnit else { return nil }
+        return ProductDisplayText.normalizedPackage(quantity: packageQuantity, unit: packageUnit)?.dimension
     }
 
     var lowestOffer: ProductOffer? {
@@ -29,16 +39,31 @@ struct Product: Identifiable {
         }
     }
     var lowestPrice: Decimal? { lowestOffer?.price }
+}
 
-    private static func unitTitle(_ code: String) -> String {
-        switch code {
-        case "g": Texts.Product.Unit.gram
-        case "ml": Texts.Product.Unit.milliliter
-        case "pcs": Texts.Product.Unit.piece
-        case "m": Texts.Product.Unit.meter
-        case "kg": Texts.Product.Unit.kilogram
-        case "l", "L": Texts.Product.Unit.liter
-        default: code
+private enum ProductPackageUnit {
+    case gram, kilogram, milliliter, liter, piece, meter
+
+    init?(_ code: String) {
+        switch code.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "g", "г", "гр", "гр.": self = .gram
+        case "kg", "кг": self = .kilogram
+        case "ml", "мл": self = .milliliter
+        case "l", "л": self = .liter
+        case "pcs", "шт", "шт.": self = .piece
+        case "m", "м": self = .meter
+        default: return nil
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .gram: Texts.Product.Unit.gram
+        case .kilogram: Texts.Product.Unit.kilogram
+        case .milliliter: Texts.Product.Unit.milliliter
+        case .liter: Texts.Product.Unit.liter
+        case .piece: Texts.Product.Unit.piece
+        case .meter: Texts.Product.Unit.meter
         }
     }
 }
@@ -206,14 +231,14 @@ private enum ProductDisplayText {
         return result.isEmpty ? name : result
     }
 
-    private static func normalizedPackage(quantity: Decimal, unit: String) -> (unit: String, amount: Decimal)? {
-        guard !quantity.isNaN, quantity > 0 else { return nil }
-        switch unit.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
-        case "g", "г", "гр": return ("g", quantity)
-        case "kg", "кг": return ("g", quantity * 1_000)
-        case "ml", "мл": return ("ml", quantity)
-        case "l", "л": return ("ml", quantity * 1_000)
-        default: return nil
+    static func normalizedPackage(quantity: Decimal, unit: String) -> (dimension: Product.PackageDimension, amount: Decimal)? {
+        guard !quantity.isNaN, quantity > 0, let unit = ProductPackageUnit(unit) else { return nil }
+        switch unit {
+        case .gram: return (.weight, quantity)
+        case .kilogram: return (.weight, quantity * 1_000)
+        case .milliliter: return (.volume, quantity)
+        case .liter: return (.volume, quantity * 1_000)
+        case .piece, .meter: return nil
         }
     }
 

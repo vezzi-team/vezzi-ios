@@ -95,6 +95,13 @@ final class Texts {
     }
 
     enum Product {
+        enum Details {
+            static let title = NSLocalizedString("ProductDetailsTitle", comment: "Product details")
+            static let brand = NSLocalizedString("ProductDetailsBrand", comment: "Brand")
+            static let weight = NSLocalizedString("ProductDetailsWeight", comment: "Weight")
+            static let volume = NSLocalizedString("ProductDetailsVolume", comment: "Volume")
+        }
+
         enum Promotion {
             static func comparison(_ discount: String, _ price: String) -> String {
                 String.localizedStringWithFormat(NSLocalizedString("ProductPromotionComparison", comment: "Discount compared with the highest price at another store"), discount, price)

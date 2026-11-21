@@ -121,6 +121,7 @@ private struct ProductDetailPage: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Const.rowSpacing) {
                 productSummary
+                productDetailsSection
                 if let selectedOffer {
                     selectedStoreSection(selectedOffer)
                 }
@@ -191,6 +192,60 @@ private struct ProductDetailPage: View {
                 .appTextStyle(size: Const.subtitleFontSize, lineHeight: Const.subtitleLineHeight, relativeTo: .subheadline)
                 .foregroundStyle(Color.Label.secondary)
         }
+    }
+
+    // MARK: - Product Details
+
+    @ViewBuilder
+    private var productDetailsSection: some View {
+        let brand = productBrand
+        let dimension = product.packageDimension
+        if !brand.isEmpty || dimension != nil {
+            VStack(alignment: .leading, spacing: Const.summarySpacing) {
+                sectionHeading(Texts.Product.Details.title)
+                if !brand.isEmpty {
+                    detailField(Texts.Product.Details.brand, value: brand)
+                }
+                if let dimension {
+                    detailField(dimension == .weight ? Texts.Product.Details.weight : Texts.Product.Details.volume,
+                                value: product.package)
+                }
+            }
+            .padding(.bottom, Const.sectionSpacing - Const.rowSpacing)
+        }
+    }
+
+    private func detailField(_ title: String, value: String) -> some View {
+        let label = Text(title).foregroundStyle(Color.Label.attributeName)
+        let detail = Text(value).foregroundStyle(Color.Label.primary)
+        return ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: Const.fieldSpacing) {
+                label.fixedSize()
+                dotLeader
+                detail.fixedSize()
+            }
+            VStack(alignment: .leading, spacing: Const.fieldSpacing) {
+                label
+                detail
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .font(.subheadline)
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var dotLeader: some View {
+        Canvas { context, size in
+            var line = Path()
+            line.move(to: CGPoint(x: .zero, y: size.height / 2))
+            line.addLine(to: CGPoint(x: size.width, y: size.height / 2))
+            context.stroke(line, with: .color(Color.Label.tertiary), style: Const.dotStroke)
+        }
+        .frame(height: Const.dotStroke.lineWidth)
+        .frame(minWidth: Const.dotPitch)
+        .layoutPriority(-1)
+        .accessibilityHidden(true)
     }
 
     // MARK: - Stores
@@ -424,6 +479,9 @@ private struct ProductDetailPage: View {
         static let contentInset: CGFloat = 16
         static let rowSpacing: CGFloat = 8
         static let summarySpacing: CGFloat = 12
+        static let fieldSpacing: CGFloat = 4
+        static let dotPitch: CGFloat = 4
+        static let dotStroke = StrokeStyle(lineWidth: 1.5, lineCap: .round, dash: [0, dotPitch])
         static let sectionSpacing: CGFloat = 16
         static let headingBottomInset: CGFloat = 2
         static let storeSpacing: CGFloat = 12

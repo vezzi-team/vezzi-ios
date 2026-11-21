@@ -41,6 +41,7 @@ extension Color {
         static let details = Color("LabelDetails")
         static let primary = Color("LabelPrimary")
         static let secondary = Color("LabelSecondary")
+        static let attributeName = Color("LabelAttributeName")
         static let tertiary = Color("LabelTertiary")
         static let black = Color("LabelBlack")
         static let white = Color("LabelWhite")

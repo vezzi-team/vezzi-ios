@@ -2548,6 +2548,74 @@
         }
       }
     },
+    "ProductDetailsBrand" : {
+      "comment" : "Brand",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brand"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бренд"
+          }
+        }
+      }
+    },
+    "ProductDetailsTitle" : {
+      "comment" : "Product details",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Product details"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подробнее о товаре"
+          }
+        }
+      }
+    },
+    "ProductDetailsVolume" : {
+      "comment" : "Volume",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volume"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Объём"
+          }
+        }
+      }
+    },
+    "ProductDetailsWeight" : {
+      "comment" : "Weight",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вес"
+          }
+        }
+      }
+    },
     "ProductPromotionComparison" : {
       "comment" : "Discount compared with the highest price at another store",
       "localizations" : {
