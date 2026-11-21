@@ -21,6 +21,9 @@ protocol AddressSearching {
 final class MapKitAddressSearch: AddressSearching {
     private var completions: [String: MKLocalSearchCompletion] = [:]
 
+    // The search model can release this service during sheet teardown on early iOS 26.
+    nonisolated deinit {}
+
     func suggestions(for query: String, near coordinate: ShoppingCoordinate) async throws -> [AddressSuggestion] {
         let request = CompletionRequest(region: region(around: coordinate))
         let results = try await withTaskCancellationHandler {

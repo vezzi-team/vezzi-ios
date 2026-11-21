@@ -42,7 +42,7 @@ struct ShoppingListView: View {
         .safeAreaBar(edge: .bottom) {
             if viewModel.contentState == .products || viewModel.contentState == .empty { bottomAction }
         }
-        .refreshable { await viewModel.refresh() }
+        .refreshable { [weak viewModel] in await viewModel?.refresh() }
         .onAppear { viewModel.list.setPresented(true) }
         .onDisappear { if viewModel.routes == nil { viewModel.list.setPresented(false) } }
         .sheet(item: selectedProduct) { product in
@@ -66,22 +66,28 @@ struct ShoppingListView: View {
             addressButton
                 .padding(.horizontal, viewModel.contentState == .products ? Const.contentInset : Const.routeHorizontalInset)
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { addressHeight = $0 }
-            if viewModel.contentState == .products {
-                modePicker.padding(.horizontal, Const.contentInset)
-                summarySection
-            } else {
-                VStack(spacing: Const.sectionSpacing) {
-                    emptyContent
-                    feedback.padding(.horizontal, Const.routeHorizontalInset)
-                }
-                .frame(maxWidth: .infinity,
-                       minHeight: max(.zero, viewportHeight - addressHeight - Const.sectionSpacing - Const.contentInset * 2))
-            }
+            listBody.screenStateFade(for: viewModel.contentState)
         }
         .padding(.vertical, Const.contentInset)
         .frame(maxWidth: Const.maximumWidth)
         .frame(maxWidth: .infinity)
         .coordinateSpace(name: Const.contentCoordinateSpace)
+    }
+
+    @ViewBuilder private var listBody: some View {
+        if viewModel.contentState == .products {
+            VStack(spacing: Const.sectionSpacing) {
+                modePicker.padding(.horizontal, Const.contentInset)
+                summarySection
+            }
+        } else {
+            VStack(spacing: Const.sectionSpacing) {
+                emptyContent
+                feedback.padding(.horizontal, Const.routeHorizontalInset)
+            }
+            .frame(maxWidth: .infinity,
+                   minHeight: max(.zero, viewportHeight - addressHeight - Const.sectionSpacing - Const.contentInset * 2))
+        }
     }
 
     @ViewBuilder private var emptyContent: some View {
@@ -92,9 +98,7 @@ struct ShoppingListView: View {
             MotiStateView.offline
                 .accessibilityIdentifier(AccessibilityID.ShoppingList.offline)
         case .unavailable:
-            MotiStateView(title: Texts.ShoppingList.loadErrorTitle, description: Texts.ShoppingList.loadError,
-                          action: viewModel.needsAuthentication
-                            ? .init(title: Texts.ShoppingList.signIn, perform: { router.presentAuthentication() }) : nil)
+            MotiStateView(title: Texts.ShoppingList.loadErrorTitle, description: Texts.ShoppingList.loadError)
         case .empty:
             MotiStateView(title: Texts.ShoppingList.emptyTitle, description: Texts.ShoppingList.emptyDescription,
                                expression: .winking)
@@ -108,7 +112,9 @@ struct ShoppingListView: View {
         LazyVStack(alignment: .leading, spacing: Const.sectionSpacing, pinnedViews: pinsSummary ? [.sectionHeaders] : []) {
             Section {
                 VStack(alignment: .leading, spacing: Const.sectionSpacing) {
-                    planStatus
+                    if viewModel.plan != nil || viewModel.list.isBusy {
+                        planStatus
+                    }
                     feedback
                     productSection
                 }
@@ -276,27 +282,42 @@ struct ShoppingListView: View {
     }
 
     @ViewBuilder private var feedback: some View {
-        if let message = viewModel.message {
+        let message = viewModel.message
+        let showsSignIn = viewModel.needsAuthentication && !viewModel.list.isBusy
+            && (message != nil || viewModel.contentState == .unavailable)
+        if message != nil || showsSignIn {
             VStack(alignment: .leading, spacing: Const.summarySpacing) {
-                Text(message).font(.footnote).foregroundStyle(Color.Label.secondary)
-                if !viewModel.list.isBusy, viewModel.needsAuthentication {
-                    Button(Texts.ShoppingList.signIn) { router.presentAuthentication() }
-                        .buttonStyle(.glass)
+                if let message {
+                    Text(message).font(.footnote).foregroundStyle(Color.Label.secondary)
                 }
+                if showsSignIn { signInButton }
             }
             .accessibilityIdentifier(AccessibilityID.ShoppingList.feedback)
         }
     }
 
+    private var signInButton: some View {
+        Button { router.presentAuthentication() } label: {
+            Text(Texts.ShoppingList.signIn)
+                .appTextStyle(.appText, weight: .semibold)
+                .frame(maxWidth: .infinity, minHeight: Const.signInContentHeight)
+        }
+        .buttonStyle(.glassProminent)
+        .controlSize(.large)
+    }
+
     private var bottomAction: some View {
         Button {
             if viewModel.contentState == .empty {
-                router.popToRoot(in: .home)
-                router.selectTab(.home)
+                router.popToRoot(in: .catalog)
+                router.selectTab(.catalog)
+            } else {
+                viewModel.showRoutes()
             }
-            else { viewModel.showRoutes() }
         } label: {
             Text(viewModel.contentState == .empty ? Texts.ShoppingList.findProducts : Texts.ShoppingList.showRoute)
+                .contentTransition(reduceMotion ? .identity : .opacity)
+                .animation(reduceMotion ? nil : .screenStateFade, value: viewModel.contentState == .empty)
                 .font(.headline).frame(maxWidth: .infinity)
         }
         .buttonStyle(.glassProminent)
@@ -362,6 +383,7 @@ struct ShoppingListView: View {
         static let addressRadius: CGFloat = 16
         static let captionSpacing: CGFloat = 2
         static let summarySpacing: CGFloat = 8
+        static let signInContentHeight: CGFloat = 24
         static let summaryVerticalInset: CGFloat = 8
         static let maximumPinnedHeightFraction: CGFloat = 0.5
         static let summaryPinTolerance: CGFloat = 4
@@ -400,8 +422,14 @@ struct ShoppingListView: View {
 }
 
 #Preview("Shopping list — guest") {
+    @Previewable @StateObject var list = ShoppingListRepository()
     NavigationStack {
-        ShoppingListView(catalog: PreviewCatalogRepository(), list: ShoppingListRepository())
+        ShoppingListView(catalog: PreviewCatalogRepository(snapshot: ShoppingListPreview.snapshot), list: list)
     }
     .environmentObject(AppRouter())
+    .task {
+        for product in ProductMockData.products.prefix(2) {
+            list.selection.setQuantity(1, for: product.id)
+        }
+    }
 }

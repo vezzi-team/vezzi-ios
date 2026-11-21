@@ -126,7 +126,7 @@ struct RouteMapView: UIViewRepresentable {
         private var deviceAnnotation: DeviceLocationAnnotation?
         private var displayLink: CADisplayLink?
         private var revealStartedAt: CFTimeInterval = .zero
-        private var revealLayers: [(layer: MLNLineStyleLayer, color: UIColor)] = []
+        private var routeRenderer: RouteLineRenderer?
         private var pendingStops: [(annotation: RouteAnnotation, progress: Double)] = []
         private var captionsNeedLayout = false
 
@@ -188,19 +188,7 @@ struct RouteMapView: UIViewRepresentable {
             if let area = parent.selectionArea {
                 MapSelectionAreaOverlay.install(in: style, area: area, traits: mapView.traitCollection)
             }
-            let source = MLNShapeSource(identifier: Const.sourceID, shape: nil, options: [.lineDistanceMetrics: true])
-            style.addSource(source)
-            revealLayers.removeAll()
-            for (id, width, color) in [(Const.haloID, Const.haloWidth, UIColor(Color.Label.white)),
-                                       (Const.lineID, Const.lineWidth, UIColor(Color.Map.route))] {
-                let layer = MLNLineStyleLayer(identifier: id, source: source)
-                layer.lineWidth = NSExpression(forConstantValue: width)
-                layer.lineColor = NSExpression(forConstantValue: color)
-                layer.lineCap = NSExpression(forConstantValue: "round")
-                layer.lineJoin = NSExpression(forConstantValue: "round")
-                style.addLayer(layer)
-                revealLayers.append((layer, color))
-            }
+            routeRenderer = RouteLineRenderer(style: style, traits: mapView.traitCollection)
             update(mapView, styleReloaded: true)
             notifyFailure(false)
         }
@@ -302,12 +290,10 @@ struct RouteMapView: UIViewRepresentable {
             let insets = UIEdgeInsets(top: map.safeAreaInsets.top + Const.topInset, left: Const.sideInset,
                                      bottom: Const.sideInset, right: Const.sideInset)
             if map.contentInset != insets { map.contentInset = insets }
-            guard let source = map.style?.source(withIdentifier: Const.sourceID) as? MLNShapeSource else { return }
+            guard let routeRenderer, map.style?.source(withIdentifier: RouteLineRenderer.sourceID) != nil else { return }
             let changed = renderedOrigin != parent.origin || renderedPlanID != parent.plan?.id
             if changed || styleReloaded {
                 cancelReveal()
-                let coordinates = parent.plan?.points.map(\.clCoordinate) ?? []
-                source.shape = coordinates.count > 1 ? MLNPolyline(coordinates: coordinates, count: UInt(coordinates.count)) : nil
                 if let annotations = map.annotations { map.removeAnnotations(annotations) }
                 if let deviceAnnotation { map.addAnnotation(deviceAnnotation) }
                 let start = RouteAnnotation(coordinate: parent.origin.clCoordinate, number: nil,
@@ -321,9 +307,11 @@ struct RouteMapView: UIViewRepresentable {
                     point.subtitle = StoreDisplayText.address(stop.store.address)
                     stops.append(point)
                 }
-                let geometry = RouteRevealGeometry(points: parent.plan?.points ?? [], stops: stops.map {
+                let points = parent.plan?.points ?? []
+                let geometry = RouteRevealGeometry(points: points, stops: stops.map {
                     ShoppingCoordinate(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude)
-                })
+                }, marksRepeatedRoads: parent.plan?.usesRoadNetwork == true)
+                routeRenderer.setRoute(geometry.canAnimate ? points : [], repeatedSections: geometry.repeatedSections)
                 pendingStops = zip(stops, geometry.stopProgress).map { (annotation: $0.0, progress: $0.1) }
                 if changed && geometry.canAnimate && canAnimate {
                     applyReveal(progress: .zero, animated: false)
@@ -439,14 +427,8 @@ struct RouteMapView: UIViewRepresentable {
             if fraction >= 1 { cancelReveal() }
         }
 
-        private func applyReveal(progress: Double, animated: Bool) {
-            // Only the gradient changes per frame; route geometry and SwiftUI state stay stable.
-            for (layer, color) in revealLayers {
-                layer.lineGradient = progress >= 1
-                    ? NSExpression(forConstantValue: color)
-                    : NSExpression(forMLNStepping: .lineProgressVariable, from: NSExpression(forConstantValue: color),
-                                   stops: NSExpression(forConstantValue: [progress: UIColor.clear]))
-            }
+        func applyReveal(progress: Double, animated: Bool) {
+            routeRenderer?.reveal(to: progress)
             let reached = pendingStops.prefix { $0.progress <= progress }
             for stop in reached {
                 stop.annotation.revealedAt = animated ? CACurrentMediaTime() : nil
@@ -555,11 +537,6 @@ struct RouteMapView: UIViewRepresentable {
         static let attributionRadius: CGFloat = 4
         static let attributionHorizontalInset: CGFloat = 6
         static let attributionVerticalInset: CGFloat = 4
-        static let haloWidth = 9
-        static let lineWidth = 5
-        static let sourceID = "polka-route"
-        static let haloID = "polka-route-halo"
-        static let lineID = "polka-route-line"
         static let markerID = "polka-route-stop"
         static let revealDuration = 1.6
         static let cameraDuration = 0.3
@@ -696,8 +673,8 @@ private final class RouteMarkerView: MLNAnnotationView {
     }
 }
 
-private extension ShoppingCoordinate {
-    var clCoordinate: CLLocationCoordinate2D { CLLocationCoordinate2D(latitude: latitude, longitude: longitude) }
+extension ShoppingCoordinate {
+    nonisolated var clCoordinate: CLLocationCoordinate2D { CLLocationCoordinate2D(latitude: latitude, longitude: longitude) }
 }
 
 nonisolated struct MapAttribution: Identifiable {

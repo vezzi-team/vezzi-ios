@@ -1,6 +1,6 @@
 import Foundation
 
-/// All account requests share authentication and token rotation with the catalog.
+/// Cart and planning requests use the signed-in account's session.
 nonisolated struct APIShoppingListService: ShoppingListService {
     let client: any AuthorizedRequestPerforming
 
@@ -44,11 +44,14 @@ nonisolated struct APIShoppingListService: ShoppingListService {
         let result: PlanResponseDTO = try response.decode()
         guard ["ok", "no_plans"].contains(result.status),
               (result.status == "ok") == !result.plans.isEmpty,
-              Set(result.plans.map(\.id)).count == result.plans.count,
               result.baseline.map({ $0.totalKopecks >= 0 }) ?? true else { throw APIError.invalidResponse }
-        return ShoppingPlanResult(plans: try result.plans.map { try $0.record() }, baselinePrice: result.baseline.map { Decimal($0.totalKopecks) / 100 },
-                                  problem: result.problem?.reason, isSynthetic: result.dataIsSynthetic,
-                                  minRequiredRadiusMeters: result.problem?.minRequiredRadiusMeters)
+        let calculation = try ShoppingPlanResult(plans: result.plans.map { try $0.record() },
+                                                 fastestPlans: result.fastestPlans.map { try $0.record() },
+                                                 baselinePrice: result.baseline.map { Decimal($0.totalKopecks) / 100 },
+                                                 problem: result.problem?.reason, isSynthetic: result.dataIsSynthetic,
+                                                 minRequiredRadiusMeters: result.problem?.minRequiredRadiusMeters)
+        guard calculation.hasValidRankings else { throw APIError.invalidResponse }
+        return calculation
     }
 
     private struct CartCreate: Encodable { let name: String }
@@ -82,6 +85,7 @@ nonisolated struct APIShoppingListService: ShoppingListService {
     private struct PlanResponseDTO: Decodable, Sendable {
         let status: String
         let plans: [PlanDTO]
+        let fastestPlans: [PlanDTO]
         let baseline: BaselineDTO?
         let problem: ProblemDTO?
         let dataIsSynthetic: Bool

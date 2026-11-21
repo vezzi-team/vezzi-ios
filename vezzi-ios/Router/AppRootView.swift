@@ -7,7 +7,8 @@ struct AppRootView: View {
     private let shoppingList: ShoppingListRepository
     private let location: any DeviceLocating
     @ObservedObject private var authentication: AuthenticationSession
-    @Namespace private var profileTransition
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Namespace private var storefrontTransition
     private let catalog: any CatalogRepository
     private let contentScale: CGFloat
 
@@ -57,18 +58,24 @@ struct AppRootView: View {
         }
         // Also gives the search tab its detached appearance on iOS 27.
         .tabViewSearchActivation(.searchTabSelection)
+        .accessibilityHidden(appRouter.presentedCollection != nil)
         .tint(.accentColor)
-        .environmentObject(appRouter)
         .sensoryFeedback(.selection, trigger: productSelection.feedbackRevision)
         .alert(Texts.ShoppingList.limitTitle, isPresented: $productSelection.showsLimitAlert) {
             Button(Texts.ShoppingList.understood, role: .cancel) {}
         } message: { Text(Texts.ShoppingList.limitDescription) }
         .sheet(item: presentedSheet) { sheet in
-            let content = DestinationFactory.sheet(for: sheet, authentication: authentication)
-            if appRouter.selectedTab == .home || appRouter.selectedTab == .catalog {
-                content.navigationTransition(.zoom(sourceID: appRouter.selectedTab, in: profileTransition))
+            DestinationFactory.sheet(for: sheet, authentication: authentication)
+        }
+        .fullScreenCover(item: $appRouter.presentedCollection) { collection in
+            let cover = DestinationFactory.collection(collection, catalog: catalog, authentication: authentication,
+                                                      storefrontTransition: storefrontTransition, shoppingList: shoppingList, location: location) {
+                appRouter.presentedCollection = nil
+            }
+            if reduceMotion {
+                cover
             } else {
-                content
+                cover.navigationTransition(.zoom(sourceID: collection, in: storefrontTransition))
             }
         }
         .onChange(of: authentication.user) { _, user in
@@ -77,6 +84,7 @@ struct AppRootView: View {
                 appRouter.popToRoot(in: .catalog)
             }
         }
+        .environmentObject(appRouter)
     }
 
     private func tabLabel(for tab: AppRouter.Tab) -> some View {
@@ -102,10 +110,11 @@ struct AppRootView: View {
     private func navigationStack(for tab: AppRouter.Tab) -> some View {
         NavigationStack(path: pathBinding(for: tab)) {
             DestinationFactory.view(for: tab.rootRoute, catalog: catalog, authentication: authentication,
-                                    profileTransition: profileTransition, productSelection: productSelection, shoppingList: shoppingList, location: location)
+                                    storefrontTransition: storefrontTransition, productSelection: productSelection, shoppingList: shoppingList, location: location)
                 .navigationDestination(for: AppRouter.Route.self) { route in
                     DestinationFactory.view(for: route, catalog: catalog, authentication: authentication,
-                                            profileTransition: profileTransition, productSelection: productSelection, shoppingList: shoppingList, location: location)
+                                            storefrontTransition: storefrontTransition, productSelection: productSelection,
+                                            shoppingList: shoppingList, location: location)
                 }
         }
         .scaleEffect(contentScale, anchor: .top)

@@ -6,6 +6,7 @@ final class AppRouter: ObservableObject {
     @Published private(set) var selectedTab: Tab
     @Published private(set) var navigationPaths: [Tab: [Route]]
     @Published private(set) var presentedSheet: Sheet?
+    @Published var presentedCollection: MotiCollection?
 
     init(selectedTab: Tab = .home) {
         self.selectedTab = selectedTab

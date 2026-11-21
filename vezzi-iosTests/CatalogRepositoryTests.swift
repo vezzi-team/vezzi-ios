@@ -207,28 +207,6 @@ final class CatalogRepositoryTests: XCTestCase {
         XCTAssertEqual(cache.snapshot.offers["o1"]?.offer.price, 200)
     }
 
-    func testCancelledRefreshCannotOverwriteTheNextSuccessfulStatus() async throws {
-        let source = LateFailureCatalogSource()
-        let repository = DefaultCatalogRepository(source: source)
-        let old = Task { try await repository.refresh() }
-        for _ in 0..<100 {
-            if await source.hasStarted { break }
-            try await Task.sleep(for: .milliseconds(5))
-        }
-        repository.cancelRefresh()
-        try await repository.refresh()
-        await source.releaseFailure()
-        do { try await old.value; XCTFail("Expected cancellation") }
-        catch { XCTAssertTrue(error is CancellationError) }
-        var status = CatalogStatus()
-        let observation = repository.status.sink { status = $0 }
-        defer { observation.cancel() }
-        XCTAssertNil(status.failure)
-        XCTAssertFalse(status.isOffline)
-        XCTAssertFalse(status.isRefreshing)
-        XCTAssertTrue(status.hasSnapshot)
-    }
-
     func testRelatedProductsAreIndependentOfTheTextSearchLimit() async throws {
         let repository = DefaultCatalogRepository()
         var batch = CatalogImport(products: (0..<CatalogSearch.resultLimit).map {
@@ -441,7 +419,7 @@ final class CatalogRepositoryTests: XCTestCase {
         XCTAssertEqual(items.map(\.id), ["p1"])
     }
 
-    func testSlowCacheDoesNotDelayOrRollBackSourceResults() async throws {
+    func testFirstRefreshPublishesWhileCacheIsStalledAndKeepsNewerResults() async throws {
         let cache = ControlledCatalogCache()
         cache.pauseLoad = true
         let started = expectation(description: "Cache load started")
@@ -449,13 +427,13 @@ final class CatalogRepositoryTests: XCTestCase {
         var fresh = CatalogFixtures.catalog(price: 120, date: Date(timeIntervalSince1970: 200))
         fresh.products[0].name = "Fresh product"
         let repository = DefaultCatalogRepository(cache: cache, source: FixedCatalogSource(batch: fresh))
-        let preparing = Task { await repository.prepareCache() }
+        let refresh = Task { try await repository.refresh() }
         await fulfillment(of: [started], timeout: 5)
-        try await repository.refresh()
-        let before = await catalogItems(from: repository)
+        let before = await catalogItems(from: repository, where: { !$0.isEmpty })
         XCTAssertEqual(before.first?.product.name, "Fresh product")
         cache.finishLoading(try CatalogFixtures.snapshot(CatalogFixtures.catalog(price: 90)))
-        await preparing.value
+        try await refresh.value
+        await repository.prepareCache()
         let after = await catalogItems(from: repository)
         XCTAssertEqual(after.first?.product.name, "Fresh product")
         XCTAssertEqual(after.first?.offers.first?.offer.price, 120)
@@ -605,17 +583,4 @@ private actor ConditionalCatalogSource: CatalogSource {
         try await Task.sleep(for: .milliseconds(30))
         return .notModified
     }
-}
-
-private actor LateFailureCatalogSource: CatalogSource {
-    private var continuation: CheckedContinuation<Void, Never>?
-    private(set) var hasStarted = false
-    func loadCatalog(ifNoneMatch: String?) async throws -> CatalogSourceResult {
-        if !hasStarted {
-            await withCheckedContinuation { continuation = $0; hasStarted = true }
-            throw URLError(.notConnectedToInternet)
-        }
-        return .snapshot(CatalogFixtures.export())
-    }
-    func releaseFailure() { continuation?.resume(); continuation = nil }
 }

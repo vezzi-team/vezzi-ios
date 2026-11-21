@@ -17,9 +17,6 @@ struct VezziApp: App {
             AppLaunchView(catalog: dependencies.catalog, authentication: dependencies.authentication,
                           shoppingList: dependencies.shoppingList, location: dependencies.location)
                 .task { await dependencies.load() }
-                .onChange(of: dependencies.authentication.user?.id) { _, _ in
-                    Task { await dependencies.accountChanged() }
-                }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active {
                         Task { await dependencies.becameActive() }

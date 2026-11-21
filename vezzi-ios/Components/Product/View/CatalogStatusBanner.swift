@@ -22,7 +22,7 @@ struct CatalogStatusBanner: View {
                 }
                 HStack(spacing: Const.actionSpacing) {
                     if status.isRefreshing { ProgressView().controlSize(.small) }
-                    Text(status.isRefreshing ? Texts.Catalog.updating : actionTitle)
+                    Text(status.isRefreshing ? Texts.Catalog.updating : Texts.Catalog.refresh)
                     if !status.isRefreshing { Image.System.arrowRight }
                 }
                 .appTextStyle(size: Const.textSize, lineHeight: Const.textLineHeight, weight: .semibold, relativeTo: .footnote)
@@ -39,12 +39,8 @@ struct CatalogStatusBanner: View {
         .accessibilityIdentifier(AccessibilityID.Catalog.banner)
     }
 
-    private var needsLogin: Bool { status.failure == .authenticationRequired && !status.isOffline }
-    private var actionTitle: String { needsLogin ? Texts.Catalog.signIn : Texts.Catalog.refresh }
-
     private var title: String {
         if status.isOffline || status.failure == .offline { return Texts.Catalog.offlineTitle }
-        if needsLogin { return Texts.Catalog.signInTitle }
         if status.failure != nil { return Texts.Catalog.failedTitle }
         if isCacheUnavailable { return Texts.Catalog.cacheTitle }
         return status.isSynthetic ? Texts.Catalog.syntheticTitle : Texts.Catalog.title
@@ -54,7 +50,6 @@ struct CatalogStatusBanner: View {
         if status.isOffline || status.failure == .offline || status.failure == .unavailable {
             return status.hasSnapshot ? Texts.Catalog.staleMessage : Texts.Catalog.noCacheMessage
         }
-        if needsLogin { return Texts.Catalog.signInMessage }
         if isCacheUnavailable { return Texts.Storage.cacheUnavailable }
         return status.isSynthetic ? Texts.Catalog.syntheticMessage : Texts.Catalog.refreshMessage
     }

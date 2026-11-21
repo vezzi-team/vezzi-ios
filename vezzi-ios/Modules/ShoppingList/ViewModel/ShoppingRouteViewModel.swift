@@ -26,7 +26,8 @@ final class ShoppingRouteViewModel: ObservableObject {
 
     nonisolated deinit {}
 
-    var selectedPlan: ShoppingPlan? { isRecalculating ? nil : snapshot.plans.first { $0.id == selectedID } }
+    var availablePlans: [ShoppingPlan] { isRecalculating ? [] : snapshot.plans }
+    var selectedPlan: ShoppingPlan? { availablePlans.first { $0.id == selectedID } }
     var origin: ShoppingCoordinate { isRecalculating ? list.origin : snapshot.origin }
     var originAddress: String? {
         let savedAddress = origin == snapshot.origin ? snapshot.originAddress : nil
@@ -34,12 +35,18 @@ final class ShoppingRouteViewModel: ObservableObject {
     }
     var routeOptions: ShoppingRouteOptions { isRecalculating ? list.routeOptions : snapshot.routeOptions }
     var isBusy: Bool { isRecalculating && list.isBusy }
-    var failure: String? {
-        guard isRecalculating, !list.isBusy else { return nil }
-        if list.failure == .offline { return Texts.Routes.offline }
-        if list.failure == .authenticationRequired { return Texts.ShoppingList.signInDescription }
-        if list.failure != nil { return Texts.ShoppingList.loadError }
-        return Texts.ShoppingList.planningProblem(list.planResult?.problem, requiredRadius: list.planResult?.minRequiredRadiusMeters)
+    var canRetry: Bool { isRecalculating && !list.isBusy }
+
+    var statusMessage: String? {
+        guard isRecalculating else { return nil }
+        let problem = Texts.ShoppingList.planningProblem(for: list.planResult)
+        guard !list.isBusy else { return problem }
+        switch list.failure {
+        case nil: return problem ?? Texts.ShoppingList.noPlans
+        case .offline: return [problem, Texts.Routes.offline].compactMap { $0 }.joined(separator: "\n")
+        case .authenticationRequired: return Texts.ShoppingList.signInDescription
+        default: return Texts.ShoppingList.loadError
+        }
     }
 
     func changeRoute(_ coordinate: ShoppingCoordinate, options: ShoppingRouteOptions, address: String? = nil) {
@@ -56,8 +63,8 @@ final class ShoppingRouteViewModel: ObservableObject {
     }
 
     private func acceptRecalculation(_ result: ShoppingPlanResult?) {
-        guard isRecalculating, let result, let first = result.plans.first,
-              let updated = ShoppingRoutesSnapshot(plans: result.plans, selectedID: first.id,
+        guard isRecalculating, let result,
+              let updated = ShoppingRoutesSnapshot(plans: snapshot.mode.plans(in: result), mode: snapshot.mode,
                                                    origin: list.origin, isSaved: list.isPlanCached,
                                                    routeOptions: list.routeOptions, originAddress: list.originAddress) else { return }
         snapshot = updated

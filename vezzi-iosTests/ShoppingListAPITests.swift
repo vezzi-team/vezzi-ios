@@ -56,6 +56,38 @@ final class ShoppingListAPITests: XCTestCase {
         XCTAssertEqual(request.path, "carts/\(cartID.uuidString)/plans")
     }
 
+    func testFastestRankingPreservesServerOrderAndMayOverlapPriceRanking() async throws {
+        var response = plans()
+        let cheap = try XCTUnwrap((response["plans"] as? [[String: Any]])?.first)
+        let fastID = UUID()
+        var fast = cheap
+        fast["id"] = fastID.uuidString
+        fast["total_seconds"] = 350
+        fast["total_kopecks"] = 31000
+        response["fastest_plans"] = [fast, cheap]
+        let client = ShoppingRequestStub(responses: [try json(response)])
+        let result = try await APIShoppingListService(client: client).plans(cartID: cartID, start: .defaultOrigin, options: .init())
+        let cheapPlan = try XCTUnwrap(result.plans.first)
+        XCTAssertEqual(result.fastestPlans?.map(\.id), [fastID, cheapPlan.id])
+        XCTAssertEqual(result.fastestPlans?.first?.total, 310)
+        XCTAssertEqual(result.fastestPlans?.first?.totalSeconds, 350)
+    }
+
+    func testInvalidFastestRankingIsRejectedIndependentlyOfPriceRanking() async throws {
+        var response = plans()
+        let plan = try XCTUnwrap((response["plans"] as? [[String: Any]])?.first)
+        var invalid = plan
+        invalid["total_seconds"] = -1
+        for ranking in [[], [invalid], [plan, plan]] {
+            response["fastest_plans"] = ranking
+            let service = APIShoppingListService(client: ShoppingRequestStub(responses: [try json(response)]))
+            do {
+                _ = try await service.plans(cartID: cartID, start: .defaultOrigin, options: .init())
+                XCTFail("Expected an invalid fastest ranking to be rejected")
+            } catch { XCTAssertEqual(error as? APIError, .invalidResponse) }
+        }
+    }
+
     func testInvalidCartAndRouteAreRejected() async throws {
         var duplicate = cart()
         let items = try XCTUnwrap(duplicate["items"] as? [[String: Any]])
@@ -77,12 +109,13 @@ final class ShoppingListAPITests: XCTestCase {
     }
 
     func testNoPlansIsAValidResponseAndInvalidProductIDNeverReachesTransport() async throws {
-        let client = ShoppingRequestStub(responses: [try json(["status": "no_plans", "plans": [], "baseline": NSNull(),
+        let client = ShoppingRequestStub(responses: [try json(["status": "no_plans", "plans": [], "fastest_plans": [], "baseline": NSNull(),
                                                              "problem": ["reason": "items_unavailable"], "data_is_synthetic": false])])
         let service = APIShoppingListService(client: client)
         let result = try await service.plans(cartID: cartID, start: .previewOrigin, options: .init())
         XCTAssertEqual(result.problem, "items_unavailable")
         XCTAssertTrue(result.plans.isEmpty)
+        XCTAssertEqual(result.fastestPlans?.count, 0)
         do {
             _ = try await service.updateItem(cartID: cartID, productID: "../other", quantity: 1, exists: false)
             XCTFail("Invalid product identifiers must not be sent")
@@ -109,7 +142,7 @@ final class ShoppingListAPITests: XCTestCase {
     }
 
     func testRadiusFailurePreservesSuggestionAndInvalidRadiusDoesNotSendRequest() async throws {
-        let client = ShoppingRequestStub(responses: [try json(["status": "no_plans", "plans": [], "baseline": NSNull(),
+        let client = ShoppingRequestStub(responses: [try json(["status": "no_plans", "plans": [], "fastest_plans": [], "baseline": NSNull(),
             "problem": ["reason": "radius_too_small", "min_required_radius_meters": 1275], "data_is_synthetic": false])])
         let service = APIShoppingListService(client: client)
         let result = try await service.plans(cartID: cartID, start: .previewOrigin, options: .init(radiusMeters: 500))
@@ -142,7 +175,8 @@ final class ShoppingListAPITests: XCTestCase {
                                   "stops": [["position": 1, "store": store, "items": [item], "subtotal_kopecks": 19998,
                                              "walk_from_previous_seconds": 240, "walk_from_previous_meters": 350]],
                                   "route": ["uses_road_network": false, "points": [["latitude": 60.0087, "longitude": 30.2582]]]]
-        return ["status": "ok", "plans": [plan], "baseline": ["total_kopecks": 21010], "problem": NSNull(), "data_is_synthetic": true]
+        return ["status": "ok", "plans": [plan], "fastest_plans": [plan], "baseline": ["total_kopecks": 21010],
+                "problem": NSNull(), "data_is_synthetic": true]
     }
     private func json(_ value: Any) throws -> Data { try JSONSerialization.data(withJSONObject: value) }
 }

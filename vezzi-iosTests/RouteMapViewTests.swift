@@ -1,3 +1,4 @@
+import MapKit
 import MapLibre
 import UIKit
 import XCTest
@@ -118,6 +119,193 @@ final class RouteMapViewTests: XCTestCase {
                 XCTAssertNotEqual(map.zoomLevel, 17, "Explicitly selecting another route still fits it")
             }
         }
+    }
+
+    func testRendererReleasesWhenUIKitTearsDownTheMap() async throws {
+        try await withMap { container in
+            let map = container.map
+            let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in map.style != nil }, object: nil)
+            await fulfillment(of: [ready], timeout: 5)
+            let style = try XCTUnwrap(map.style)
+            let points = plan().points
+            let released = expectation(description: "Renderer released on the UIKit main queue")
+
+            // UIKit can release the map between Swift tasks on the main run loop.
+            DispatchQueue.main.async {
+                weak var reference: RouteLineRenderer?
+                autoreleasepool {
+                    let renderer = RouteLineRenderer(style: style, traits: map.traitCollection)
+                    reference = renderer
+                    renderer.setRoute(points, repeatedSections: [])
+                    renderer.reveal(to: 0.5)
+                }
+                XCTAssertNil(reference)
+                released.fulfill()
+            }
+            await fulfillment(of: [released], timeout: 5)
+        }
+    }
+
+    func testRepeatedRoadChangesColorOnSecondPassAndResetsForAnotherPlan() async throws {
+        for appearance in [UIUserInterfaceStyle.light, .dark] {
+            try await withMap { container in
+                container.overrideUserInterfaceStyle = appearance
+                let map = container.map
+                let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in map.style != nil }, object: nil)
+                await fulfillment(of: [ready], timeout: 5)
+                let style = try XCTUnwrap(map.style)
+                let background = MLNBackgroundStyleLayer(identifier: "paper")
+                background.backgroundColor = NSExpression(forConstantValue: appearance == .light ? UIColor.white : UIColor.darkGray)
+                style.addLayer(background)
+
+                let center = ShoppingCoordinate.defaultOrigin.clCoordinate
+                map.setCenter(center, zoomLevel: 17, animated: false)
+                let midpoint = map.convert(center, toPointTo: map)
+                @MainActor func point(_ x: CGFloat, _ y: CGFloat = 0) -> ShoppingCoordinate {
+                    let coordinate = map.convert(CGPoint(x: midpoint.x + x, y: midpoint.y + y), toCoordinateFrom: map)
+                    return ShoppingCoordinate(latitude: coordinate.latitude, longitude: coordinate.longitude)
+                }
+                let a = point(-90), b = point(0), c = point(90), d = point(90, -60)
+                let once = point(-45), early = point(25), late = point(75), bend = point(90, -20)
+                let beside = point(40, -15)
+                let points = [a, b, c, d, c, b, point(0, 60)]
+                func plan(road: Bool) -> ShoppingPlan {
+                    ShoppingPlan(id: UUID(), total: 100, savings: nil, totalSeconds: 500, walkingMeters: 600,
+                                 stops: [], points: points, usesRoadNetwork: road, isSynthetic: false)
+                }
+                let coordinator = RouteMapView.Coordinator(RouteMapView(origin: a, plan: plan(road: true)))
+                coordinator.mapView = map
+                coordinator.mapView(map, didFinishLoading: style)
+                coordinator.cancelReveal()
+                map.setCenter(center, zoomLevel: 17, animated: false)
+                @MainActor func snapshot() -> UIImage {
+                    UIGraphicsImageRenderer(bounds: map.bounds).image { _ in
+                        container.drawHierarchy(in: map.bounds, afterScreenUpdates: true)
+                    }
+                }
+                @MainActor func strength(_ image: UIImage, at coordinate: ShoppingCoordinate) throws -> Double {
+                    try orangeStrength(in: image, at: map.convert(coordinate.clCoordinate, toPointTo: map))
+                }
+                @MainActor func frame(with point: ShoppingCoordinate, in range: ClosedRange<Double>) async -> UIImage {
+                    let painted = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                        guard let value = try? strength(snapshot(), at: point) else { return false }
+                        return range.contains(value)
+                    }, object: nil)
+                    await fulfillment(of: [painted], timeout: 5)
+                    return snapshot()
+                }
+
+                let orange = 0.45...1.0, violet = -1.0 ... -0.15
+                @MainActor func assertFrames(keeping point: ShoppingCoordinate, in range: ClosedRange<Double>,
+                                             after progress: Double) async throws {
+                    coordinator.applyReveal(progress: progress, animated: true)
+                    for _ in 0..<6 {
+                        try await Task.sleep(for: .milliseconds(16))
+                        let image = snapshot()
+                        XCTAssertTrue(range.contains(try strength(image, at: point)))
+                        XCTAssertTrue(orange.contains(try strength(image, at: once)))
+                    }
+                }
+
+                coordinator.applyReveal(progress: 0.53, animated: false)
+                let outbound = await frame(with: late, in: orange)
+                XCTAssertTrue(orange.contains(try strength(outbound, at: early)))
+                // On entry to the return, the outbound road must still be visible on the very first frame.
+                try await assertFrames(keeping: late, in: orange, after: 0.54)
+                coordinator.applyReveal(progress: 0.76, animated: false)
+                let returning = await frame(with: late, in: violet)
+                XCTAssertTrue(orange.contains(try strength(returning, at: early)))
+                XCTAssertTrue(violet.contains(try strength(returning, at: bend)))
+                coordinator.applyReveal(progress: 0.86, animated: false)
+                _ = await frame(with: early, in: violet)
+                // Entering a new road must not briefly erase the completed return.
+                try await assertFrames(keeping: early, in: violet, after: 0.88)
+
+                coordinator.finishReveal()
+                for zoom in [16.0, 18.0] {
+                    map.setCenter(center, zoomLevel: zoom, animated: false)
+                    let finished = await frame(with: early, in: violet)
+                    XCTAssertTrue(orange.contains(try strength(finished, at: once)))
+                    XCTAssertTrue(violet.contains(try strength(finished, at: bend)))
+                    XCTAssertEqual(try strength(finished, at: beside), 0, accuracy: 0.08)
+                }
+
+                coordinator.parent.plan = plan(road: false)
+                coordinator.update(map)
+                coordinator.finishReveal()
+                let fallback = await frame(with: early, in: orange)
+                XCTAssertTrue(orange.contains(try strength(fallback, at: late)))
+            }
+        }
+    }
+
+    func testShortRepeatedRoadChangesOnlyAtSecondPassOnLongRoute() async throws {
+        try await withMap { container in
+            container.overrideUserInterfaceStyle = .light
+            let map = container.map
+            let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in map.style != nil }, object: nil)
+            await fulfillment(of: [ready], timeout: 5)
+            let style = try XCTUnwrap(map.style)
+            let background = MLNBackgroundStyleLayer(identifier: "paper")
+            background.backgroundColor = NSExpression(forConstantValue: UIColor.white)
+            style.addLayer(background)
+            let origin = MKMapPoint(ShoppingCoordinate.defaultOrigin.clCoordinate)
+            let metersPerUnit = MKMetersPerMapPointAtLatitude(ShoppingCoordinate.defaultOrigin.latitude)
+            func point(_ x: Double, _ y: Double = 0) -> ShoppingCoordinate {
+                let coordinate = MKMapPoint(x: origin.x + x / metersPerUnit, y: origin.y + y / metersPerUnit).coordinate
+                return ShoppingCoordinate(latitude: coordinate.latitude, longitude: coordinate.longitude)
+            }
+
+            let coordinator = RouteMapView.Coordinator(RouteMapView(origin: point(-1000)))
+            coordinator.mapView = map
+            coordinator.mapView(map, didFinishLoading: style)
+            for meters in [4.0, 8.0] {
+                let points = [point(-1000), point(0), point(meters), point(0), point(0, -1014.7)]
+                coordinator.parent.plan = ShoppingPlan(id: UUID(), total: 100, savings: nil, totalSeconds: 500,
+                    walkingMeters: 2040, stops: [], points: points, usesRoadNetwork: true, isSynthetic: false)
+                coordinator.update(map)
+                coordinator.cancelReveal()
+                map.setCenter(point(meters / 2).clCoordinate, zoomLevel: 20, animated: false)
+                let total = 2014.7 + 2 * meters
+                let turn = (1000 + meters) / total
+                let halfwayBack = (1000 + 1.5 * meters) / total
+                let orange = 0.45...1.0, violet = -1.0 ... -0.15
+
+                @MainActor func check(_ progress: Double, nearTurn: ClosedRange<Double>,
+                                      nearJunction: ClosedRange<Double>) async {
+                    coordinator.applyReveal(progress: progress, animated: false)
+                    let painted = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                        let image = UIGraphicsImageRenderer(bounds: map.bounds).image { _ in
+                            container.drawHierarchy(in: map.bounds, afterScreenUpdates: true)
+                        }
+                        @MainActor func strength(_ distance: Double) -> Double {
+                            let pixel = map.convert(point(distance).clCoordinate, toPointTo: map)
+                            return (try? self.orangeStrength(in: image, at: pixel)) ?? .nan
+                        }
+                        return nearTurn.contains(strength(meters * 0.75))
+                            && nearJunction.contains(strength(meters * 0.25))
+                            && orange.contains(strength(-1))
+                    }, object: nil)
+                    await fulfillment(of: [painted], timeout: 4)
+                }
+                await check(turn, nearTurn: orange, nearJunction: orange)
+                await check(halfwayBack, nearTurn: violet, nearJunction: orange)
+                await check(1, nearTurn: violet, nearJunction: violet)
+            }
+        }
+    }
+
+    private func orangeStrength(in image: UIImage, at point: CGPoint) throws -> Double {
+        let rect = CGRect(x: floor(point.x * image.scale), y: floor(point.y * image.scale), width: 1, height: 1)
+        let sample = try XCTUnwrap(image.cgImage?.cropping(to: rect))
+        var rgba = [UInt8](repeating: 0, count: 4)
+        let space = try XCTUnwrap(CGColorSpace(name: CGColorSpace.sRGB))
+        try rgba.withUnsafeMutableBytes { bytes in
+            let context = try XCTUnwrap(CGContext(data: bytes.baseAddress, width: 1, height: 1, bitsPerComponent: 8,
+                                                  bytesPerRow: 4, space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+            context.draw(sample, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+        }
+        return (Double(rgba[0]) - Double(rgba[2])) / 255
     }
 
     func testPickerCollapseKeepsUserCameraAndCommitsFinalPinBeforeNewRadiusOrAddress() async throws {

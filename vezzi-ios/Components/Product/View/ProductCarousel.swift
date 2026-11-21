@@ -12,27 +12,25 @@ struct ProductCarousel: View {
 
     var body: some View {
         ScrollView(.horizontal) {
-            LazyHStack(alignment: .top, spacing: Const.spacing) {
+            LazyHStack(alignment: .top, spacing: ProductGridLayout.columnSpacing) {
                 ForEach(products) { product in
-                    ProductCard(product: product, showsStoreBadges: showsStoreBadges,
+                    ProductCard(product: product, promotion: product.promotion, showsStoreBadges: showsStoreBadges,
                                 showsPricePrefix: showsPricePrefix, quantity: quantityBinding(for: product.id)) {
                         open(product)
                     }
-                    .frame(width: cardWidth)
+                    .containerRelativeFrame(.horizontal) { width, _ in
+                        ProductGridLayout.cardWidth(in: width, for: dynamicTypeSize)
+                    }
                     .transition(reduceMotion ? .identity : AnyTransition(.blurReplace))
                 }
             }
             .scrollTargetLayout()
             .padding(.vertical, Const.shadowInset)
         }
-        .contentMargins(.horizontal, Const.contentInset, for: .scrollContent)
+        .contentMargins(.horizontal, ProductGridLayout.contentInset, for: .scrollContent)
         .scrollIndicators(.hidden)
         .scrollTargetBehavior(.viewAligned)
         .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private var cardWidth: CGFloat {
-        dynamicTypeSize.isAccessibilitySize ? Const.accessibleCardWidth : Const.cardWidth
     }
 
     private func quantityBinding(for productID: String) -> Binding<Int> {
@@ -41,10 +39,6 @@ struct ProductCarousel: View {
     }
 
     private enum Const {
-        static let cardWidth: CGFloat = 177
-        static let accessibleCardWidth: CGFloat = 280
-        static let spacing: CGFloat = 16
-        static let contentInset: CGFloat = 16
         static let shadowInset: CGFloat = 6
     }
 }

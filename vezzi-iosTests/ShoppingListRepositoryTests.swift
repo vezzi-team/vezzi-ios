@@ -447,6 +447,49 @@ final class ShoppingListRepositoryTests: XCTestCase {
         XCTAssertEqual(model.routes?.plans.first?.total, 200)
     }
 
+    func testFastRoutesUseTheirOwnRankingOnMapAfterOriginChangeAndOfflineRelaunch() async throws {
+        let service = ControlledShoppingService(quantities: ["1": 2])
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let cache = FileShoppingListCache(directory: directory)
+        let account = ShoppingListTestAccount.make("account")
+        let list = ShoppingListRepository(service: service, cache: cache)
+        let model = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: list)
+        list.setAccount(account)
+        list.setPresented(true)
+        await list.refresh()
+
+        model.showRoutes()
+        XCTAssertEqual(model.routes?.plans.map(\.id), list.planResult?.plans.map(\.id))
+        model.mode = .faster
+        model.showRoutes()
+        let snapshot = try XCTUnwrap(model.routes)
+        XCTAssertEqual(snapshot.plans.map(\.id), list.planResult?.fastestPlans?.map(\.id))
+        let cheapPlans = try XCTUnwrap(list.planResult?.plans)
+        XCTAssertFalse(cheapPlans.contains { $0.id == snapshot.selectedID })
+
+        let routes = ShoppingRouteViewModel(snapshot: snapshot, list: list, location: RouteLocationStub())
+        let options = ShoppingRouteOptions(returnToStart: true, radiusMeters: 750)
+        routes.changeRoute(.previewOrigin, options: options)
+        await list.refresh()
+        let fastest = try XCTUnwrap(list.planResult?.fastestPlans)
+        XCTAssertEqual(routes.snapshot.plans.map(\.id), fastest.map(\.id))
+        XCTAssertEqual(routes.selectedPlan?.id, fastest.first?.id)
+        XCTAssertEqual(routes.snapshot.routeOptions, options)
+
+        await service.setOffline(true)
+        let restored = ShoppingListRepository(service: service, cache: cache)
+        let offline = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: restored)
+        restored.setAccount(account)
+        restored.setPresented(true)
+        await restored.refresh()
+        offline.mode = .faster
+        offline.showRoutes()
+        XCTAssertEqual(offline.routes?.isSaved, true)
+        XCTAssertEqual(offline.routes?.plans.map(\.id), fastest.map(\.id))
+        XCTAssertEqual(offline.plan?.id, fastest.first?.id)
+    }
+
     func testSelectedCatalogProductsKeepAllOffersForDetailsAsSelectionChanges() async throws {
         let batch = CatalogImport(
             products: [CatalogProduct(id: "1", name: "First"), CatalogProduct(id: "2", name: "Second")],
@@ -1208,6 +1251,41 @@ final class ShoppingListRepositoryTests: XCTestCase {
         XCTAssertEqual(model.message, Texts.ShoppingList.cachedCalculation)
     }
 
+    func testOfflineRelaunchShowsSavedNoPlansReasonOnlyForItsRadius() async {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let account = ShoppingListTestAccount.make("account")
+        let service = ControlledShoppingService(quantities: ["1": 2])
+        await service.returnNoPlans(reason: "radius_too_small", requiredRadius: 750)
+        let options = ShoppingRouteOptions(radiusMeters: 500)
+        let original = ShoppingListRepository(service: service, cache: FileShoppingListCache(directory: directory))
+        original.setAccount(account)
+        original.setRoute(origin: original.origin, options: options)
+        original.setPresented(true)
+        await original.refresh()
+
+        await service.setOffline(true)
+        let restored = ShoppingListRepository(service: service, cache: FileShoppingListCache(directory: directory))
+        restored.updateConnectivity(isConnected: false)
+        restored.setAccount(account)
+        restored.setPresented(true)
+        await restored.refresh()
+        let model = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: restored)
+        let expectedMessage = [Texts.Routes.Settings.requiredRadius(750), Texts.ShoppingList.cachedCalculation]
+            .joined(separator: "\n")
+        XCTAssertEqual(restored.failure, .offline)
+        XCTAssertEqual(restored.routeOptions, options)
+        for mode in ShoppingListMode.allCases {
+            model.mode = mode
+            XCTAssertNil(model.plan)
+            XCTAssertEqual(model.message, expectedMessage)
+        }
+
+        restored.setRoute(origin: restored.origin, options: .init(radiusMeters: 750))
+        await restored.refresh()
+        XCTAssertNil(model.message, "The saved reason belongs only to the 500-meter calculation")
+    }
+
     func testOfflineRelaunchDoesNotInventAPreviousCalculation() async {
         let cache = MemoryShoppingListCache()
         let service = ControlledShoppingService(quantities: ["1": 2])
@@ -1473,6 +1551,95 @@ final class ShoppingListRepositoryTests: XCTestCase {
         XCTAssertEqual(saved?.routeOptions, options)
         XCTAssertEqual(saved?.plan?.routeOptions, options)
         XCTAssertNoThrow(try saved?.validate())
+    }
+
+    func testFailed500MeterCalculationContinuesWithConfirmed750MeterRadius() async throws {
+        let service = ControlledShoppingService(quantities: ["1": 1])
+        let list = ShoppingListRepository(service: service)
+        list.setAccount(ShoppingListTestAccount.make("account"))
+        list.setPresented(true)
+        await list.refresh()
+        let plans = try XCTUnwrap(list.planResult?.fastestPlans)
+        let snapshot = try XCTUnwrap(ShoppingRoutesSnapshot(plans: plans, mode: .faster, origin: list.origin, isSaved: false))
+        let map = ShoppingRouteViewModel(snapshot: snapshot, list: list, location: RouteLocationStub())
+
+        await service.pauseNextPlan()
+        await service.failPausedPlan()
+        map.changeRoute(list.origin, options: .init(radiusMeters: 500))
+        await service.waitUntilPaused()
+        map.changeRoute(list.origin, options: .init(radiusMeters: 750))
+        XCTAssertTrue(map.availablePlans.isEmpty)
+
+        let finished = expectation(description: "Latest calculation finished without a manual retry")
+        let observation = list.$isBusy.filter { !$0 }.prefix(1).sink { _ in finished.fulfill() }
+        defer { observation.cancel() }
+        await service.resume()
+        await fulfillment(of: [finished], timeout: 3)
+
+        let requested = await service.requestedOptions.map(\.radiusMeters)
+        let concurrent = await service.maximumActivePlans
+        XCTAssertEqual(requested, [nil, 500, 750])
+        XCTAssertEqual(concurrent, 1)
+        XCTAssertNil(list.failure)
+        let fastest = try XCTUnwrap(list.planResult?.fastestPlans?.first)
+        XCTAssertEqual(map.selectedPlan?.id, fastest.id)
+        XCTAssertEqual(map.snapshot.routeOptions.radiusMeters, 750)
+    }
+
+    func testMapDropsPreviousOptionsWhenNewRadiusHasNoPlans() async throws {
+        let service = ControlledShoppingService(quantities: ["1": 1])
+        let list = ShoppingListRepository(service: service)
+        list.setAccount(ShoppingListTestAccount.make("account"))
+        list.setPresented(true)
+        await list.refresh()
+        let plans = try XCTUnwrap(list.planResult?.fastestPlans)
+        let snapshot = try XCTUnwrap(ShoppingRoutesSnapshot(plans: plans, mode: .faster, origin: list.origin, isSaved: false))
+        let map = ShoppingRouteViewModel(snapshot: snapshot, list: list, location: RouteLocationStub())
+        XCTAssertEqual(map.availablePlans.count, 3)
+
+        await service.returnNoPlans()
+        map.changeRoute(list.origin, options: .init(radiusMeters: 500))
+        XCTAssertTrue(map.availablePlans.isEmpty)
+        await list.refresh()
+        XCTAssertEqual(map.statusMessage, Texts.ShoppingList.itemsUnavailable)
+        XCTAssertNil(map.selectedPlan)
+        XCTAssertTrue(map.availablePlans.isEmpty)
+    }
+
+    func testMapRetainsMatchingRadiusHintDuringRetryAndAfterConnectionLoss() async throws {
+        let service = ControlledShoppingService(quantities: ["1": 1])
+        let list = ShoppingListRepository(service: service)
+        list.setAccount(ShoppingListTestAccount.make("account"))
+        list.setPresented(true)
+        await list.refresh()
+        let plans = try XCTUnwrap(list.planResult?.fastestPlans)
+        let snapshot = try XCTUnwrap(ShoppingRoutesSnapshot(plans: plans, mode: .faster, origin: list.origin, isSaved: false))
+        let map = ShoppingRouteViewModel(snapshot: snapshot, list: list, location: RouteLocationStub())
+
+        await service.returnNoPlans(reason: "radius_too_small", requiredRadius: 750)
+        map.changeRoute(list.origin, options: .init(radiusMeters: 500))
+        await list.refresh()
+        let hint = Texts.Routes.Settings.requiredRadius(750)
+        XCTAssertEqual(map.statusMessage, hint)
+        XCTAssertTrue(map.canRetry)
+
+        await service.pauseNextPlan()
+        await service.failPausedPlan()
+        let retry = Task { await map.retry() }
+        await service.waitUntilPaused()
+        XCTAssertTrue(map.isBusy)
+        XCTAssertFalse(map.canRetry)
+        XCTAssertEqual(map.statusMessage, hint)
+        await service.resume()
+        await retry.value
+        XCTAssertFalse(map.isBusy)
+        XCTAssertTrue(map.canRetry)
+        XCTAssertEqual(map.statusMessage, [hint, Texts.Routes.offline].joined(separator: "\n"))
+
+        await service.setOffline(true)
+        map.changeRoute(list.origin, options: .init(radiusMeters: 750))
+        await list.refresh()
+        XCTAssertEqual(map.statusMessage, Texts.Routes.offline, "A new radius cannot reuse the previous calculation's hint")
     }
 
     func testRouteOptionsRestoreOfflineAndNewChoiceDuringReadWins() async throws {
@@ -1783,7 +1950,7 @@ private actor ControlledShoppingService: ShoppingListService {
     private var writeErrors: [UUID: any Error] = [:]
     private var pauseWrite = false
     private var pausePlan = false
-    private var noPlans = false
+    private var noPlanResult: ShoppingPlanResult?
     private var planFails = false
     private var pause: CheckedContinuation<Void, Never>?
     private var observer: CheckedContinuation<Void, Never>?
@@ -1845,7 +2012,10 @@ private actor ControlledShoppingService: ShoppingListService {
     func pauseNextWrite() { pauseWrite = true; reachedPause = false }
     func pauseNextPlan() { pausePlan = true; reachedPause = false }
     func failAfterNextWrite() { failWrite = true }
-    func returnNoPlans() { noPlans = true }
+    func returnNoPlans(reason: String = "items_unavailable", requiredRadius: Int? = nil) {
+        noPlanResult = ShoppingPlanResult(plans: [], fastestPlans: [], baselinePrice: nil, problem: reason,
+                                          isSynthetic: false, minRequiredRadiusMeters: requiredRadius)
+    }
     func failPlans() { planFails = true }
     func failPausedPlan() { failsPausedPlan = true }
 
@@ -1890,10 +2060,13 @@ private actor ControlledShoppingService: ShoppingListService {
         let captured = value
         if pausePlan { pausePlan = false; await suspend() }
         if failsPausedPlan { failsPausedPlan = false; throw URLError(.networkConnectionLost) }
-        if noPlans { return ShoppingPlanResult(plans: [], baselinePrice: nil, problem: "items_unavailable", isSynthetic: false) }
+        if let noPlanResult { return noPlanResult }
         let cheap = Self.plan(captured, price: 100, seconds: 1080)
+        let second = Self.plan(captured, price: (300 + fastUnitPrice) / 4, seconds: 960)
+        let middle = Self.plan(captured, price: (100 + fastUnitPrice) / 2, seconds: 900)
         let fast = Self.plan(captured, price: fastUnitPrice, seconds: 780)
-        return ShoppingPlanResult(plans: [cheap, fast], baselinePrice: baselinePrice ?? fast.total, problem: nil, isSynthetic: false)
+        return ShoppingPlanResult(plans: [cheap, second, middle], fastestPlans: [fast, middle, second],
+                                  baselinePrice: baselinePrice ?? fast.total, problem: nil, isSynthetic: false)
     }
 
     private static func cart(_ quantities: [String: Int], id: UUID = UUID()) -> ShoppingCart {

@@ -131,15 +131,9 @@ nonisolated struct CatalogStatus: Equatable, Sendable {
 
 nonisolated enum CatalogRefreshFailure: Equatable, Sendable {
     case offline
-    case authenticationRequired
     case unavailable
 
     static func from(_ error: Error) -> Self {
-        if let failure = error as? AuthenticationFailure {
-            if failure.invalidatesSession { return .authenticationRequired }
-            if failure == .offline { return .offline }
-        }
-        if (error as? APIError)?.status == 401 { return .authenticationRequired }
         if let error = error as? URLError,
            [.notConnectedToInternet, .networkConnectionLost, .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed].contains(error.code) {
             return .offline

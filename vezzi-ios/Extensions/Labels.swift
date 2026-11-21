@@ -34,6 +34,7 @@ final class Texts {
 
     enum Home {
         enum Discovery {
+            static let emptyCollection = NSLocalizedString("HomeDiscoveryEmptyCollection", comment: "No products in this collection yet")
             static let adTitle = NSLocalizedString("HomeDiscoveryAdTitle", comment: "Your ad could be here")
             static let adSubtitle = NSLocalizedString("HomeDiscoveryAdSubtitle", comment: "But nobody chipped in :(")
             static let adCaption = NSLocalizedString("HomeDiscoveryAdCaption", comment: "Nothing to tap")
@@ -52,7 +53,6 @@ final class Texts {
             static let dinnerSubtitle = NSLocalizedString("HomeDinnerSubtitle", comment: "Simple, delicious, ready in 20 minutes")
             static let collectProducts = NSLocalizedString("HomeCollectProducts", comment: "Add ingredients")
             static let dinnerAdded = NSLocalizedString("HomeDinnerAdded", comment: "Ingredients added")
-            static let forYou = NSLocalizedString("HomeForYou", comment: "For you")
         }
 
         enum Filters {
@@ -70,6 +70,10 @@ final class Texts {
     }
 
     enum Catalog {
+        enum Filters {
+            static let all = NSLocalizedString("CatalogFilterAll", comment: "All products")
+        }
+
         static let title = NSLocalizedString("CatalogTitle", comment: "Product catalog")
         static let offlineTitle = NSLocalizedString("CatalogOfflineTitle", comment: "Offline catalog")
         static let failedTitle = NSLocalizedString("CatalogFailedTitle", comment: "Refresh failed")
@@ -78,9 +82,6 @@ final class Texts {
         static let refreshMessage = NSLocalizedString("CatalogRefreshMessage", comment: "How to refresh")
         static let refresh = NSLocalizedString("CatalogRefresh", comment: "Refresh")
         static let updating = NSLocalizedString("CatalogUpdating", comment: "Updating")
-        static let signInTitle = NSLocalizedString("CatalogSignInTitle", comment: "Catalog requires sign-in")
-        static let signInMessage = NSLocalizedString("CatalogSignInMessage", comment: "Sign in to load the catalog")
-        static let signIn = NSLocalizedString("CatalogSignIn", comment: "Sign in")
         static let syntheticTitle = NSLocalizedString("CatalogSyntheticTitle", comment: "Demo prices")
         static let syntheticMessage = NSLocalizedString("CatalogSyntheticMessage", comment: "Prices are synthetic")
         static let cacheTitle = NSLocalizedString("CatalogCacheTitle", comment: "Catalog persistence failed")
@@ -91,6 +92,12 @@ final class Texts {
     }
 
     enum Product {
+        enum Promotion {
+            static func comparison(_ discount: String, _ price: String) -> String {
+                String.localizedStringWithFormat(NSLocalizedString("ProductPromotionComparison", comment: "Discount compared with the highest price at another store"), discount, price)
+            }
+        }
+
         static let inStock = NSLocalizedString("SearchInStock", comment: "In stock")
         static let outOfStock = NSLocalizedString("SearchOutOfStock", comment: "Out of stock")
 
@@ -323,13 +330,14 @@ final class Texts {
     // MARK: - Shopping List
 
     enum ShoppingList {
-        static func planningProblem(_ reason: String?, requiredRadius: Int? = nil) -> String {
-            switch reason {
+        static func planningProblem(for result: ShoppingPlanResult?) -> String? {
+            guard let result, result.plans.isEmpty else { return nil }
+            switch result.problem {
             case "items_unavailable": return itemsUnavailable
             case "store_limit_too_low": return storeLimit
             case "time_limit_too_low": return timeLimit
             case "radius_too_small":
-                return requiredRadius.map { Routes.Settings.requiredRadius($0) } ?? radiusLimit
+                return result.minRequiredRadiusMeters.map { Routes.Settings.requiredRadius($0) } ?? radiusLimit
             case "route_unavailable": return routeUnavailable
             default: return noPlans
             }
@@ -356,6 +364,7 @@ final class Texts {
         static let cartUnavailable = NSLocalizedString("ShoppingListCartUnavailable", comment: "Saved changes belong to a list that is no longer available. They have not been applied to your current list.")
         static let otherCartSyncFailed = NSLocalizedString("ShoppingListOtherCartSyncFailed", comment: "Changes to another list could not be synced. They are kept on this device for retry. Your current list is available.")
         static let cachedCalculation = NSLocalizedString("ShoppingListCachedCalculation", comment: "Showing a saved calculation. Prices and routes may have changed.")
+        static let refreshForFastestRoutes = NSLocalizedString("ShoppingListRefreshForFastestRoutes", comment: "Refresh the list when online to see the fastest routes.")
         static let cacheError = NSLocalizedString("ShoppingListCacheError", comment: "Local storage is unavailable. Some changes may be lost when you close the app. Try again.")
         static let limitTitle = NSLocalizedString("ShoppingListLimitTitle", comment: "List limit reached")
         static let limitDescription = NSLocalizedString("ShoppingListLimitDescription", comment: "A list can contain up to 30 different products. Remove a product before adding another.")
@@ -453,6 +462,7 @@ final class Texts {
         static let collapseDetails = NSLocalizedString("RoutesCollapseDetails", comment: "Collapse route details")
         static let options = NSLocalizedString("RoutesOptions", comment: "Routes")
         static let withShopping = NSLocalizedString("RoutesWithShopping", comment: "including shopping")
+        static let calculating = NSLocalizedString("RoutesCalculating", comment: "Calculating routes…")
         static let retry = NSLocalizedString("RoutesRetry", comment: "Try again")
         static let offline = NSLocalizedString("RoutesOffline", comment: "No connection. Reconnect to calculate a route from this point.")
         static func option(_ number: Int) -> String {

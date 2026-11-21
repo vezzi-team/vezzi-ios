@@ -8,6 +8,7 @@ struct Product: Identifiable {
     let packageUnit: String?
     let category: ProductCategory?
     var offers: [ProductOffer]
+    var promotion: ProductPromotion?
 
     var displayName: String {
         let unpackaged = ProductDisplayText.removingPackage(quantity: packageQuantity, unit: packageUnit, from: name)
@@ -91,20 +92,77 @@ struct ProductOffer: Identifiable {
     }
 }
 
+struct ProductPromotion {
+    let offer: ProductOffer
+    let comparisonPrice: Decimal
+
+    init?(offer: ProductOffer, comparisonPrice: Decimal) {
+        guard comparisonPrice > offer.price else { return nil }
+        self.offer = offer
+        self.comparisonPrice = comparisonPrice
+    }
+
+    var savingsFraction: Decimal {
+        (comparisonPrice - offer.price) / comparisonPrice
+    }
+}
+
 extension Product {
     init(catalog item: CatalogItem, distances: [String: Measurement<UnitLength>] = [:]) {
-        let offers = Dictionary(grouping: item.offers, by: { $0.store.id }).values
-            .compactMap { $0.min(by: Self.preferredOffer) }
-            .sorted { $0.store.name == $1.store.name ? $0.store.id < $1.store.id : $0.store.name < $1.store.name }
+        self.init(item: item, stores: Self.representativeOffers(for: item), distances: distances)
+    }
+
+    init?(deal item: CatalogItem) {
+        // A higher promotion in the same currency cannot beat a cheaper fresh, in-stock one.
+        var candidates: [String: DealCandidate] = [:]
+        for cached in item.offers where cached.isFresh && cached.offer.inStock == true && cached.offer.priceType == "promo" {
+            let currency = cached.offer.currency
+            if let previous = candidates[currency], !Self.isCheaper(cached, previous.cached) { continue }
+            candidates[currency] = DealCandidate(cached: cached, comparisonPrice: cached.offer.price)
+        }
+        guard !candidates.isEmpty else { return nil }
+
+        let stores = Self.representativeOffers(for: item)
+        for representative in stores.values {
+            let currency = representative.offer.currency
+            guard let candidate = candidates[currency] else { continue }
+            if representative.offer.price < candidate.cached.offer.price {
+                candidates[currency] = nil
+            } else if representative.offer.price > candidate.comparisonPrice, representative.store.id != candidate.cached.store.id,
+                      representative.isFresh, representative.offer.inStock == true {
+                candidates[currency]?.comparisonPrice = representative.offer.price
+            }
+        }
+
+        let best = candidates.values.lazy.filter { $0.comparisonPrice > $0.cached.offer.price }
+            .min { Self.isCheaper($0.cached, $1.cached) }
+        guard let best, let promotion = ProductPromotion(offer: ProductOffer(cached: best.cached, distance: nil),
+                                                         comparisonPrice: best.comparisonPrice) else { return nil }
+        self.init(item: item, stores: stores, distances: [:])
+        self.promotion = promotion
+    }
+
+    private struct DealCandidate {
+        let cached: CachedOffer
+        var comparisonPrice: Decimal
+    }
+
+    private init(item: CatalogItem, stores: [String: CachedOffer], distances: [String: Measurement<UnitLength>]) {
+        let sorted = stores.values.sorted {
+            $0.store.name == $1.store.name ? $0.store.id < $1.store.id : $0.store.name < $1.store.name
+        }
         self.init(id: item.id, name: item.product.name, brand: item.product.brand ?? "",
                   packageQuantity: item.product.packageQuantity, packageUnit: item.product.packageUnit,
-                  category: item.product.category.map(ProductCategory.init(rawValue:)), offers: offers.map {
-                      ProductOffer(id: $0.id, storeID: $0.store.id, name: $0.store.name,
-                                   price: $0.offer.price, currency: $0.offer.currency, inStock: $0.offer.inStock,
-                                   distance: distances[$0.store.id], isFresh: $0.isFresh,
-                                   cardPrice: $0.offer.cardPrice, priceConditions: $0.offer.priceConditions,
-                                   address: $0.store.address, chainName: $0.store.chainName)
-                  })
+                  category: item.product.category.map(ProductCategory.init(rawValue:)),
+                  offers: sorted.map { ProductOffer(cached: $0, distance: distances[$0.store.id]) })
+    }
+
+    private static func representativeOffers(for item: CatalogItem) -> [String: CachedOffer] {
+        Dictionary(item.offers.lazy.map { ($0.store.id, $0) }, uniquingKeysWith: { preferredOffer($0, $1) ? $0 : $1 })
+    }
+
+    nonisolated private static func isCheaper(_ lhs: CachedOffer, _ rhs: CachedOffer) -> Bool {
+        lhs.offer.price == rhs.offer.price ? lhs.id < rhs.id : lhs.offer.price < rhs.offer.price
     }
 
     nonisolated private static func preferredOffer(_ lhs: CachedOffer, _ rhs: CachedOffer) -> Bool {
@@ -113,7 +171,16 @@ extension Product {
         let rightAvailable = rhs.offer.inStock != false
         if leftAvailable != rightAvailable { return leftAvailable }
         if lhs.isFresh != rhs.isFresh { return lhs.isFresh }
-        return lhs.offer.price == rhs.offer.price ? lhs.id < rhs.id : lhs.offer.price < rhs.offer.price
+        return isCheaper(lhs, rhs)
+    }
+}
+
+private extension ProductOffer {
+    init(cached: CachedOffer, distance: Measurement<UnitLength>?) {
+        self.init(id: cached.id, storeID: cached.store.id, name: cached.store.name,
+                  price: cached.offer.price, currency: cached.offer.currency, inStock: cached.offer.inStock,
+                  distance: distance, isFresh: cached.isFresh, cardPrice: cached.offer.cardPrice,
+                  priceConditions: cached.offer.priceConditions, address: cached.store.address, chainName: cached.store.chainName)
     }
 }
 

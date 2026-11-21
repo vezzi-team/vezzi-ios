@@ -39,7 +39,8 @@ private actor PreviewShoppingListService: ShoppingListService {
         let stores = snapshot.stores.values.sorted { $0.id < $1.id }
         let cheapest = plan(stores: stores, fastest: false, start: start, options: options)
         let fastest = plan(stores: Array(stores.prefix(1)), fastest: true, start: start, options: options)
-        return ShoppingPlanResult(plans: [cheapest, fastest], baselinePrice: fastest.total, problem: nil, isSynthetic: false)
+        return ShoppingPlanResult(plans: [cheapest, fastest], fastestPlans: [fastest, cheapest],
+                                  baselinePrice: fastest.total, problem: nil, isSynthetic: false)
     }
 
     private func plan(stores: [CatalogStore], fastest: Bool, start: ShoppingCoordinate, options: ShoppingRouteOptions) -> ShoppingPlan {

@@ -26,6 +26,7 @@ enum AccessibilityID {
         static let origin = "routes.origin"
         static let back = "routes.back"
         static let panel = "routes.panel"
+        static let recalculating = "routes.recalculating"
         static let summary = "routes.summary"
         static let startShopping = "routes.startShopping"
         static let locate = "routes.locate"
@@ -39,6 +40,8 @@ enum AccessibilityID {
         static let profile = "home.profile"
         static let address = "home.address"
         static let motiCollections = "home.motiCollections"
+        static let collectionProducts = "home.motiCollection.products"
+        static let closeMotiCollection = "home.motiCollection.close"
         static let deals = "home.deals"
         static let essentials = "home.essentials"
         static let addDinner = "home.dinner.add"
@@ -99,8 +102,11 @@ enum AccessibilityID {
         enum Filters {
             static let bar = "catalog.filters"
 
-            static func category(_ id: String) -> String {
-                "catalog.filter.\(id)"
+            static func button(_ filter: CatalogFilter) -> String {
+                switch filter {
+                case .all: "catalog.filter.all"
+                case .category(let category): "catalog.filter.category.\(category.id)"
+                }
             }
         }
     }

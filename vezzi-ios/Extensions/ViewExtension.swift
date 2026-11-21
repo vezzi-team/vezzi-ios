@@ -22,4 +22,27 @@ extension View {
     internal func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
+
+    /// Crossfades the displayed screen state while updates within that state keep their identity.
+    func screenStateFade<State: Hashable>(for state: State) -> some View {
+        modifier(ScreenStateFade(state: state))
+    }
+}
+
+extension Animation {
+    static let screenStateFade = Animation.easeInOut(duration: 0.18)
+}
+
+private struct ScreenStateFade<State: Hashable>: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let state: State
+
+    func body(content: Content) -> some View {
+        ZStack(alignment: .topLeading) {
+            content
+                .id(state)
+                .transition(reduceMotion ? .identity : .opacity)
+        }
+        .animation(reduceMotion ? nil : .screenStateFade, value: state)
+    }
 }

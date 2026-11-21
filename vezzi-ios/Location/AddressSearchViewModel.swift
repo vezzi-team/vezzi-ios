@@ -19,6 +19,9 @@ final class AddressSearchViewModel: ObservableObject {
         self.service = service
     }
 
+    // Avoid an isolated deinit on early iOS 26 runtimes (Swift issue #88036).
+    nonisolated deinit {}
+
     var canSearch: Bool { query.trimmingCharacters(in: .whitespacesAndNewlines).count >= Const.minimumQueryLength }
 
     func updateQuery(_ query: String) {

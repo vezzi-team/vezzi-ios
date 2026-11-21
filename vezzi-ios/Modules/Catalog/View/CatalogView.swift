@@ -6,18 +6,25 @@ struct CatalogView<Header: View>: View {
     @ViewBuilder let header: Header
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var displayedCategory: ProductCategory?
+    @State private var displayedFilter: CatalogFilter
     @State private var isPastResultsTop = false
     @State private var filterBarHeight: CGFloat = .zero
+
+    init(viewModel: StorefrontViewModel, viewportHeight: CGFloat, @ViewBuilder header: () -> Header) {
+        self.viewModel = viewModel
+        self.viewportHeight = viewportHeight
+        self.header = header()
+        _displayedFilter = State(initialValue: viewModel.selectedFilter)
+    }
 
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView { content(viewportHeight: viewportHeight) }
-                .onChange(of: viewModel.selectedCategory) { _, _ in
-                    showSelectedCategory(using: proxy)
+                .onChange(of: viewModel.selectedFilter) { _, _ in
+                    showSelectedFilter(using: proxy)
                 }
                 .onScrollPhaseChange { _, phase in
-                    if phase == .idle { applySelectedCategory(using: proxy) }
+                    if phase == .idle { applySelectedFilter(using: proxy) }
                 }
                 .overlay(alignment: .bottom) {
                     scrollToTopButton(using: proxy)
@@ -35,11 +42,11 @@ struct CatalogView<Header: View>: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func showSelectedCategory(using proxy: ScrollViewProxy) {
-        let displayedCount = viewModel.products(in: displayedCategory).count
+    private func showSelectedFilter(using proxy: ScrollViewProxy) {
+        let displayedCount = viewModel.products(in: displayedFilter).count
         let shouldAnimate = !reduceMotion && isPastResultsTop && viewModel.filteredProducts.count < displayedCount
         guard shouldAnimate else {
-            applySelectedCategory(using: proxy)
+            applySelectedFilter(using: proxy)
             return
         }
 
@@ -49,12 +56,12 @@ struct CatalogView<Header: View>: View {
         }
     }
 
-    private func applySelectedCategory(using proxy: ScrollViewProxy) {
-        guard displayedCategory != viewModel.selectedCategory else { return }
+    private func applySelectedFilter(using proxy: ScrollViewProxy) {
+        guard displayedFilter != viewModel.selectedFilter else { return }
         if isPastResultsTop {
             proxy.scrollTo(Const.resultsTopID, anchor: .top)
         }
-        displayedCategory = viewModel.selectedCategory
+        displayedFilter = viewModel.selectedFilter
     }
 
     private func content(viewportHeight: CGFloat) -> some View {
@@ -71,7 +78,7 @@ struct CatalogView<Header: View>: View {
         LazyVStack(spacing: .zero, pinnedViews: [.sectionHeaders]) {
             Section {
                 productGrid
-                    .padding(.horizontal, Const.contentInset)
+                    .padding(.horizontal, ProductGridLayout.contentInset)
                     .padding(.bottom, Const.contentInset)
                     // A short filtered feed must still leave enough room to pin its header.
                     .frame(minHeight: max(.zero, viewportHeight - filterBarHeight), alignment: .top)
@@ -87,14 +94,14 @@ struct CatalogView<Header: View>: View {
     }
 
     private var categoryFilters: some View {
-        CatalogCategoryFilterBar(selectedCategory: $viewModel.selectedCategory, categories: viewModel.categories)
+        CatalogCategoryFilterBar(selectedFilter: $viewModel.selectedFilter, categories: viewModel.categories)
             .padding(.bottom, Const.gridHeaderSpacing)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { filterBarHeight = $0 }
     }
 
     private var productGrid: some View {
-        LazyVGrid(columns: columns, alignment: .leading, spacing: Const.gridSpacing) {
-            ForEach(viewModel.products(in: displayedCategory)) { product in
+        LazyVGrid(columns: ProductGridLayout.columns(for: dynamicTypeSize), alignment: .leading, spacing: Const.gridSpacing) {
+            ForEach(viewModel.products(in: displayedFilter)) { product in
                 ProductCard(product: product, quantity: quantityBinding(for: product.id)) {
                     viewModel.showProduct(product)
                 }
@@ -102,14 +109,7 @@ struct CatalogView<Header: View>: View {
             }
         }
         .animation(reduceMotion ? nil : .easeOut(duration: Const.filterTransitionDuration),
-                   value: displayedCategory)
-    }
-
-    private var columns: [GridItem] {
-        if dynamicTypeSize.isAccessibilitySize {
-            return [GridItem(.flexible())]
-        }
-        return [GridItem(.adaptive(minimum: Const.minimumCardWidth), spacing: Const.gridSpacing, alignment: .top)]
+                   value: displayedFilter)
     }
 
     private func quantityBinding(for productID: String) -> Binding<Int> {
@@ -130,5 +130,4 @@ private enum Const {
     static let gridSpacing: CGFloat = 16
     static let filterScrollDuration: TimeInterval = 0.22
     static let filterTransitionDuration: TimeInterval = 0.18
-    static let minimumCardWidth: CGFloat = 150
 }

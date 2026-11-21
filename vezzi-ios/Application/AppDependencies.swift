@@ -10,14 +10,14 @@ final class AppDependencies: ObservableObject {
     private var networkMonitor: NetworkMonitor?
     private var hasLoaded = false
     private var hasStarted = false
-    private var statusSubscription: AnyCancellable?
     private var accountSubscription: AnyCancellable?
     private var listStatusSubscription: AnyCancellable?
 
     convenience init() {
-        let authentication = DefaultAuthenticationService()
+        let client = APIClient()
+        let authentication = DefaultAuthenticationService(client: client)
         self.init(cache: CoreDataCatalogCache(persistence: PersistenceController()),
-                  source: APICatalogSource(client: authentication), authenticationService: authentication,
+                  source: APICatalogSource(client: client), authenticationService: authentication,
                   shoppingListService: APIShoppingListService(client: authentication), shoppingListCache: FileShoppingListCache(),
                   addressResolver: MapKitAddressResolver())
         networkMonitor = NetworkMonitor { [weak self] connected in
@@ -46,10 +46,6 @@ final class AppDependencies: ObservableObject {
             guard failure == .authenticationRequired else { return }
             Task { await self?.authentication.restore(force: true) }
         }
-        statusSubscription = catalog.status.map(\.failure).removeDuplicates().sink { [weak self] failure in
-            guard failure == .authenticationRequired else { return }
-            Task { await self?.authentication.restore(force: true) }
-        }
     }
 
     nonisolated deinit {}
@@ -58,23 +54,22 @@ final class AppDependencies: ObservableObject {
         guard !hasStarted else { return }
         hasStarted = true
         async let cache: Void = catalog.prepareCache()
+        async let catalogRefresh: Void = refreshCatalog()
         await authentication.restore()
-        if catalog.canRefresh { try? await catalog.refresh() }
+        await catalogRefresh
         hasLoaded = true
         await cache
     }
 
-    func accountChanged() async {
-        guard hasStarted else { return }
-        catalog.cancelRefresh()
-        if catalog.canRefresh { try? await catalog.refresh() }
-    }
-
     func becameActive() async {
         guard hasLoaded else { return }
+        async let catalogRefresh: Void = refreshCatalog()
         await authentication.restore(force: true)
-        async let listRefresh: Void = shoppingList.refresh()
+        await shoppingList.refresh()
+        await catalogRefresh
+    }
+
+    private func refreshCatalog() async {
         if catalog.canRefresh { try? await catalog.refresh() }
-        await listRefresh
     }
 }

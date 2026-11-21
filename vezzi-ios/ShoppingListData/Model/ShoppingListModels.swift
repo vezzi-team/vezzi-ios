@@ -52,10 +52,23 @@ nonisolated struct ShoppingRouteOptions: Codable, Sendable, Equatable {
 
 nonisolated struct ShoppingPlanResult: Codable, Sendable {
     let plans: [ShoppingPlan]
+    /// Both rankings retain server order. Earlier disk snapshots contain only the price ranking.
+    let fastestPlans: [ShoppingPlan]?
     let baselinePrice: Decimal?
     let problem: String?
     let isSynthetic: Bool
     var minRequiredRadiusMeters: Int? = nil
+
+    var rankedPlans: [ShoppingPlan] { plans + (fastestPlans ?? []) }
+
+    var hasValidRankings: Bool {
+        func isValid(_ ranking: [ShoppingPlan]) -> Bool {
+            ranking.count <= 3 && Set(ranking.map(\.id)).count == ranking.count
+        }
+        guard isValid(plans) else { return false }
+        guard let fastestPlans else { return true }
+        return fastestPlans.isEmpty == plans.isEmpty && isValid(fastestPlans)
+    }
 }
 
 nonisolated struct ShoppingPlan: Codable, Identifiable, Sendable {

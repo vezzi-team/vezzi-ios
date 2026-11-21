@@ -830,6 +830,23 @@
         }
       }
     },
+    "CatalogFilterAll" : {
+      "comment" : "All products",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все"
+          }
+        }
+      }
+    },
     "CatalogNoCacheMessage" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -894,57 +911,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Потяните вниз или нажмите, чтобы обновить товары и цены."
-          }
-        }
-      }
-    },
-    "CatalogSignIn" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign in"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Войти"
-          }
-        }
-      }
-    },
-    "CatalogSignInMessage" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The catalog requires sign-in. Saved products remain available."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Для загрузки каталога нужен вход. Сохранённые товары остаются доступны."
-          }
-        }
-      }
-    },
-    "CatalogSignInTitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign in to load products"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Войдите, чтобы загрузить товары"
           }
         }
       }
@@ -1751,6 +1717,23 @@
         }
       }
     },
+    "HomeDiscoveryEmptyCollection" : {
+      "comment" : "No products in this collection yet",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No products in this collection yet"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В этой подборке пока нет товаров"
+          }
+        }
+      }
+    },
     "HomeDiscoveryEssentials" : {
       "comment" : "Today’s essentials",
       "localizations" : {
@@ -1987,23 +1970,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Овощи и фрукты"
-          }
-        }
-      }
-    },
-    "HomeForYou" : {
-      "comment" : "For you",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For you"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Для вас"
           }
         }
       }
@@ -2527,6 +2493,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Томаты"
+          }
+        }
+      }
+    },
+    "ProductPromotionComparison" : {
+      "comment" : "Discount compared with the highest price at another store",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ compared with the highest price at another store, %2$@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ относительно максимальной цены в другом магазине, %2$@"
           }
         }
       }
@@ -3224,6 +3207,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Назад"
+          }
+        }
+      }
+    },
+    "RoutesCalculating" : {
+      "comment" : "Calculating routes…",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculating routes…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Рассчитываем маршруты…"
           }
         }
       }
@@ -4725,6 +4725,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не все товары доступны в выбранной области."
+          }
+        }
+      }
+    },
+    "ShoppingListRefreshForFastestRoutes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh your list when online to see the fastest routes."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновите список при подключении к интернету, чтобы увидеть самые быстрые маршруты."
           }
         }
       }
