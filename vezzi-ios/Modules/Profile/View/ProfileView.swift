@@ -66,7 +66,7 @@ struct ProfileView: View {
 
     private var accountSummary: some View {
         VStack(alignment: .leading, spacing: ProfileLayout.labelSpacing) {
-            Text(Texts.Profile.Main.user)
+            Text(Texts.Profile.Main.personalDetails)
                 .font(.title3.weight(.semibold))
                 .lineLimit(1)
                 .minimumScaleFactor(Const.minimumAccountTitleScale)

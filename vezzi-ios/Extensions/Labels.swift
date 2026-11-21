@@ -273,8 +273,7 @@ final class Texts {
 
         enum Main {
             static let title = NSLocalizedString("ProfileMainTitle", comment: "Profile")
-            static let user = NSLocalizedString("ProfileUser", comment: "User")
-            static let personalDetails = NSLocalizedString("ProfileMainPersonalDetails", comment: "Account details")
+            static let personalDetails = NSLocalizedString("ProfileMainPersonalDetails", comment: "My details")
             static let email = NSLocalizedString("ProfileEmail", comment: "Email address")
             static let settings = NSLocalizedString("ProfileMainSettings", comment: "Settings")
             static let debug = NSLocalizedString("ProfileMainDebug", comment: "Debug")

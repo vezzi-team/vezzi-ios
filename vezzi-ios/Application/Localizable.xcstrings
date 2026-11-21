@@ -3175,19 +3175,19 @@
       }
     },
     "ProfileMainPersonalDetails" : {
-      "comment" : "Account details",
+      "comment" : "My details",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Account details"
+            "value" : "My details"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Данные"
+            "value" : "Мои данные"
           }
         }
       }
@@ -3416,24 +3416,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Связаться с нами"
-          }
-        }
-      }
-    },
-    "ProfileUser" : {
-      "comment" : "User",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "User"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Пользователь"
           }
         }
       }
