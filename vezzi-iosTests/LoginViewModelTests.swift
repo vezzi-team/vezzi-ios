@@ -99,15 +99,11 @@ final class LoginViewModelTests: XCTestCase {
         XCTAssertNil(model.request)
     }
 
-    func testSignOutClearsAccountPreferences() async throws {
+    func testSignOutClearsAccountIdentity() async throws {
         let session = AuthenticationSession(service: ImmediateService())
         try await session.signIn(email: "moti@example.com", password: "password", intent: .signIn, requestID: UUID())
-        session.preferences.priority = .price
-        session.preferences.notificationsEnabled = false
         try await session.signOut()
         XCTAssertNil(session.user)
-        XCTAssertEqual(session.preferences.priority, .balanced)
-        XCTAssertTrue(session.preferences.notificationsEnabled)
     }
 
     func testMissingPasswordDoesNotStartARequestAndOnlyPasswordEditingClearsItsError() {

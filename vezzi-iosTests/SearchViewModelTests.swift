@@ -392,7 +392,7 @@ final class SearchViewModelTests: XCTestCase {
         let snapshot = try CatalogFixtures.snapshot(batch)
         let model = SearchViewModel(repository: PreviewCatalogRepository(snapshot: snapshot))
         XCTAssertEqual(model.items.first?.offers.count, 4, "The underlying catalog retains every offer")
-        for mode in ProductSearchMode.allCases {
+        for mode in ShoppingMode.allCases {
             model.mode = mode
             let products = model.sections.flatMap(\.products)
             XCTAssertEqual(products.count, 1)
@@ -430,7 +430,7 @@ final class SearchViewModelTests: XCTestCase {
                 let catalog = StorefrontViewModel(page: .catalog, repository: repository)
                 XCTAssertEqual(catalog.catalogSections.first?.preview.first?.offers.first?.id, "available")
                 let search = SearchViewModel(repository: repository)
-                for mode in ProductSearchMode.allCases {
+                for mode in ShoppingMode.allCases {
                     search.mode = mode
                     let products = search.sections.flatMap(\.products)
                     XCTAssertEqual(products.count, 1)
@@ -460,7 +460,7 @@ final class SearchViewModelTests: XCTestCase {
             batch.offers = offers
             let snapshot = try CatalogSnapshot().applying(CatalogFixtures.export(batch, date: now)).snapshot.evaluated(at: now)
             let model = SearchViewModel(repository: PreviewCatalogRepository(snapshot: snapshot))
-            for mode in ProductSearchMode.allCases {
+            for mode in ShoppingMode.allCases {
                 model.mode = mode
                 let product = try XCTUnwrap(model.sections.first?.products.first)
                 XCTAssertEqual(product.offers.first?.id, "fresh-a")

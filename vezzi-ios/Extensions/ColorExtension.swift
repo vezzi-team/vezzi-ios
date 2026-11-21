@@ -14,8 +14,8 @@ extension Color {
         static let repeatedRoute = Color("MapRepeatedRoute")
     }
     
-    enum Profile {
-        static let confirmation = Color("ProfileConfirmation")
+    enum Action {
+        static let destructive = Color("ActionDestructive")
     }
 
     enum Mascot {

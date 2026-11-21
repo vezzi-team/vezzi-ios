@@ -1,75 +1,69 @@
 import SwiftUI
 
+extension ShoppingMode {
+    var profileTitle: String {
+        self == .cheaper ? Texts.Profile.Shopping.economical : Texts.Search.faster
+    }
+}
+
 struct ShoppingModeView: View {
-    @StateObject private var viewModel: ProfileViewModel
+    let preferences: ShoppingPreferences
+    @State private var draft: Draft
     @Environment(\.dismiss) private var dismiss
 
-    init(session: AuthenticationSession) {
-        _viewModel = StateObject(wrappedValue: ProfileViewModel(session: session))
+    private struct Draft {
+        let accountID: UUID?
+        var mode: ShoppingMode
+    }
+
+    init(preferences: ShoppingPreferences) {
+        self.preferences = preferences
+        _draft = State(initialValue: Draft(accountID: preferences.accountID, mode: preferences.mode))
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: Const.spacing) {
-                ForEach(ProfilePreferences.ShoppingPriority.allCases) { priority in
-                    Button { viewModel.priority = priority } label: {
-                        ProfileCard {
-                            HStack(spacing: Const.spacing) {
-                                VStack(alignment: .leading, spacing: Const.textSpacing) {
-                                    Text(priority.title).appTextStyle(.appText)
-                                    Text(subtitle(for: priority)).appTextStyle(.caption)
-                                        .foregroundStyle(Color.Label.secondary)
-                                }
-                                Spacer(minLength: .zero)
-                                if viewModel.priority == priority {
-                                    Image.System.checkmark.foregroundStyle(Color.accentColor)
-                                        .accessibilityHidden(true)
-                                }
-                            }
-                        }
-                        .overlay {
-                            RoundedRectangle(cornerRadius: Const.radius)
-                                .stroke(viewModel.priority == priority ? Color.accentColor : Color.clear,
-                                        lineWidth: Const.borderWidth)
-                        }
-                    }
-                    .pressScaleEffect()
-                    .accessibilityAddTraits(viewModel.priority == priority ? [.isSelected] : [])
-                    .accessibilityIdentifier(AccessibilityID.Profile.priority(priority.rawValue))
-                }
-                Text(Texts.Profile.Controls.temporary)
-                    .appTextStyle(.caption).foregroundStyle(Color.Label.secondary)
+        ProfileCompactSheetContent {
+            VStack(spacing: ProfileLayout.cardSpacing) {
+                ForEach(ShoppingMode.allCases) { mode in option(mode) }
             }
-            .padding(Const.inset)
+            .padding(ProfileLayout.inset)
         }
-        .foregroundStyle(Color.Label.primary)
-        .background(Color.Background.primary)
         .navigationTitle(Texts.Profile.Shopping.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ProfileSheetToolbar(onClose: { dismiss() }, onSave: {
-                if viewModel.savePriority() { dismiss() }
+                preferences.save(draft.mode, for: draft.accountID)
+                dismiss()
             })
         }
     }
 
-    private func subtitle(for priority: ProfilePreferences.ShoppingPriority) -> String {
-        switch priority {
-        case .balanced: return Texts.Profile.Shopping.balancedDescription
-        case .price: return Texts.Profile.Shopping.priceDescription
-        case .time: return Texts.Profile.Shopping.timeDescription
+    private func option(_ mode: ShoppingMode) -> some View {
+        Button { draft.mode = mode } label: {
+            ProfileCard(minHeight: Const.optionHeight) {
+                VStack(alignment: .leading, spacing: ProfileLayout.labelSpacing) {
+                    Text(mode.profileTitle).font(.body)
+                    Text(mode == .cheaper ? Texts.Profile.Shopping.priceDescription : Texts.Profile.Shopping.timeDescription)
+                        .font(.footnote).foregroundStyle(Color.Label.secondary)
+                }
+            }
+            .overlay {
+                if draft.mode == mode {
+                    RoundedRectangle(cornerRadius: ProfileLayout.cornerRadius).strokeBorder(Color.accentColor, lineWidth: Const.selectionWidth)
+                }
+            }
         }
+        .pressScaleEffect()
+        .accessibilityAddTraits(draft.mode == mode ? .isSelected : [])
+        .accessibilityIdentifier(AccessibilityID.Profile.priority(mode.rawValue))
     }
 
     private enum Const {
-        static let spacing: CGFloat = 12
-        static let textSpacing: CGFloat = 4
-        static let radius: CGFloat = 20
-        static let borderWidth: CGFloat = 1
-        static let inset: CGFloat = 16
+        static let optionHeight: CGFloat = 84
+        static let selectionWidth: CGFloat = 1.5
     }
 }
 
-#Preview("Shopping preference") {
-    NavigationStack { ShoppingModeView(session: .preview()) }
+#Preview {
+    NavigationStack { ShoppingModeView(preferences: ShoppingPreferences(authentication: .preview())) }
 }

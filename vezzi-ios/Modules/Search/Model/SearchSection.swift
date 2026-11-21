@@ -1,12 +1,5 @@
 import Foundation
 
-enum ProductSearchMode: String, CaseIterable, Identifiable {
-    case cheaper
-    case faster
-
-    var id: Self { self }
-}
-
 struct SearchSection: Identifiable {
     let id: String
     let title: String

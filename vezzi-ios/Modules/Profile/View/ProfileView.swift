@@ -2,47 +2,51 @@ import SwiftUI
 
 struct ProfileView: View {
     @ObservedObject var session: AuthenticationSession
+    @ObservedObject var list: ShoppingListRepository
     @EnvironmentObject private var router: AppRouter
+    @Environment(\.preferredShoppingMode) private var mode
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         ScrollView {
-            VStack(spacing: Const.spacing) {
+            VStack(spacing: ProfileLayout.cardSpacing) {
                 accountCard
                 preferenceCards
                 settingsCard
                 contactCard
+                #if DEBUG
                 debugSection
+                #endif
             }
-            .padding(Const.inset)
-            .frame(maxWidth: Const.maximumWidth)
+            .padding(.horizontal, ProfileLayout.inset)
+            .padding(.vertical, Const.verticalInset)
+            .frame(maxWidth: Const.maxWidth)
             .frame(maxWidth: .infinity)
         }
-        .background(Color.Background.primary)
+        .background(Color.Background.iOSPrimary)
         .foregroundStyle(Color.Label.primary)
         .accessibilityIdentifier(AccessibilityID.Profile.screen)
     }
 
-    // MARK: - Account
-
     private var accountCard: some View {
-        Button { router.push(.profileDetails(.personalDetails), in: .home) } label: {
-            ProfileCard {
-                HStack(spacing: Const.spacing) {
-                    Text(initial)
-                        .appTextStyle(.body, weight: .semibold)
-                        .foregroundStyle(Color.Label.white)
-                        .frame(width: Const.avatarSize, height: Const.avatarSize)
-                        .background(Color.accentColor, in: Circle())
-                        .accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: Const.textSpacing) {
-                        Text(Texts.Profile.Main.yourProfile).appTextStyle(.body, weight: .semibold)
-                        Text(session.user?.email ?? Texts.Profile.Details.notProvided)
-                            .appTextStyle(.caption).foregroundStyle(Color.Label.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
+        NavigationLink(value: AppRouter.Route.profileData) {
+            ProfileCard(minHeight: Const.accountHeight, showsShadow: true) {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: Const.accountSpacing) {
+                        HStack {
+                            avatar
+                            Spacer()
+                            accountChevron
+                        }
+                        accountSummary
                     }
-                    Spacer(minLength: Const.textSpacing)
-                    Image.System.chevronRight.accessibilityHidden(true)
+                } else {
+                    HStack(spacing: Const.accountSpacing) {
+                        avatar
+                        accountSummary
+                        Spacer(minLength: .zero)
+                        accountChevron
+                    }
                 }
             }
         }
@@ -50,35 +54,60 @@ struct ProfileView: View {
         .accessibilityIdentifier(AccessibilityID.Profile.personalDetails)
     }
 
-    private var initial: String { String((session.user?.email ?? "").prefix(1)).uppercased() }
+    private var avatar: some View {
+        Text(String((session.user?.email ?? "").prefix(1)).uppercased())
+            .font(.title3.weight(.semibold))
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            .foregroundStyle(Color.Mascot.ink)
+            .frame(width: Const.avatarSize, height: Const.avatarSize)
+            .background(Color.accentColor, in: Circle())
+            .accessibilityHidden(true)
+    }
 
-    // MARK: - Preferences
-
-    private var preferenceCards: some View {
-        let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(spacing: Const.spacing))
-            : AnyLayout(HStackLayout(alignment: .top, spacing: Const.spacing))
-        return layout {
-            preferenceCard(title: Texts.Profile.Addresses.title,
-                           subtitle: session.preferences.address.isEmpty
-                            ? Texts.Profile.Addresses.add : session.preferences.address,
-                           image: Image.System.profileLocation, sheet: .addresses)
-            preferenceCard(title: Texts.Profile.Shopping.title,
-                           subtitle: session.preferences.priority.title,
-                           image: Image.System.profileRoute, sheet: .shopping)
+    private var accountSummary: some View {
+        VStack(alignment: .leading, spacing: ProfileLayout.labelSpacing) {
+            Text(Texts.Profile.Main.user)
+                .font(.title3.weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(Const.minimumAccountTitleScale)
+            if let email = session.user?.email {
+                // Prefer breaks after email separators while VoiceOver reads the original address.
+                let displayEmail = email.replacingOccurrences(of: "@", with: "@\u{200B}")
+                    .replacingOccurrences(of: ".", with: ".\u{200B}")
+                Text(verbatim: displayEmail)
+                    .font(.footnote)
+                    .foregroundStyle(Color.Label.secondary)
+                    .accessibilityLabel(Text(verbatim: email))
+            }
         }
     }
 
-    private func preferenceCard(title: String, subtitle: String, image: Image, sheet: ProfileSheet) -> some View {
+    private var accountChevron: some View {
+        Image.System.chevronRight.font(.footnote.weight(.semibold))
+            .foregroundStyle(Color.Label.tertiary).accessibilityHidden(true)
+    }
+
+    private var preferenceCards: some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: ProfileLayout.cardSpacing)) : AnyLayout(HStackLayout(alignment: .top, spacing: ProfileLayout.cardSpacing))
+        return layout {
+            preferenceCard(Texts.Profile.Addresses.title, subtitle: list.originAddress?.addressCapitalized ?? Texts.Routes.Settings.mapTitle,
+                           image: Image.Profile.pin, sheet: .address)
+            preferenceCard(Texts.Profile.Shopping.title, subtitle: mode.profileTitle, image: Image.Profile.route, sheet: .shopping)
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func preferenceCard(_ title: String, subtitle: String, image: Image, sheet: ProfileSheet) -> some View {
         Button { router.presentProfile(sheet) } label: {
-            ProfileCard {
-                VStack(alignment: .leading, spacing: Const.textSpacing) {
-                    image.font(.title3).accessibilityHidden(true)
-                    Text(title).appTextStyle(.appText, weight: .semibold)
-                    Text(subtitle).appTextStyle(.caption).foregroundStyle(Color.Label.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+            ProfileCard(minHeight: Const.tileHeight, verticalInset: Const.tileInset, alignment: .topLeading, showsShadow: true) {
+                VStack(alignment: .leading, spacing: ProfileLayout.labelSpacing) {
+                    image.resizable().scaledToFit().frame(width: Const.tileIconSize, height: Const.tileIconSize).accessibilityHidden(true)
+                    Text(title).font(.headline)
+                    Text(subtitle).font(.footnote).foregroundStyle(Color.Label.secondary)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
                 }
-                .frame(maxWidth: .infinity, minHeight: Const.tileHeight, alignment: .topLeading)
+                .frame(maxHeight: .infinity, alignment: .topLeading)
             }
         }
         .pressScaleEffect()
@@ -86,45 +115,48 @@ struct ProfileView: View {
     }
 
     private var settingsCard: some View {
-        ProfileCard {
+        ProfileCard(verticalInset: .zero, showsShadow: true) {
             VStack(spacing: .zero) {
-                Button { router.presentProfile(.notifications) } label: {
-                    ProfileRow(title: Texts.Profile.Main.notifications, image: Image.System.profileSettings)
-                }.pressScaleEffect()
-                Divider()
-                Button { router.presentProfile(.about) } label: {
-                    ProfileRow(title: Texts.Profile.Main.about, image: Image.System.person)
-                }.pressScaleEffect()
+                menuRow(.settings, title: Texts.Profile.Main.settings, image: Image.Profile.settings)
+                Divider().padding(.leading, Const.separatorInset)
+                menuRow(.about, title: Texts.Profile.Main.about, image: Image.Profile.about)
             }
         }
     }
 
+    private func menuRow(_ sheet: ProfileSheet, title: String, image: Image) -> some View {
+        Button { router.presentProfile(sheet) } label: {
+            ProfileRow(title: title, image: image, minimumHeight: Const.menuRowHeight)
+        }
+        .pressScaleEffect()
+        .accessibilityIdentifier(AccessibilityID.Profile.destination(sheet.rawValue))
+    }
+
     private var contactCard: some View {
-        Button { router.push(.profileDetails(.help), in: .home) } label: {
-            ProfileCard {
-                HStack(spacing: Const.spacing) {
-                    VStack(alignment: .leading, spacing: Const.textSpacing) {
-                        Text(Texts.Profile.Support.title).appTextStyle(.appText, weight: .semibold)
-                        Text(Texts.Profile.Support.subtitle).appTextStyle(.caption)
-                            .foregroundStyle(Color.Label.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    if !dynamicTypeSize.isAccessibilitySize {
-                        MotiMascotView(state: .idle, isMotionEnabled: false)
-                            .frame(width: Const.mascotWidth, height: Const.mascotHeight)
-                    }
+        ProfileCard(minHeight: Const.contactHeight, verticalInset: Const.contactInset, showsShadow: true) {
+            HStack(spacing: ProfileLayout.cardSpacing) {
+                VStack(alignment: .leading, spacing: ProfileLayout.labelSpacing) {
+                    Text(Texts.Profile.Support.title).font(.headline)
+                    Text(Texts.Profile.Support.subtitle).font(.footnote).foregroundStyle(Color.Label.secondary)
+                }
+                Spacer(minLength: .zero)
+                if !dynamicTypeSize.isAccessibilitySize {
+                    StaticMotiArtwork { Image.Brand.motiWinkingFace.resizable().scaledToFit() }
+                        .frame(width: Const.mascotWidth)
                 }
             }
         }
-        .pressScaleEffect()
+        .opacity(Const.disabledOpacity)
+        .accessibilityElement(children: .combine)
+        .disabled(true)
         .accessibilityIdentifier(AccessibilityID.Profile.contact)
     }
 
     private var debugSection: some View {
-        VStack(alignment: .leading, spacing: Const.textSpacing) {
-            Text(Texts.Profile.Main.debug).appTextStyle(.caption).foregroundStyle(Color.Label.secondary)
-            Button { router.push(.motiDebug, in: .home) } label: {
-                ProfileCard { ProfileRow(title: Texts.Debug.Moti.title, image: Image.System.profileDebug) }
+        VStack(alignment: .leading, spacing: Const.debugSpacing) {
+            Text(Texts.Profile.Main.debug).font(.footnote).foregroundStyle(Color.Label.secondary)
+            NavigationLink(value: AppRouter.Route.motiDebug) {
+                ProfileCard(verticalInset: ProfileLayout.labelSpacing) { ProfileRow(title: Texts.Debug.Moti.title, image: Image.System.profileDebug) }
             }
             .pressScaleEffect()
             .accessibilityIdentifier(AccessibilityID.Profile.motiDebug)
@@ -132,30 +164,30 @@ struct ProfileView: View {
     }
 
     private enum Const {
-        static let inset: CGFloat = 16
-        static let spacing: CGFloat = 12
-        static let textSpacing: CGFloat = 6
+        static let maxWidth: CGFloat = 680
+        static let verticalInset: CGFloat = 10
+        static let accountSpacing: CGFloat = 14
+        static let accountHeight: CGFloat = 92
+        static let minimumAccountTitleScale: CGFloat = 0.75
         static let avatarSize: CGFloat = 52
-        static let tileHeight: CGFloat = 92
-        static let mascotWidth: CGFloat = 100
-        static let mascotHeight: CGFloat = 76
-        static let maximumWidth: CGFloat = 680
+        static let tileHeight: CGFloat = 116
+        static let tileInset: CGFloat = 14
+        static let tileIconSize: CGFloat = 22
+        static let menuRowHeight: CGFloat = 66
+        static let separatorInset: CGFloat = 36
+        static let contactHeight: CGFloat = 100
+        static let contactInset: CGFloat = 9
+        static let mascotWidth: CGFloat = 116
+        static let debugSpacing: CGFloat = 6
+        static let disabledOpacity: Double = 0.2
     }
 }
 
-#Preview("Profile — light") {
+#Preview("Profile") {
+    @Previewable @StateObject var session = AuthenticationSession.preview()
     NavigationStack {
-        ProfileView(session: .preview()).environmentObject(AppRouter())
+        ProfileView(session: session, list: ShoppingListRepository()).environmentObject(AppRouter())
             .navigationTitle(Texts.Profile.Main.title)
     }
-    .preferredColorScheme(.light)
-}
-
-#Preview("Profile — dark, large text") {
-    NavigationStack {
-        ProfileView(session: .preview()).environmentObject(AppRouter())
-            .navigationTitle(Texts.Profile.Main.title)
-    }
-    .preferredColorScheme(.dark)
-    .dynamicTypeSize(.accessibility3)
+    .task { try? await session.signIn(email: "moti@example.com", password: "preview-only", intent: .signIn, requestID: UUID()) }
 }

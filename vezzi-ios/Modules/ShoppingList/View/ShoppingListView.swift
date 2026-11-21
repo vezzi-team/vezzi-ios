@@ -3,6 +3,7 @@ import SwiftUI
 struct ShoppingListView: View {
     @StateObject private var viewModel: ShoppingListViewModel
     private let location: any DeviceLocating
+    @Environment(\.preferredShoppingMode) private var preferredMode
     @EnvironmentObject private var router: AppRouter
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -48,6 +49,9 @@ struct ShoppingListView: View {
         .safeAreaBar(edge: .bottom) {
             if viewModel.contentState == .products || viewModel.contentState == .empty { bottomAction }
         }
+        .onChange(of: router.selectedTab == .shoppingList ? preferredMode : nil, initial: true) { _, mode in
+            if let mode, viewModel.mode != mode { viewModel.mode = mode }
+        }
         .refreshable { [weak viewModel] in await viewModel?.refresh() }
         .onAppear { viewModel.list.setPresented(true) }
         .onDisappear { if viewModel.routes == nil { viewModel.list.setPresented(false) } }
@@ -74,12 +78,12 @@ struct ShoppingListView: View {
         // A lazy root preserves the native inline-large title's spacing at accessibility text sizes.
         LazyVStack(alignment: .leading, spacing: Const.sectionSpacing) {
             addressButton
-                .padding(.horizontal, viewModel.contentState == .products ? Const.contentInset : Const.routeHorizontalInset)
+                .padding(.horizontal, viewModel.contentState == .products ? Const.contentInset : TabBarActionLayout.horizontalInset)
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { addressHeight = $0 }
             listBody.screenStateFade(for: viewModel.contentState)
         }
         .padding(.vertical, Const.contentInset)
-        .frame(maxWidth: Const.maximumWidth)
+        .frame(maxWidth: TabBarActionLayout.maximumWidth)
         .frame(maxWidth: .infinity)
         .coordinateSpace(name: Const.contentCoordinateSpace)
     }
@@ -93,7 +97,7 @@ struct ShoppingListView: View {
         } else {
             VStack(spacing: Const.sectionSpacing) {
                 emptyContent
-                feedback.padding(.horizontal, Const.routeHorizontalInset)
+                feedback.padding(.horizontal, TabBarActionLayout.horizontalInset)
             }
             .frame(maxWidth: .infinity,
                    minHeight: max(.zero, viewportHeight - addressHeight - Const.sectionSpacing - Const.contentInset * 2))
@@ -163,14 +167,14 @@ struct ShoppingListView: View {
 
     private var modePicker: some View {
         Picker(Texts.Search.mode, selection: modeSelection) {
-            Text(Texts.Search.cheaper).tag(ShoppingListMode.cheaper)
-            Text(Texts.Search.faster).tag(ShoppingListMode.faster)
+            Text(Texts.Search.cheaper).tag(ShoppingMode.cheaper)
+            Text(Texts.Search.faster).tag(ShoppingMode.faster)
         }
         .pickerStyle(.segmented)
         .accessibilityIdentifier(AccessibilityID.ShoppingList.mode)
     }
 
-    private var modeSelection: Binding<ShoppingListMode> {
+    private var modeSelection: Binding<ShoppingMode> {
         Binding(get: { viewModel.mode }, set: { mode in
             withAnimation(reduceMotion ? nil : .smooth(duration: Const.transitionDuration)) {
                 viewModel.mode = mode
@@ -307,13 +311,7 @@ struct ShoppingListView: View {
     }
 
     private var signInButton: some View {
-        Button { router.presentAuthentication() } label: {
-            Text(Texts.ShoppingList.signIn)
-                .appTextStyle(.appText, weight: .semibold)
-                .frame(maxWidth: .infinity, minHeight: Const.signInContentHeight)
-        }
-        .buttonStyle(.glassProminent)
-        .controlSize(.large)
+        PrimaryActionButton(title: Texts.ShoppingList.signIn, action: router.presentAuthentication)
     }
 
     private var bottomAction: some View {
@@ -333,10 +331,8 @@ struct ShoppingListView: View {
         .buttonStyle(.glassProminent)
         .controlSize(.large)
         .disabled(viewModel.contentState == .products && viewModel.plan == nil)
-        .padding(.horizontal, Const.routeHorizontalInset)
+        .tabBarActionWidth()
         .padding(.vertical, Const.routeInset)
-        .frame(maxWidth: Const.maximumWidth)
-        .frame(maxWidth: .infinity)
         .accessibilityIdentifier(viewModel.contentState == .empty
                                  ? AccessibilityID.ShoppingList.addProducts : AccessibilityID.ShoppingList.route)
     }
@@ -387,13 +383,11 @@ struct ShoppingListView: View {
         static let contentCoordinateSpace = "shoppingList.content"
         static let contentInset: CGFloat = 16
         static let sectionSpacing: CGFloat = 16
-        static let maximumWidth: CGFloat = 760
         static let addressSpacing: CGFloat = 10
         static let addressInset: CGFloat = 12
         static let addressRadius: CGFloat = 16
         static let captionSpacing: CGFloat = 2
         static let summarySpacing: CGFloat = 8
-        static let signInContentHeight: CGFloat = 24
         static let summaryVerticalInset: CGFloat = 8
         static let maximumPinnedHeightFraction: CGFloat = 0.5
         static let summaryPinTolerance: CGFloat = 4
@@ -404,7 +398,6 @@ struct ShoppingListView: View {
         static let loadingIndicatorWidth: CGFloat = 20
         static let loadingSpacing: CGFloat = 8
         static let secondsPerMinute = 60.0
-        static let routeHorizontalInset: CGFloat = 20
         static let routeInset: CGFloat = 8
         static let gridSpacing: CGFloat = 16
         static let transitionDuration: TimeInterval = 0.25

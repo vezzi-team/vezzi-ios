@@ -12,7 +12,7 @@ final class Texts {
     // MARK: - App Info
     
     enum AppInfo {
-        static let title = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Planzo"
+        static let title = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Polka"
     }
     
     // MARK: - Shared Controls
@@ -243,56 +243,24 @@ final class Texts {
 
     enum Profile {
         enum Controls {
-            static let close = NSLocalizedString("ProfileControlsClose", comment: "Close")
             static let save = NSLocalizedString("ProfileControlsSave", comment: "Save")
-            static let temporary = NSLocalizedString("ProfileControlsTemporary", comment: "These preferences last for this session only. They do not change catalog results or shopping plans yet.")
-        }
-
-        enum Details {
-            static let name = NSLocalizedString("ProfileDetailsName", comment: "Name")
-            static let phone = NSLocalizedString("ProfileDetailsPhone", comment: "Phone number")
-            static let notProvided = NSLocalizedString("ProfileDetailsNotProvided", comment: "Not provided")
-            static let unavailableFields = NSLocalizedString("ProfileDetailsUnavailableFields", comment: "The account service currently provides email only. Name and phone number are not available.")
         }
 
         enum Addresses {
-            static let title = NSLocalizedString("ProfileAddressesTitle", comment: "My addresses")
-            static let add = NSLocalizedString("ProfileAddressesAdd", comment: "Add address")
-            static let home = NSLocalizedString("ProfileAddressesHome", comment: "Home")
-            static let empty = NSLocalizedString("ProfileAddressesEmpty", comment: "No saved addresses yet. Add your first address.")
-            static let name = NSLocalizedString("ProfileAddressesName", comment: "Label, for example Home")
-            static let street = NSLocalizedString("ProfileAddressesStreet", comment: "Street and building number")
-            static let editorTitle = NSLocalizedString("ProfileAddressesEditorTitle", comment: "Address")
+            static let title = NSLocalizedString("ProfileAddressesTitle", comment: "My address")
+            static let edit = NSLocalizedString("ProfileEditAddress", comment: "Change address")
         }
 
         enum Shopping {
             static let title = NSLocalizedString("ProfileShoppingTitle", comment: "How to shop")
-            static let balancedDescription = NSLocalizedString("ProfileShoppingBalancedDescription", comment: "Prefer a balance between price and travel time")
-            static let priceDescription = NSLocalizedString("ProfileShoppingPriceDescription", comment: "Prefer a lower total for your list")
-            static let timeDescription = NSLocalizedString("ProfileShoppingTimeDescription", comment: "Prefer less time spent shopping")
+            static let economical = NSLocalizedString("ProfileShoppingEconomical", comment: "Save money")
+            static let priceDescription = NSLocalizedString("ProfileShoppingPriceDescription", comment: "Lowest total for your list")
+            static let timeDescription = NSLocalizedString("ProfileShoppingTimeDescription", comment: "Spend less time shopping")
         }
 
         enum Support {
             static let title = NSLocalizedString("ProfileSupportTitle", comment: "Contact us")
             static let subtitle = NSLocalizedString("ProfileSupportSubtitle", comment: "Help with prices and shopping")
-            static let unavailable = NSLocalizedString("ProfileSupportUnavailable", comment: "A support contact has not been configured yet. You can browse products on Home, add them to your list and compare store offers.")
-        }
-
-        enum Notifications {
-            static let prices = NSLocalizedString("ProfileNotificationsPrices", comment: "Prices dropped")
-            static let pricesDescription = NSLocalizedString("ProfileNotificationsPricesDescription", comment: "For products on your list")
-            static let nearby = NSLocalizedString("ProfileNotificationsNearby", comment: "Nearby offers")
-            static let nearbyDescription = NSLocalizedString("ProfileNotificationsNearbyDescription", comment: "In stores near your selected address")
-            static let reminders = NSLocalizedString("ProfileNotificationsReminders", comment: "List reminders")
-            static let remindersDescription = NSLocalizedString("ProfileNotificationsRemindersDescription", comment: "Remember your planned shopping")
-            static let localOnly = NSLocalizedString("ProfileNotificationsLocalOnly", comment: "Preferences last for this session only. Price tracking and notification delivery are not connected yet.")
-            static let off = NSLocalizedString("ProfileNotificationsOff", comment: "Notifications are off")
-            static let enable = NSLocalizedString("ProfileNotificationsEnable", comment: "Enable notifications")
-            static let offDescription = NSLocalizedString("ProfileNotificationsOffDescription", comment: "Allow notifications in Settings to receive alerts when notification delivery is connected.")
-            static let enableDescription = NSLocalizedString("ProfileNotificationsEnableDescription", comment: "Allow this app to show notifications. You can change permission in Settings.")
-            static let openSettings = NSLocalizedString("ProfileNotificationsOpenSettings", comment: "Open Settings")
-            static let allow = NSLocalizedString("ProfileNotificationsAllow", comment: "Allow notifications")
-            static let requestError = NSLocalizedString("ProfileNotificationsRequestError", comment: "Unable to change notification access. Try again or open the app’s notification settings manually.")
         }
 
         enum About {
@@ -305,38 +273,27 @@ final class Texts {
 
         enum Main {
             static let title = NSLocalizedString("ProfileMainTitle", comment: "Profile")
-            static let subtitle = NSLocalizedString("ProfileMainSubtitle", comment: "Address, preferences and settings")
-            static let yourProfile = NSLocalizedString("ProfileMainYourProfile", comment: "Your profile")
-            static let personalDetails = NSLocalizedString("ProfileMainPersonalDetails", comment: "Personal details")
-            static let shopping = NSLocalizedString("ProfileMainShopping", comment: "Shopping")
-            static let address = NSLocalizedString("ProfileMainAddress", comment: "Shopping address")
-            static let priority = NSLocalizedString("ProfileMainPriority", comment: "Shopping priority")
+            static let user = NSLocalizedString("ProfileUser", comment: "User")
+            static let personalDetails = NSLocalizedString("ProfileMainPersonalDetails", comment: "Account details")
+            static let email = NSLocalizedString("ProfileEmail", comment: "Email address")
             static let settings = NSLocalizedString("ProfileMainSettings", comment: "Settings")
             static let debug = NSLocalizedString("ProfileMainDebug", comment: "Debug")
-            static let notifications = NSLocalizedString("ProfileMainNotifications", comment: "Notifications")
-            static let help = NSLocalizedString("ProfileMainHelp", comment: "Help")
-            static let about = NSLocalizedString("ProfileMainAbout", comment: "About")
+            static let about = NSLocalizedString("ProfileMainAbout", comment: "About Polka")
             static let terms = NSLocalizedString("ProfileMainTerms", comment: "Terms of use and privacy")
         }
 
         enum Settings {
-            static let balanced = NSLocalizedString("ProfileSettingsBalanced", comment: "Balance price and time")
-            static let lowestPrice = NSLocalizedString("ProfileSettingsLowestPrice", comment: "Lowest price")
-            static let fastest = NSLocalizedString("ProfileSettingsFastest", comment: "Save time")
-            static let enabled = NSLocalizedString("ProfileSettingsEnabled", comment: "On")
-            static let disabled = NSLocalizedString("ProfileSettingsDisabled", comment: "Off")
+            static let language = NSLocalizedString("ProfileLanguage", comment: "App language")
+            static let languagePrompt = NSLocalizedString("ProfileLanguagePrompt", comment: "Open the app’s settings to change its language?")
+            static let openSettings = NSLocalizedString("ProfileOpenSettings", comment: "Open Settings")
+            static let appearance = NSLocalizedString("ProfileAppearance", comment: "Appearance")
+            static let system = NSLocalizedString("ProfileAppearanceSystem", comment: "System")
+            static let light = NSLocalizedString("ProfileAppearanceLight", comment: "Light")
+            static let dark = NSLocalizedString("ProfileAppearanceDark", comment: "Dark")
             static let signOut = NSLocalizedString("ProfileSettingsSignOut", comment: "Sign out")
+            static let confirmSignOut = NSLocalizedString("ProfileSettingsConfirmSignOut", comment: "Confirm signing out")
             static let signOutConfirmation = NSLocalizedString("ProfileSettingsSignOutConfirmation", comment: "Sign out of your account?")
         }
-
-        enum Information {
-            static let help = NSLocalizedString("ProfileInformationHelp", comment: "Browse products on Home and add them to your list with the + button. Open a product to compare offers and alternatives.")
-            static let about = NSLocalizedString("ProfileInformationAbout", comment: "Plan your shopping, compare offers and discover ideas for dinner.")
-            static let version = NSLocalizedString("ProfileInformationVersion", comment: "Version")
-            static let notifications = NSLocalizedString("ProfileInformationNotifications", comment: "Notifications aren’t sent in this preview. You can try the preference here.")
-            static let terms = NSLocalizedString("ProfileInformationTerms", comment: "Terms of use and the privacy policy will be available before account registration launches.")
-        }
-
     }
 
     // MARK: - Debug

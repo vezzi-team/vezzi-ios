@@ -108,7 +108,7 @@ extension AppRouter {
         case catalog
         case search
         case profile
-        case profileDetails(ProfileDestination)
+        case profileData
         case motiDebug
 
         var title: String {
@@ -118,7 +118,7 @@ extension AppRouter {
             case .catalog: return Texts.Tabbar.catalog
             case .search: return Texts.Tabbar.search
             case .profile: return Texts.Profile.Main.title
-            case .profileDetails(let destination): return destination.title
+            case .profileData: return Texts.Profile.Main.personalDetails
             case .motiDebug: return Texts.Debug.Moti.title
             }
         }

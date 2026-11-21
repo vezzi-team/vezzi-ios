@@ -33,24 +33,14 @@ struct MotiStateView: View {
     }
 
     private var illustration: some View {
-        GeometryReader { geometry in
-            Image.Brand.motiYarn.resizable().scaledToFit()
+        StaticMotiArtwork {
             ZStack {
-                Image.Brand.motiWinkingFace.resizable().scaledToFit()
-                    .opacity(expression == .winking ? 1 : 0)
-                Image.Brand.motiSadFace.resizable().scaledToFit()
-                    .opacity(expression == .sad ? 1 : 0)
+                Image.Brand.motiWinkingFace.resizable().scaledToFit().opacity(expression == .winking ? 1 : 0)
+                Image.Brand.motiSadFace.resizable().scaledToFit().opacity(expression == .sad ? 1 : 0)
             }
-                .frame(width: geometry.size.width * Const.faceWidth,
-                       height: geometry.size.height * Const.faceHeight)
-                .offset(x: geometry.size.width * Const.faceX, y: geometry.size.height * Const.faceY)
-                .animation(transitionAnimation, value: expression)
+            .animation(transitionAnimation, value: expression)
         }
-        .aspectRatio(Const.illustrationAspectRatio, contentMode: .fit)
         .frame(maxWidth: Const.illustrationWidth)
-        // Move the artwork and both persistent faces in one coordinate space during layout changes.
-        .geometryGroup()
-        .accessibilityHidden(true)
     }
 
     private var message: some View {
@@ -107,12 +97,6 @@ struct MotiStateView: View {
         static let illustrationWidth: CGFloat = 224
         static let spinnerHeight: CGFloat = 20
         static let transitionDuration = 0.2
-        static let illustrationAspectRatio: CGFloat = 224 / 157.009
-        // Placement of the original 200 × 150 face in the Figma mascot component.
-        static let faceWidth: CGFloat = 0.267
-        static let faceHeight: CGFloat = 0.2857
-        static let faceX: CGFloat = 0.2937
-        static let faceY: CGFloat = 0.3714
         static let illustrationSpacing: CGFloat = 24
         static let contentInset: CGFloat = 24
         static let messageWidth: CGFloat = 354
@@ -124,6 +108,34 @@ struct MotiStateView: View {
         static let descriptionWidth: CGFloat = 330
         static let descriptionOpacity: Double = 0.65
     }
+}
+
+/// Original bundled artwork, shared with the profile and feedback screens.
+struct StaticMotiArtwork<Face: View>: View {
+    @ViewBuilder var face: Face
+
+    var body: some View {
+        GeometryReader { geometry in
+            Image.Brand.motiYarn.resizable().scaledToFit()
+            face
+                .frame(width: geometry.size.width * ArtworkMetrics.faceWidth,
+                       height: geometry.size.height * ArtworkMetrics.faceHeight)
+                .offset(x: geometry.size.width * ArtworkMetrics.faceX, y: geometry.size.height * ArtworkMetrics.faceY)
+        }
+        .aspectRatio(ArtworkMetrics.illustrationAspectRatio, contentMode: .fit)
+        // Move the artwork and its face in one coordinate space during layout changes.
+        .geometryGroup()
+        .accessibilityHidden(true)
+    }
+}
+
+private enum ArtworkMetrics {
+    static let illustrationAspectRatio: CGFloat = 224 / 157.009
+    // Placement of the original 200 × 150 face in the Figma mascot component.
+    static let faceWidth: CGFloat = 0.267
+    static let faceHeight: CGFloat = 0.2857
+    static let faceX: CGFloat = 0.2937
+    static let faceY: CGFloat = 0.3714
 }
 
 #Preview("Empty list") {

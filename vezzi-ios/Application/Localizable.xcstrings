@@ -2,6 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     "" : {
+
     },
     "AddressSearchDismiss" : {
       "comment" : "Hide",
@@ -2112,6 +2113,23 @@
         }
       }
     },
+    "HomeIncreaseQuantity" : {
+      "comment" : "Increase product quantity",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Increase quantity of %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увеличить количество: %@"
+          }
+        }
+      }
+    },
     "HomeInList" : {
       "comment" : "In your list",
       "localizations" : {
@@ -2178,23 +2196,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "HomeIncreaseQuantity" : {
-      "comment" : "Increase product quantity",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Increase quantity of %@"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Увеличить количество: %@"
           }
         }
       }
@@ -2958,146 +2959,92 @@
         }
       }
     },
-    "ProfileAddressesAdd" : {
-      "comment" : "Add address",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add address"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Добавить адрес"
-          }
-        }
-      }
-    },
-    "ProfileAddressesEditorTitle" : {
-      "comment" : "Address",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Address"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Адрес"
-          }
-        }
-      }
-    },
-    "ProfileAddressesEmpty" : {
-      "comment" : "No saved addresses yet. Add your first address.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No saved addresses yet. Add your first address."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Адресов пока нет. Добавьте первый адрес."
-          }
-        }
-      }
-    },
-    "ProfileAddressesHome" : {
-      "comment" : "Home",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Home"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Дом"
-          }
-        }
-      }
-    },
-    "ProfileAddressesName" : {
-      "comment" : "Label, for example Home",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Label, for example Home"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Название, например Дом"
-          }
-        }
-      }
-    },
-    "ProfileAddressesStreet" : {
-      "comment" : "Street and building number",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Street and building number"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Улица и номер дома"
-          }
-        }
-      }
-    },
     "ProfileAddressesTitle" : {
-      "comment" : "My addresses",
+      "comment" : "My address",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "My addresses"
+            "value" : "My address"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Мои адреса"
+            "value" : "Мой адрес"
           }
         }
       }
     },
-    "ProfileControlsClose" : {
-      "comment" : "Close",
+    "ProfileAppearance" : {
+      "comment" : "Appearance",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Close"
+            "value" : "Appearance"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Закрыть"
+            "value" : "Тема оформления"
+          }
+        }
+      }
+    },
+    "ProfileAppearanceDark" : {
+      "comment" : "Dark",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dark"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тёмная"
+          }
+        }
+      }
+    },
+    "ProfileAppearanceLight" : {
+      "comment" : "Light",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Light"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Светлая"
+          }
+        }
+      }
+    },
+    "ProfileAppearanceSystem" : {
+      "comment" : "System",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Системная"
           }
         }
       }
@@ -3120,211 +3067,92 @@
         }
       }
     },
-    "ProfileControlsTemporary" : {
-      "comment" : "These preferences last for this session only. They do not change catalog results or shopping plans yet.",
+    "ProfileEditAddress" : {
+      "comment" : "Change address",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "These preferences last for this session only. They do not change catalog results or shopping plans yet."
+            "value" : "Change address"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Эти настройки действуют только в текущей сессии. Пока они не меняют каталог и расчёт покупок."
+            "value" : "Изменить адрес"
           }
         }
       }
     },
-    "ProfileDetailsName" : {
-      "comment" : "Name",
+    "ProfileEmail" : {
+      "comment" : "Email address",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Name"
+            "value" : "Email address"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Имя"
+            "value" : "Электронная почта"
           }
         }
       }
     },
-    "ProfileDetailsNotProvided" : {
-      "comment" : "Not provided",
+    "ProfileLanguage" : {
+      "comment" : "App language",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not provided"
+            "value" : "App language"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Не указано"
+            "value" : "Язык приложения"
           }
         }
       }
     },
-    "ProfileDetailsPhone" : {
-      "comment" : "Phone number",
+    "ProfileLanguagePrompt" : {
+      "comment" : "Open the app’s settings to change its language?",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Phone number"
+            "value" : "Open the app’s settings to change its language?"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Номер телефона"
-          }
-        }
-      }
-    },
-    "ProfileDetailsUnavailableFields" : {
-      "comment" : "The account service currently provides email only. Name and phone number are not available.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The account service currently provides email only. Name and phone number are not available."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сервис аккаунта пока передаёт только почту. Имя и номер телефона недоступны."
-          }
-        }
-      }
-    },
-    "ProfileInformationAbout" : {
-      "comment" : "Plan your shopping, compare offers and discover ideas for dinner.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plan your shopping, compare offers and discover ideas for dinner."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Планируйте покупки, сравнивайте предложения и находите идеи для ужина."
-          }
-        }
-      }
-    },
-    "ProfileInformationHelp" : {
-      "comment" : "Browse products on Home and add them to your list with the + button. Open a product to compare offers and alternatives.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Browse products on Home and add them to your list with the + button. Open a product to compare offers and alternatives."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выбирайте товары на Главной и добавляйте их в список кнопкой «+». Откройте товар, чтобы сравнить предложения и посмотреть аналоги."
-          }
-        }
-      }
-    },
-    "ProfileInformationNotifications" : {
-      "comment" : "Notifications aren’t sent in this preview. You can try the preference here.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notifications aren’t sent in this preview. You can try the preference here."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "В этой версии уведомления ещё не отправляются. Здесь можно попробовать настройку."
-          }
-        }
-      }
-    },
-    "ProfileInformationTerms" : {
-      "comment" : "Terms of use and the privacy policy will be available before account registration launches.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Terms of use and the privacy policy will be available before account registration launches."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Условия использования и политика конфиденциальности появятся до запуска регистрации аккаунтов."
-          }
-        }
-      }
-    },
-    "ProfileInformationVersion" : {
-      "comment" : "Version",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Version"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Версия"
+            "value" : "Открыть системные настройки приложения, чтобы изменить язык?"
           }
         }
       }
     },
     "ProfileMainAbout" : {
-      "comment" : "About",
+      "comment" : "About Polka",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "About"
+            "value" : "About Polka"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "О приложении"
-          }
-        }
-      }
-    },
-    "ProfileMainAddress" : {
-      "comment" : "Shopping address",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Shopping address"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Адрес покупок"
+            "value" : "О Полке"
           }
         }
       }
@@ -3346,70 +3174,20 @@
         }
       }
     },
-    "ProfileMainHelp" : {
-      "comment" : "Help",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Help"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Помощь"
-          }
-        }
-      }
-    },
-    "ProfileMainNotifications" : {
-      "comment" : "Notifications",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notifications"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Уведомления"
-          }
-        }
-      }
-    },
     "ProfileMainPersonalDetails" : {
-      "comment" : "Personal details",
+      "comment" : "Account details",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Personal details"
+            "value" : "Account details"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Личные данные"
-          }
-        }
-      }
-    },
-    "ProfileMainPriority" : {
-      "comment" : "Shopping priority",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Shopping priority"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Приоритет покупок"
+            "value" : "Данные"
           }
         }
       }
@@ -3427,40 +3205,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Настройки"
-          }
-        }
-      }
-    },
-    "ProfileMainShopping" : {
-      "comment" : "Shopping",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Shopping"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Покупки"
-          }
-        }
-      }
-    },
-    "ProfileMainSubtitle" : {
-      "comment" : "Address, preferences and settings",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Address, preferences and settings"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Адрес, предпочтения и настройки"
           }
         }
       }
@@ -3499,168 +3243,7 @@
         }
       }
     },
-    "ProfileMainYourProfile" : {
-      "comment" : "Your profile",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your profile"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваш профиль"
-          }
-        }
-      }
-    },
-    "ProfileNotificationsAllow" : {
-      "comment" : "Allow notifications",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allow notifications"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Разрешить уведомления"
-          }
-        }
-      }
-    },
-    "ProfileNotificationsEnable" : {
-      "comment" : "Enable notifications",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable notifications"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Включите уведомления"
-          }
-        }
-      }
-    },
-    "ProfileNotificationsEnableDescription" : {
-      "comment" : "Allow this app to show notifications. You can change permission in Settings.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allow this app to show notifications. You can change permission in Settings."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Разрешите приложению показывать уведомления. Разрешение можно изменить в настройках."
-          }
-        }
-      }
-    },
-    "ProfileNotificationsLocalOnly" : {
-      "comment" : "Preferences last for this session only. Price tracking and notification delivery are not connected yet.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Preferences last for this session only. Price tracking and notification delivery are not connected yet."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Предпочтения действуют только в текущей сессии. Отслеживание цен и отправка уведомлений пока не подключены."
-          }
-        }
-      }
-    },
-    "ProfileNotificationsNearby" : {
-      "comment" : "Nearby offers",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nearby offers"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Акции поблизости"
-          }
-        }
-      }
-    },
-    "ProfileNotificationsNearbyDescription" : {
-      "comment" : "In stores near your selected address",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In stores near your selected address"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "В магазинах рядом с выбранным адресом"
-          }
-        }
-      }
-    },
-    "ProfileNotificationsOff" : {
-      "comment" : "Notifications are off",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notifications are off"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Уведомления выключены"
-          }
-        }
-      }
-    },
-    "ProfileNotificationsOffDescription" : {
-      "comment" : "Allow notifications in Settings to receive alerts when notification delivery is connected.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allow notifications in Settings to receive alerts when notification delivery is connected."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Разрешите уведомления в настройках, чтобы получать сообщения после подключения отправки уведомлений."
-          }
-        }
-      }
-    },
-    "ProfileNotificationsOpenSettings" : {
+    "ProfileOpenSettings" : {
       "comment" : "Open Settings",
       "extractionState" : "manual",
       "localizations" : {
@@ -3678,177 +3261,19 @@
         }
       }
     },
-    "ProfileNotificationsPrices" : {
-      "comment" : "Prices dropped",
-      "extractionState" : "manual",
+    "ProfileSettingsConfirmSignOut" : {
+      "comment" : "Confirm signing out",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prices dropped"
+            "value" : "Sign out"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Цены снизились"
-          }
-        }
-      }
-    },
-    "ProfileNotificationsPricesDescription" : {
-      "comment" : "For products on your list",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For products on your list"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "На товары из вашего списка"
-          }
-        }
-      }
-    },
-    "ProfileNotificationsReminders" : {
-      "comment" : "List reminders",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "List reminders"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Напоминания о списке"
-          }
-        }
-      }
-    },
-    "ProfileNotificationsRemindersDescription" : {
-      "comment" : "Remember your planned shopping",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remember your planned shopping"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Поможем не забыть запланированные покупки"
-          }
-        }
-      }
-    },
-    "ProfileNotificationsRequestError" : {
-      "comment" : "Unable to change notification access. Try again or open the app’s notification settings manually.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unable to change notification access. Try again or open the app’s notification settings manually."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось изменить доступ к уведомлениям. Попробуйте ещё раз или откройте настройки уведомлений приложения вручную."
-          }
-        }
-      }
-    },
-    "ProfileSettingsBalanced" : {
-      "comment" : "Balance price and time",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Balance price and time"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Баланс цены и времени"
-          }
-        }
-      }
-    },
-    "ProfileSettingsDisabled" : {
-      "comment" : "Off",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Off"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выключены"
-          }
-        }
-      }
-    },
-    "ProfileSettingsEnabled" : {
-      "comment" : "On",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Включены"
-          }
-        }
-      }
-    },
-    "ProfileSettingsFastest" : {
-      "comment" : "Save time",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Save time"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Экономия времени"
-          }
-        }
-      }
-    },
-    "ProfileSettingsLowestPrice" : {
-      "comment" : "Lowest price",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lowest price"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выгодная цена"
+            "value" : "Выйти"
           }
         }
       }
@@ -3887,56 +3312,56 @@
         }
       }
     },
-    "ProfileShoppingBalancedDescription" : {
-      "comment" : "Prefer a balance between price and travel time",
+    "ProfileShoppingEconomical" : {
+      "comment" : "Save money",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prefer a balance between price and travel time"
+            "value" : "Save money"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Баланс стоимости покупок и времени в пути"
+            "value" : "Экономнее"
           }
         }
       }
     },
     "ProfileShoppingPriceDescription" : {
-      "comment" : "Prefer a lower total for your list",
+      "comment" : "Lowest total for your list",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prefer a lower total for your list"
+            "value" : "Lowest total for your list"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Приоритет низкой стоимости списка"
+            "value" : "Минимальная сумма за весь список"
           }
         }
       }
     },
     "ProfileShoppingTimeDescription" : {
-      "comment" : "Prefer less time spent shopping",
+      "comment" : "Spend less time shopping",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prefer less time spent shopping"
+            "value" : "Spend less time shopping"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Приоритет меньших затрат времени"
+            "value" : "Меньше времени на покупки"
           }
         }
       }
@@ -3995,20 +3420,20 @@
         }
       }
     },
-    "ProfileSupportUnavailable" : {
-      "comment" : "A support contact has not been configured yet. You can browse products on Home, add them to your list and compare store offers.",
+    "ProfileUser" : {
+      "comment" : "User",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A support contact has not been configured yet. You can browse products on Home, add them to your list and compare store offers."
+            "value" : "User"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Контакт поддержки пока не настроен. На главной можно выбрать товары, добавить их в список и сравнить предложения магазинов."
+            "value" : "Пользователь"
           }
         }
       }
@@ -5032,23 +4457,6 @@
         }
       }
     },
-    "ShoppingListCacheError" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Local storage is unavailable. Some changes may be lost when you close the app. Try again."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Локальное хранилище недоступно. Часть изменений может потеряться после закрытия приложения. Повторите попытку."
-          }
-        }
-      }
-    },
     "ShoppingListCachedCalculation" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5062,6 +4470,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Показан сохранённый расчёт. Цены и маршруты могли измениться."
+          }
+        }
+      }
+    },
+    "ShoppingListCacheError" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local storage is unavailable. Some changes may be lost when you close the app. Try again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Локальное хранилище недоступно. Часть изменений может потеряться после закрытия приложения. Повторите попытку."
           }
         }
       }
@@ -5168,23 +4593,6 @@
         }
       }
     },
-    "ShoppingListFastTotal" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fastest calculated option"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Самый быстрый из вариантов"
-          }
-        }
-      }
-    },
     "ShoppingListFaster" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5251,6 +4659,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Самый быстрый"
+          }
+        }
+      }
+    },
+    "ShoppingListFastTotal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fastest calculated option"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Самый быстрый из вариантов"
           }
         }
       }

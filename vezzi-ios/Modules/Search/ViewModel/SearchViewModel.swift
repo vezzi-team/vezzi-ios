@@ -10,7 +10,7 @@ final class SearchViewModel: ObservableObject {
             }
         }
     }
-    @Published var mode: ProductSearchMode = .cheaper {
+    @Published var mode: ShoppingMode = .cheaper {
         didSet { if mode != oldValue { rebuildSections() } }
     }
     @Published private(set) var sections: [SearchSection] = []

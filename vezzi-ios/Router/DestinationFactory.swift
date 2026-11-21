@@ -21,9 +21,9 @@ enum DestinationFactory {
             case .search:
                 SearchView(repository: catalog, selection: productSelection)
             case .profile:
-                ProfileView(session: authentication)
-            case .profileDetails(let destination):
-                ProfileDetailView(destination: destination, session: authentication)
+                ProfileView(session: authentication, list: shoppingList)
+            case .profileData:
+                ProfileDataView(session: authentication)
             case .motiDebug:
                 MotiDebugView()
             }
@@ -33,18 +33,19 @@ enum DestinationFactory {
     }
 
     @ViewBuilder
-    static func sheet(for sheet: AppRouter.Sheet, authentication: AuthenticationSession) -> some View {
+    static func sheet(for sheet: AppRouter.Sheet, authentication: AuthenticationSession, preferences: ShoppingPreferences,
+                      list: ShoppingListRepository, location: any DeviceLocating) -> some View {
         switch sheet {
         case .authentication:
             LoginView(session: authentication)
         case .profile(let destination):
-            ProfileSheetHost(destination: destination, session: authentication)
+            ProfileSheetHost(destination: destination, preferences: preferences, list: list, location: location)
         }
     }
 
     private static func titleMode(for route: AppRouter.Route) -> ToolbarTitleDisplayMode {
         switch route {
-        case .profile, .profileDetails, .search: return .inline
+        case .profile, .profileData, .search: return .inline
         case .shoppingList: return .inlineLarge
         default: return .large
         }
@@ -71,23 +72,19 @@ enum DestinationFactory {
 /// Sheet navigation is isolated from the tab's typed history.
 private struct ProfileSheetHost: View {
     let destination: ProfileSheet
-    @ObservedObject var session: AuthenticationSession
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    let preferences: ShoppingPreferences
+    let list: ShoppingListRepository
+    let location: any DeviceLocating
 
     var body: some View {
         NavigationStack {
-            Group {
-                switch destination {
-                case .shopping: ShoppingModeView(session: session)
-                case .addresses: AddressesView(session: session)
-                case .notifications: NotificationsView(session: session)
-                case .about: AboutView()
-                }
+            switch destination {
+            case .shopping: ShoppingModeView(preferences: preferences)
+            case .address: ProfileAddressView(list: list, location: location)
+            case .settings: ProfileSettingsView()
+            case .about: AboutView()
             }
         }
-        .id(session.identity?.sessionID)
-        .presentationDetents(destination.isCompact && !dynamicTypeSize.isAccessibilitySize
-                             ? [.medium, .large] : [.large])
         .presentationDragIndicator(.visible)
     }
 }

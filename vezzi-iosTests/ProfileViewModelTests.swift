@@ -4,65 +4,28 @@ import XCTest
 
 @MainActor
 final class ProfileViewModelTests: XCTestCase {
-    func testDiscardedAddressDraftDoesNotChangeSession() {
-        let session = AuthenticationSession.preview()
-        let draft = ProfileViewModel(session: session)
-        draft.updateAddress(ProfileAddress(title: "Home", street: "Example Street, 1"))
-        XCTAssertEqual(draft.addresses.count, 1)
-        XCTAssertTrue(session.preferences.addresses.isEmpty)
-        let reopened = ProfileViewModel(session: session)
-        XCTAssertTrue(reopened.addresses.isEmpty)
-    }
+    func testShoppingDefaultSurvivesRestartAndStaysWithItsAccount() async throws {
+        let suite = UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let account = AuthenticationSession(service: ProfileAccountFixture())
+        let preferences = ShoppingPreferences(authentication: account, defaults: defaults)
+        await account.restore()
+        let accountID = try XCTUnwrap(account.user?.id)
+        XCTAssertEqual(preferences.mode, .cheaper)
+        preferences.save(.faster, for: accountID)
+        let restored = ShoppingPreferences(authentication: account, defaults: defaults)
+        XCTAssertEqual(restored.mode, .faster)
 
-    func testSavingAddressTrimsValuesAndEditingKeepsIdentity() {
-        let session = AuthenticationSession.preview()
-        let draft = ProfileViewModel(session: session)
-        let address = ProfileAddress(title: " Home \n", street: " Example Street, 1 ")
-        draft.updateAddress(address)
-        XCTAssertTrue(draft.saveAddresses())
-        XCTAssertEqual(session.preferences.addresses.first?.title, "Home")
-        XCTAssertEqual(session.preferences.address, "Example Street, 1")
-        var updated = address
-        updated.street = "Example Street, 2"
-        draft.updateAddress(updated)
-        XCTAssertTrue(draft.saveAddresses())
-        XCTAssertEqual(session.preferences.addresses.count, 1)
-        XCTAssertEqual(session.preferences.addresses.first?.id, address.id)
-        XCTAssertEqual(session.preferences.address, "Example Street, 2")
-    }
-
-    func testBlankAddressIsRejected() {
-        let session = AuthenticationSession.preview()
-        let draft = ProfileViewModel(session: session)
-        draft.updateAddress(ProfileAddress(title: " \n", street: "Street"))
-        draft.updateAddress(ProfileAddress(title: "Home", street: " \n"))
-        XCTAssertTrue(draft.addresses.isEmpty)
-    }
-
-    func testPrioritySaveDoesNotOverwriteNewNotificationPreferences() {
-        let session = AuthenticationSession.preview()
-        let draft = ProfileViewModel(session: session)
-        draft.priority = .price
-        XCTAssertEqual(session.preferences.priority, .balanced)
-        session.preferences.nearbyOffersEnabled = false
-        XCTAssertTrue(draft.savePriority())
-        XCTAssertEqual(session.preferences.priority, .price)
-        XCTAssertFalse(session.preferences.nearbyOffersEnabled)
-    }
-
-    func testSuccessfulLogoutClearsPreferencesAndRejectsOldDraft() async {
-        let session = AuthenticationSession(service: ProfileAccountFixture())
-        await session.restore()
-        XCTAssertNotNil(session.user)
-        session.preferences.nearbyOffersEnabled = false
-        let draft = ProfileViewModel(session: session)
-        draft.priority = .price
-        await draft.signOut()
-        XCTAssertNil(session.user)
-        XCTAssertFalse(draft.showsSignOutError)
-        XCTAssertTrue(session.preferences.nearbyOffersEnabled)
-        XCTAssertFalse(draft.savePriority())
-        XCTAssertEqual(session.preferences.priority, .balanced)
+        let otherAccount = AuthenticationSession(service: ProfileAccountFixture())
+        await otherAccount.restore()
+        let other = ShoppingPreferences(authentication: otherAccount, defaults: defaults)
+        other.save(.faster, for: accountID)
+        XCTAssertEqual(other.mode, .cheaper)
+        try await account.signOut()
+        XCTAssertEqual(restored.mode, .cheaper)
+        restored.save(.faster, for: accountID)
+        XCTAssertEqual(restored.mode, .cheaper)
     }
 
     func testFailedLogoutRetainsAccountAndReportsError() async {
@@ -78,13 +41,13 @@ final class ProfileViewModelTests: XCTestCase {
     func testProfileSheetPreservesTabHistories() {
         let router = AppRouter()
         router.push(.profile, in: .home)
-        router.push(.profileDetails(.personalDetails), in: .home)
+        router.push(.profileData, in: .home)
         router.selectTab(.search)
-        router.presentProfile(.notifications)
-        XCTAssertEqual(router.presentedSheet, .profile(.notifications))
+        router.presentProfile(.settings)
+        XCTAssertEqual(router.presentedSheet, .profile(.settings))
         router.dismissSheet()
         XCTAssertNil(router.presentedSheet)
-        XCTAssertEqual(router.path(in: .home), [.profile, .profileDetails(.personalDetails)])
+        XCTAssertEqual(router.path(in: .home), [.profile, .profileData])
         XCTAssertTrue(router.path(in: .search).isEmpty)
         router.selectTab(.home)
         XCTAssertEqual(router.path(in: .home).count, 2)

@@ -16,6 +16,7 @@ struct VezziApp: App {
         WindowGroup {
             AppLaunchView(catalog: dependencies.catalog, authentication: dependencies.authentication,
                           shoppingList: dependencies.shoppingList, location: dependencies.location)
+                .background { AppWindowAppearance().frame(width: 0, height: 0) }
                 .task { await dependencies.load() }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active {

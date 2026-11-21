@@ -171,25 +171,15 @@ enum AccessibilityID {
         static let close = "profile.close"
         static let save = "profile.save"
         static let contact = "profile.contact"
-        static let addAddress = "profile.address.add"
-        static let saveAddress = "profile.address.save"
-        static let addressName = "profile.address.name"
-        static let addressStreet = "profile.address.street"
-        static let priceAlerts = "profile.notifications.prices"
-        static let nearbyAlerts = "profile.notifications.nearby"
-        static let reminders = "profile.notifications.reminders"
-        static let notificationPermission = "profile.notifications.permission"
-
-        static func addressRow(_ id: UUID) -> String { "profile.address.\(id.uuidString)" }
+        static let editAddress = "profile.address.edit"
+        static let language = "profile.settings.language"
+        static func theme(_ id: String) -> String { "profile.theme.\(id)" }
         static func priority(_ id: String) -> String { "profile.priority.\(id)" }
 
         static let screen = "profile.screen"
         static let motiDebug = "profile.motiDebug"
         static let personalDetails = "profile.personalDetails"
         static let signOut = "profile.signOut"
-        static let confirmSignOut = "profile.confirmSignOut"
-        static let address = "profile.address"
-        static let notifications = "profile.notifications"
 
         static func destination(_ id: String) -> String {
             "profile.destination.\(id)"
