@@ -830,6 +830,23 @@
         }
       }
     },
+    "CatalogFilterAll" : {
+      "comment" : "All products",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все"
+          }
+        }
+      }
+    },
     "CatalogNoCacheMessage" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1957,23 +1974,6 @@
         }
       }
     },
-    "HomeForYou" : {
-      "comment" : "For you",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For you"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Для вас"
-          }
-        }
-      }
-    },
     "HomeFreshFruit" : {
       "comment" : "Fresh fruit",
       "localizations" : {
@@ -2493,6 +2493,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Томаты"
+          }
+        }
+      }
+    },
+    "ProductPromotionComparison" : {
+      "comment" : "Discount compared with the highest price at another store",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ compared with the highest price at another store, %2$@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ относительно максимальной цены в другом магазине, %2$@"
           }
         }
       }

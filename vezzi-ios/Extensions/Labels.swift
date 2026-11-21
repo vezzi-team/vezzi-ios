@@ -53,7 +53,6 @@ final class Texts {
             static let dinnerSubtitle = NSLocalizedString("HomeDinnerSubtitle", comment: "Simple, delicious, ready in 20 minutes")
             static let collectProducts = NSLocalizedString("HomeCollectProducts", comment: "Add ingredients")
             static let dinnerAdded = NSLocalizedString("HomeDinnerAdded", comment: "Ingredients added")
-            static let forYou = NSLocalizedString("HomeForYou", comment: "For you")
         }
 
         enum Filters {
@@ -71,6 +70,10 @@ final class Texts {
     }
 
     enum Catalog {
+        enum Filters {
+            static let all = NSLocalizedString("CatalogFilterAll", comment: "All products")
+        }
+
         static let title = NSLocalizedString("CatalogTitle", comment: "Product catalog")
         static let offlineTitle = NSLocalizedString("CatalogOfflineTitle", comment: "Offline catalog")
         static let failedTitle = NSLocalizedString("CatalogFailedTitle", comment: "Refresh failed")
@@ -89,6 +92,12 @@ final class Texts {
     }
 
     enum Product {
+        enum Promotion {
+            static func comparison(_ discount: String, _ price: String) -> String {
+                String.localizedStringWithFormat(NSLocalizedString("ProductPromotionComparison", comment: "Discount compared with the highest price at another store"), discount, price)
+            }
+        }
+
         static let inStock = NSLocalizedString("SearchInStock", comment: "In stock")
         static let outOfStock = NSLocalizedString("SearchOutOfStock", comment: "Out of stock")
 

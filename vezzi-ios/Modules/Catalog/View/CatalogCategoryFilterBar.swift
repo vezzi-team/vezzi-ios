@@ -2,7 +2,7 @@ import SwiftUI
 
 struct CatalogCategoryFilterBar: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Binding var selectedCategory: ProductCategory?
+    @Binding var selectedFilter: CatalogFilter
     var categories: [ProductCategory] = ProductCategory.allCases
 
     var body: some View {
@@ -13,8 +13,8 @@ struct CatalogCategoryFilterBar: View {
             .scrollIndicators(.hidden)
             .scrollClipDisabled()
             .accessibilityIdentifier(AccessibilityID.Catalog.Filters.bar)
-            .onChange(of: selectedCategory, initial: true) { _, category in
-                center(category, using: proxy)
+            .onChange(of: selectedFilter, initial: true) { _, filter in
+                center(filter, using: proxy)
             }
         }
     }
@@ -24,39 +24,39 @@ struct CatalogCategoryFilterBar: View {
     private func filters(scrollProxy: ScrollViewProxy) -> some View {
         GlassEffectContainer(spacing: Const.spacing) {
             HStack(spacing: Const.spacing) {
-                filterButton(for: nil, scrollProxy: scrollProxy)
+                filterButton(for: .all, scrollProxy: scrollProxy)
                 ForEach(categories) { category in
-                    filterButton(for: category, scrollProxy: scrollProxy)
+                    filterButton(for: .category(category), scrollProxy: scrollProxy)
                 }
             }
             .padding(.horizontal, Const.horizontalInset)
         }
-        .animation(selectionAnimation, value: selectedCategory)
+        .animation(selectionAnimation, value: selectedFilter)
     }
 
-    private func filterButton(for category: ProductCategory?, scrollProxy: ScrollViewProxy) -> some View {
-        let isSelected = selectedCategory == category
+    private func filterButton(for filter: CatalogFilter, scrollProxy: ScrollViewProxy) -> some View {
+        let isSelected = selectedFilter == filter
         return Button {
             if isSelected {
-                center(category, using: scrollProxy)
+                center(filter, using: scrollProxy)
             } else {
-                selectedCategory = category
+                selectedFilter = filter
             }
         } label: {
-            filterLabel(for: category, isSelected: isSelected)
+            filterLabel(for: filter, isSelected: isSelected)
                 .frame(minHeight: Const.minimumHitHeight)
                 .contentShape(.rect)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(title(for: category))
+        .accessibilityLabel(filter.title)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .accessibilityIdentifier(AccessibilityID.Catalog.Filters.category(filterID(category)))
-        .id(filterID(category))
+        .accessibilityIdentifier(AccessibilityID.Catalog.Filters.button(filter))
+        .id(filter)
     }
 
-    private func filterLabel(for category: ProductCategory?, isSelected: Bool) -> some View {
+    private func filterLabel(for filter: CatalogFilter, isSelected: Bool) -> some View {
         ZStack {
-            Text(title(for: category))
+            Text(filter.title)
                 .appTextStyle(size: Const.fontSize, lineHeight: Const.lineHeight,
                                weight: .semibold, relativeTo: .caption)
                 .foregroundStyle(isSelected ? Color.Label.white : Color.Label.primary)
@@ -72,18 +72,10 @@ struct CatalogCategoryFilterBar: View {
 
     // MARK: - Presentation
 
-    private func center(_ category: ProductCategory?, using proxy: ScrollViewProxy) {
+    private func center(_ filter: CatalogFilter, using proxy: ScrollViewProxy) {
         withAnimation(selectionAnimation) {
-            proxy.scrollTo(filterID(category), anchor: .center)
+            proxy.scrollTo(filter, anchor: .center)
         }
-    }
-
-    private func title(for category: ProductCategory?) -> String {
-        category?.title ?? Texts.Home.Main.forYou
-    }
-
-    private func filterID(_ category: ProductCategory?) -> String {
-        category?.rawValue ?? Const.allID
     }
 
     private var selectionAnimation: Animation? {
@@ -99,21 +91,20 @@ struct CatalogCategoryFilterBar: View {
         static let horizontalInset: CGFloat = 16
         static let spacing: CGFloat = 8
         static let animationDuration: TimeInterval = 0.3
-        static let allID = "for-you"
     }
 }
 
 #Preview("Filters — light") {
-    @Previewable @State var selectedCategory: ProductCategory?
-    CatalogCategoryFilterBar(selectedCategory: $selectedCategory)
+    @Previewable @State var selectedFilter: CatalogFilter = .all
+    CatalogCategoryFilterBar(selectedFilter: $selectedFilter)
         .padding(.vertical)
         .background(Color.Background.primary)
         .preferredColorScheme(.light)
 }
 
 #Preview("Filters — dark, large text") {
-    @Previewable @State var selectedCategory: ProductCategory? = .produce
-    CatalogCategoryFilterBar(selectedCategory: $selectedCategory)
+    @Previewable @State var selectedFilter: CatalogFilter = .category(.produce)
+    CatalogCategoryFilterBar(selectedFilter: $selectedFilter)
         .padding(.vertical)
         .background(Color.Background.primary)
         .preferredColorScheme(.dark)

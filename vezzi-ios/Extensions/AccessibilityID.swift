@@ -102,8 +102,11 @@ enum AccessibilityID {
         enum Filters {
             static let bar = "catalog.filters"
 
-            static func category(_ id: String) -> String {
-                "catalog.filter.\(id)"
+            static func button(_ filter: CatalogFilter) -> String {
+                switch filter {
+                case .all: "catalog.filter.all"
+                case .category(let category): "catalog.filter.category.\(category.id)"
+                }
             }
         }
     }

@@ -52,8 +52,8 @@ final class StorefrontViewModelTests: XCTestCase {
                                          inStock: stock, priceType: promo ? "promo" : "current")
                 return CachedOffer(offer: value, store: CatalogStore(id: id, name: id), cachedAt: Date(), isFresh: fresh)
             }
-            return CatalogItem(product: product, offers: [offer("ordinary", 80, promo: false), offer("stale", 40, fresh: false),
-                               offer("missing", 30, stock: false), offer("unknown", 20, stock: nil),
+            return CatalogItem(product: product, offers: [offer("ordinary", 95, promo: false), offer("stale", 140, fresh: false),
+                               offer("missing", 130, stock: false), offer("unknown", 120, stock: nil),
                                offer("promo-b", 100), offer("promo-a", 90)])
         }
         let ineligible = items.map { CatalogItem(product: $0.product, offers: Array($0.offers.prefix(4))) }
@@ -61,33 +61,61 @@ final class StorefrontViewModelTests: XCTestCase {
         let shelves = HomeShelves(items: items)
         XCTAssertEqual(shelves.deals.map(\.id), ["0", "1", "2", "3", "4"])
         let deal = try XCTUnwrap(shelves.deals.first)
-        XCTAssertEqual(deal.lowestPrice, 90)
-        XCTAssertEqual(deal.offers.map(\.id), ["promo-a"])
-        XCTAssertEqual(shelves.detailProduct(for: deal).offers.count, 6)
+        XCTAssertEqual(deal.promotion?.offer.price, 90)
+        XCTAssertEqual(deal.promotion?.offer.id, "promo-a")
+        XCTAssertEqual(deal.promotion?.comparisonPrice, 100)
+        XCTAssertEqual(deal.offers.count, 6)
         XCTAssertEqual(shelves.essentials.map(\.id), ["1", "0", "2", "3", "4", "5"])
         XCTAssertTrue(HomeShelves(items: items.map { CatalogItem(product: $0.product, offers: []) }).essentials.isEmpty)
     }
 
-    func testOpeningAnOfferFromTheShelfPreservesItsStoreAndPriceOnlyForThatPresentation() throws {
-        var batch = CatalogFixtures.catalog(price: 37)
+    func testDealsShelfRejectsAPromotionWhenAnyStoreShowsALowerPrice() throws {
+        let crackers = CatalogProduct(id: "crackers", name: "3 корочки")
+        let metro = CatalogStore(id: "metro", name: "METRO")
+        let vkusvill = CatalogStore(id: "vkusvill", name: "ВкусВилл")
+        let other = CatalogStore(id: "other", name: "Дары природы")
+
+        func deals(cheaperAt store: CatalogStore, priceType: String = "current") throws -> [Product] {
+            let batch = CatalogImport(products: [crackers], stores: [metro, vkusvill, other], offers: [
+                CatalogOffer(id: "lowest", productID: crackers.id, storeID: store.id, price: 37,
+                             currency: "RUB", inStock: true, priceType: priceType),
+                CatalogOffer(id: "promo", productID: crackers.id, storeID: vkusvill.id, price: 41,
+                             currency: "RUB", inStock: true, priceType: "promo"),
+                CatalogOffer(id: "highest", productID: crackers.id, storeID: other.id, price: 48.20,
+                             currency: "RUB", inStock: true)
+            ])
+            return HomeShelves(items: try CatalogFixtures.snapshot(batch).allItems()).deals
+        }
+
+        XCTAssertTrue(try deals(cheaperAt: metro).isEmpty)
+        XCTAssertTrue(try deals(cheaperAt: vkusvill).isEmpty)
+        let promotion = try XCTUnwrap(deals(cheaperAt: metro, priceType: "promo").first?.promotion)
+        XCTAssertEqual(promotion.offer.id, "lowest")
+        XCTAssertEqual(promotion.offer.price, 37)
+        XCTAssertEqual(promotion.comparisonPrice, 48.20)
+    }
+
+    func testOpeningATiedLowestPromotionPreservesItsStoreAndPriceOnlyForThatPresentation() throws {
+        var batch = CatalogFixtures.catalog(price: 41)
         batch.stores.append(CatalogStore(id: "promo-store", name: "Promo store"))
         batch.offers.append(CatalogOffer(id: "promo", productID: "p1", storeID: "promo-store", price: 41,
                                          currency: "RUB", inStock: true, priceType: "promo"))
+        batch.stores.append(CatalogStore(id: "highest", name: "Other store"))
+        batch.offers.append(CatalogOffer(id: "highest", productID: "p1", storeID: "highest", price: 50, currency: "RUB", inStock: true))
         let repository = PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(batch))
         let home = StorefrontViewModel(page: .home, repository: repository)
-        let card = try XCTUnwrap(home.shelves.deals.first)
-        let product = home.shelves.detailProduct(for: card)
-        home.showProduct(product, promotion: card.lowestOffer)
+        let product = try XCTUnwrap(home.shelves.deals.first)
+        home.showProduct(product, promotion: product.promotion?.offer)
         let detail = try XCTUnwrap(home.selectedDetail)
         XCTAssertEqual(detail.promotion?.storeID, "promo-store")
         XCTAssertEqual(detail.promotion?.price, 41)
-        XCTAssertEqual(detail.product.lowestPrice, 37)
-        XCTAssertEqual(Set(detail.product.offers.map(\.storeID)), ["s1", "promo-store"])
+        XCTAssertEqual(detail.product.lowestPrice, 41)
+        XCTAssertEqual(Set(detail.product.offers.map(\.storeID)), ["s1", "promo-store", "highest"])
 
         home.dismissProduct()
         home.showProduct(product)
         XCTAssertNil(home.selectedDetail?.promotion)
-        XCTAssertEqual(home.selectedDetail?.product.lowestPrice, 37)
+        XCTAssertEqual(home.selectedDetail?.product.lowestPrice, 41)
     }
 
     func testMainPricePrioritizesAvailabilityAndFreshnessAcrossStores() {
@@ -106,6 +134,88 @@ final class StorefrontViewModelTests: XCTestCase {
         XCTAssertEqual(product.lowestOffer?.id, "unavailable", "Retain a fallback price when every store is out of stock")
         product.offers = []
         XCTAssertNil(product.lowestOffer)
+    }
+
+    func testDiscountComparesOnlyWithAnotherAvailableStoreInTheSameCurrency() {
+        let promo = shelfOffer("promo", storeID: "a", price: 80, isPromo: true, cardPrice: 60)
+        let excluded = [
+            promo,
+            shelfOffer("other-offer", storeID: "a", price: 200),
+            shelfOffer("old", price: 200, isFresh: false),
+            shelfOffer("missing", price: 200, inStock: false),
+            shelfOffer("unknown", price: 200, inStock: nil),
+            shelfOffer("foreign", price: 10, currency: "USD"),
+            shelfOffer("equal", price: 80)
+        ]
+        XCTAssertNil(shelfPromotion(for: excluded))
+        let stores = excluded + [shelfOffer("near", price: 90), shelfOffer("far", price: 100, cardPrice: 85)]
+        let comparison = shelfPromotion(for: stores)
+        XCTAssertEqual(comparison?.comparisonPrice, 100)
+        XCTAssertEqual(comparison?.savingsFraction, Decimal(string: "0.2"))
+        for cheaper in [
+            shelfOffer("old-low", price: 70, isFresh: false),
+            shelfOffer("unknown-low", price: 70, inStock: nil),
+            shelfOffer("missing-low", price: 70, inStock: false)
+        ] {
+            XCTAssertNil(shelfPromotion(for: stores + [cheaper]), cheaper.id)
+        }
+    }
+
+    func testDealsShelfKeepsTheLowestQualifyingPromotionAcrossCurrenciesAndBreaksTiesByID() {
+        let rubles = [
+            shelfOffer("promo-b", price: 41, isPromo: true),
+            shelfOffer("promo-a", storeID: "a", price: 41, isPromo: true),
+            shelfOffer("ordinary", storeID: "a", price: 41),
+            shelfOffer("highest", price: 50)
+        ]
+        let dollars = [shelfOffer("usd-promo", price: 2, currency: "USD", isPromo: true)]
+        let withoutComparison = rubles + dollars
+        for offers in [withoutComparison, Array(withoutComparison.reversed())] {
+            let promotion = shelfPromotion(for: offers)
+            XCTAssertEqual(promotion?.offer.id, "promo-a")
+            XCTAssertEqual(promotion?.comparisonPrice, 50)
+        }
+        let withComparison = withoutComparison + [shelfOffer("usd-highest", price: 3, currency: "USD")]
+        let promotion = shelfPromotion(for: withComparison)
+        XCTAssertEqual(promotion?.offer.id, "usd-promo")
+        XCTAssertEqual(promotion?.comparisonPrice, 3)
+    }
+
+    private func shelfPromotion(for offers: [CachedOffer]) -> ProductPromotion? {
+        Product(deal: CatalogItem(product: CatalogProduct(id: "p", name: "Item"), offers: offers))?.promotion
+    }
+
+    private func shelfOffer(_ id: String, storeID: String? = nil, price: Decimal, currency: String = "RUB",
+                            inStock: Bool? = true, isFresh: Bool = true, isPromo: Bool = false,
+                            cardPrice: Decimal? = nil) -> CachedOffer {
+        let store = CatalogStore(id: storeID ?? id, name: id)
+        let offer = CatalogOffer(id: id, productID: "p", storeID: store.id, price: price, currency: currency,
+                                 inStock: inStock, priceType: isPromo ? "promo" : "current", cardPrice: cardPrice)
+        return CachedOffer(offer: offer, store: store, cachedAt: CatalogFixtures.cachedAt, isFresh: isFresh)
+    }
+
+    func testPromotionsAreExclusiveToTheHomeDealsShelf() throws {
+        var batch = CatalogFixtures.catalog(price: 100)
+        batch.products.append(CatalogProduct(id: "other", name: "Other"))
+        batch.stores.append(CatalogStore(id: "s2", name: "Promo store"))
+        batch.offers.append(CatalogOffer(id: "promo", productID: "p1", storeID: "s2", price: 80,
+                                         currency: "RUB", inStock: true, priceType: "promo"))
+        batch.offers.append(CatalogOffer(id: "single", productID: "other", storeID: "s1", price: 50,
+                                         currency: "RUB", inStock: true, priceType: "promo"))
+        let repository = PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(batch))
+        let home = StorefrontViewModel(page: .home, repository: repository)
+        XCTAssertEqual(home.shelves.deals.map(\.id), ["p1"])
+        XCTAssertEqual(home.shelves.deals.first?.promotion?.comparisonPrice, 100)
+
+        let catalog = StorefrontViewModel(page: .catalog, repository: repository)
+        XCTAssertEqual(Set(catalog.products.map(\.id)), ["p1", "other"])
+        XCTAssertTrue(catalog.products.allSatisfy { $0.promotion == nil })
+        let product = try XCTUnwrap(catalog.products.first { $0.id == "p1" })
+        XCTAssertEqual(product.lowestPrice, 80)
+        catalog.showProduct(product)
+        let detail = try XCTUnwrap(catalog.selectedDetail)
+        XCTAssertNil(detail.promotion)
+        XCTAssertEqual(detail.product.offers.count, 2)
     }
 
     func testCatalogPresentationSeparatesBrandAndStoreAddress() throws {
@@ -182,10 +292,10 @@ final class StorefrontViewModelTests: XCTestCase {
         let model = StorefrontViewModel(page: .catalog, repository: PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(batch)), list: ShoppingListRepository(selection: selection))
         XCTAssertEqual(model.categories.map(\.rawValue), ["Dairy", "Produce"])
         model.setQuantity(2, for: "milk")
-        model.selectedCategory = ProductCategory(rawValue: "Produce")
+        model.selectedFilter = .category(ProductCategory(rawValue: "Produce"))
         XCTAssertEqual(model.filteredProducts.map(\.id), ["apples"])
         selection.setQuantity(3, for: "milk")
-        model.selectedCategory = nil
+        model.selectedFilter = .all
         XCTAssertEqual(model.filteredProducts.count, 3)
         XCTAssertEqual(model.quantity(for: "milk"), 3)
         model.showProduct(try XCTUnwrap(model.products.first { $0.id == "milk" }))
@@ -203,10 +313,10 @@ final class StorefrontViewModelTests: XCTestCase {
         let model = StorefrontViewModel(page: .catalog, repository: repository)
         _ = await publishedItems(repository.observeAllProducts(), where: { $0.count == 1000 })
         XCTAssertEqual(model.products.count, 1000)
-        model.selectedCategory = ProductCategory(rawValue: "Old category")
+        model.selectedFilter = .category(ProductCategory(rawValue: "Old category"))
         await model.refresh()
         _ = await publishedItems(repository.observeAllProducts(), where: { $0.count == 1 })
-        XCTAssertNil(model.selectedCategory)
+        XCTAssertEqual(model.selectedFilter, .all)
         XCTAssertEqual(model.products.map(\.id), ["p1"])
     }
 }

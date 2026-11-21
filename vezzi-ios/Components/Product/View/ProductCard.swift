@@ -4,6 +4,7 @@ struct ProductCard: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let product: Product
+    var promotion: ProductPromotion? = nil
     var showsStoreBadges = true
     var showsPricePrefix = true
     @Binding var quantity: Int
@@ -45,22 +46,79 @@ struct ProductCard: View {
             .fill(Color.Background.placeholder)
             .aspectRatio(Const.artworkAspectRatio, contentMode: .fit)
             .shimmer()
+            .overlay(alignment: .topLeading) {
+                if let promotion { discountBadge(promotion) }
+            }
             .accessibilityHidden(true)
+    }
+
+    private func discountBadge(_ promotion: ProductPromotion) -> some View {
+        Text(discountTitle(promotion))
+            .font(.caption.weight(.medium))
+            .foregroundStyle(Color.Label.white)
+            .padding(.horizontal, Const.badgeInset)
+            .frame(minWidth: Const.badgeWidth, minHeight: Const.badgeHeight, alignment: .center)
+            .fixedSize()
+            .background {
+                Capsule()
+                    .fill(.clear)
+                    .glassEffect(.regular.tint(.accentColor), in: .capsule)
+                    .clipShape(.capsule)
+            }
+            .geometryGroup()
+            .rotationEffect(.degrees(Const.badgeAngle))
+            .padding(.leading, Const.badgeInset)
+            .padding(.top, Const.badgeTopInset)
+            .allowsHitTesting(false)
+    }
+
+    private func discountTitle(_ promotion: ProductPromotion) -> String {
+        let fraction = promotion.savingsFraction
+        let onePercent = Decimal(1) / 100
+        if fraction < onePercent { return "<" + onePercent.formatted(.percent) }
+        return (-fraction).formatted(.percent.precision(.fractionLength(0)).rounded(rule: .towardZero))
     }
 
     private var productInfo: some View {
         VStack(alignment: .leading, spacing: .zero) {
             productDescription
-            if let offer = product.lowestOffer {
-                ProductPriceLabel(price: offer.price, currency: offer.currency, showsPrefix: showsPricePrefix,
-                                  isStale: !offer.isFresh)
-                    .appTextStyle(size: Const.priceFontSize, lineHeight: Const.priceLineHeight,
-                                   weight: .semibold, relativeTo: .headline)
+            if let offer = promotion?.offer ?? product.lowestOffer {
+                prices(for: offer)
             }
         }
         .multilineTextAlignment(.leading)
         .padding(.horizontal, Const.contentInset)
         .padding(.bottom, Const.bottomInset)
+    }
+
+    @ViewBuilder private func prices(for offer: ProductOffer) -> some View {
+        let price = ProductPriceLabel(price: offer.price, currency: offer.currency,
+                                     showsPrefix: promotion == nil && showsPricePrefix, isStale: !offer.isFresh)
+            .appTextStyle(size: Const.priceFontSize, lineHeight: Const.priceLineHeight,
+                          weight: .semibold, relativeTo: .headline)
+        if let promotion {
+            let formatted = promotion.comparisonPrice.formatted(.currency(code: offer.currency).precision(.fractionLength(0...2)))
+            let comparison = Text(formatted)
+                .font(.caption)
+                .strikethrough()
+                .foregroundStyle(Color.Label.secondary)
+                .accessibilityHidden(true)
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline, spacing: Const.controlsSpacing) {
+                    price
+                    comparison
+                }
+                .fixedSize(horizontal: true, vertical: false)
+                VStack(alignment: .leading, spacing: .zero) {
+                    price
+                    comparison
+                }
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityValue(Texts.Product.Promotion.comparison(discountTitle(promotion), formatted))
+        } else {
+            price
+        }
     }
 
     private var productDescription: some View {
@@ -180,6 +238,11 @@ struct ProductCard: View {
     }
 
     private enum Const {
+        static let badgeWidth: CGFloat = 50
+        static let badgeHeight: CGFloat = 24
+        static let badgeInset: CGFloat = 6
+        static let badgeTopInset: CGFloat = 8
+        static let badgeAngle = -6.16
         static let contentSpacing: CGFloat = 4
         static let imageSpacing: CGFloat = 10
         static let controlsSpacing: CGFloat = 8
@@ -287,6 +350,18 @@ struct ProductPriceLabel: View {
         .frame(width: ProductCardPreviewConst.narrowWidth)
         .fixedSize(horizontal: false, vertical: true)
         .padding()
+}
+
+#Preview("Product — discount") {
+    @Previewable @State var quantity = 0
+    let product = ProductMockData.products[0]
+    if let offer = product.lowestOffer, let maximum = product.offers.map(\.price).max(),
+       let promotion = ProductPromotion(offer: offer, comparisonPrice: maximum) {
+        ProductCard(product: product, promotion: promotion, quantity: $quantity, open: {})
+            .frame(width: ProductCardPreviewConst.narrowWidth)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding()
+    }
 }
 
 #Preview("Product — price and store transitions") {

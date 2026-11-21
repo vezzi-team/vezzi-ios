@@ -11,7 +11,7 @@ final class StorefrontViewModel: ObservableObject {
     @Published private var cacheState = CatalogCacheState.disabled
     @Published private(set) var selectedDetail: StorefrontProductDetail?
     @Published private(set) var relatedProducts: [Product] = []
-    @Published var selectedCategory: ProductCategory?
+    @Published var selectedFilter: CatalogFilter = .all
     let selection: ProductSelection
     let list: ShoppingListRepository
     private let repository: any CatalogRepository
@@ -38,7 +38,9 @@ final class StorefrontViewModel: ObservableObject {
             case .catalog:
                 self.products = items.map { Product(catalog: $0) }
                 self.categories = Array(Set(self.products.compactMap(\.category))).sorted { $0.title < $1.title }
-                if let category = self.selectedCategory, !self.categories.contains(category) { self.selectedCategory = nil }
+                if case .category(let category) = self.selectedFilter, !self.categories.contains(category) {
+                    self.selectedFilter = .all
+                }
             }
         }.store(in: &subscriptions)
     }
@@ -52,7 +54,7 @@ final class StorefrontViewModel: ObservableObject {
         guard catalogHasProducts != nil else { return .loading }
         return CatalogEmptyState(status: catalogStatus, cacheState: cacheState)
     }
-    var filteredProducts: [Product] { products(in: selectedCategory) }
+    var filteredProducts: [Product] { products(in: selectedFilter) }
 
     func refresh() async {
         async let cache: Void = repository.prepareCache()
@@ -62,9 +64,11 @@ final class StorefrontViewModel: ObservableObject {
 
     func quantity(for productID: String) -> Int { selection.quantity(for: productID) }
 
-    func products(in category: ProductCategory?) -> [Product] {
-        guard let category else { return products }
-        return products.filter { $0.category == category }
+    func products(in filter: CatalogFilter) -> [Product] {
+        switch filter {
+        case .all: products
+        case .category(let category): products.filter { $0.category == category }
+        }
     }
 
     func setQuantity(_ quantity: Int, for productID: String) {
@@ -84,6 +88,17 @@ final class StorefrontViewModel: ObservableObject {
         relatedSubscription = nil
         selectedDetail = nil
         // Keep the snapshot alive until the sheet's dismissal animation ends.
+    }
+}
+
+enum CatalogFilter: Hashable {
+    case all, category(ProductCategory)
+
+    var title: String {
+        switch self {
+        case .all: Texts.Catalog.Filters.all
+        case .category(let category): category.title
+        }
     }
 }
 

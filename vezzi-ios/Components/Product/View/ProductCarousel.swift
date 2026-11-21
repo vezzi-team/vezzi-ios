@@ -14,7 +14,7 @@ struct ProductCarousel: View {
         ScrollView(.horizontal) {
             LazyHStack(alignment: .top, spacing: Const.spacing) {
                 ForEach(products) { product in
-                    ProductCard(product: product, showsStoreBadges: showsStoreBadges,
+                    ProductCard(product: product, promotion: product.promotion, showsStoreBadges: showsStoreBadges,
                                 showsPricePrefix: showsPricePrefix, quantity: quantityBinding(for: product.id)) {
                         open(product)
                     }
