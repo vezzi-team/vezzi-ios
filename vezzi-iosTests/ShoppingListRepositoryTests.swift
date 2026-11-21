@@ -566,6 +566,25 @@ final class ShoppingListRepositoryTests: XCTestCase {
         XCTAssertNil(model.selectedProductOffer)
     }
 
+    func testFirstAdditionOnlyPublishesOnceForAnAcceptedLocalInsertion() {
+        let selection = ProductSelection()
+        var changes: [Bool] = []
+        let subscription = selection.$hasAddedProductThisSession.sink { changes.append($0) }
+        let fullCart = Dictionary(uniqueKeysWithValues: (1...ProductSelection.maximumProductCount).map { (String($0), 1) })
+        selection.replaceQuantities(fullCart)
+        selection.setQuantity(2, for: "1")
+        selection.setQuantity(1, for: "extra")
+        selection.setQuantity(0, for: "1")
+        XCTAssertEqual(changes, [false])
+
+        selection.setQuantity(1, for: "extra")
+        selection.replaceQuantities([:])
+        selection.setQuantity(1, for: "another")
+        XCTAssertEqual(changes, [false, true])
+        XCTAssertFalse(ProductSelection().hasAddedProductThisSession)
+        subscription.cancel()
+    }
+
     func testSelectionEnforcesProductLimitWithoutBlockingRemovals() {
         let selection = ProductSelection()
         for number in 1...30 { selection.setQuantity(1, for: String(number)) }

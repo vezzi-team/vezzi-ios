@@ -2548,6 +2548,23 @@
         }
       }
     },
+    "ProductAddedToList" : {
+      "comment" : "Confirmation after adding a product",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In your list"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В списке"
+          }
+        }
+      }
+    },
     "ProductDetailsBrand" : {
       "comment" : "Brand",
       "localizations" : {
@@ -2612,6 +2629,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Вес"
+          }
+        }
+      }
+    },
+    "ProductOpenShoppingList" : {
+      "comment" : "Opens the shopping list",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens My list"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открывает раздел «Мой список»"
           }
         }
       }

@@ -81,6 +81,9 @@ enum AccessibilityID {
         }
 
         enum Quantity {
+            static let additionMessage = "product.addition.message"
+            static let additionCheckmark = "product.addition.checkmark"
+
             static func add(_ productID: String) -> String {
                 "home.quantity.add.\(productID)"
             }

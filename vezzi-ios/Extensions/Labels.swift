@@ -179,6 +179,8 @@ final class Texts {
         }
 
         enum Quantity {
+            static let addedToList = NSLocalizedString("ProductAddedToList", comment: "Confirmation after adding a product")
+            static let openList = NSLocalizedString("ProductOpenShoppingList", comment: "Opens the shopping list")
             static let add = NSLocalizedString("HomeAdd", comment: "Add")
 
             static func addProduct(_ name: String) -> String {

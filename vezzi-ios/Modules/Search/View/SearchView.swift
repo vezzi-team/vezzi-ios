@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SearchView: View {
+    @EnvironmentObject private var router: AppRouter
     @StateObject private var viewModel: SearchViewModel
     @ObservedObject private var selection: ProductSelection
     @State private var isSearching = false
@@ -39,6 +40,11 @@ struct SearchView: View {
         .searchPresentationToolbarBehavior(horizontalSizeClass == .regular ? .avoidHidingContent : .automatic)
         .searchFocused($isSearchFocused)
         .onSubmit(of: .search) { isSearchFocused = false }
+        .onReceive(router.willOpenShoppingList) {
+            if viewModel.selectedProduct != nil { viewModel.dismissProduct() }
+            isSearchFocused = false
+            isSearching = false
+        }
         .sheet(item: selectedProduct) { product in
             ProductDetailView(product: product, relatedProducts: viewModel.relatedProducts, selection: selection,
                               showsPricePrefix: viewModel.selectedProductStoreID == nil)
@@ -267,6 +273,7 @@ struct SearchView: View {
         SearchView(repository: MockSearchRepository(), stores: SearchMockData.stores, groupOrder: SearchMockData.groupOrder)
     }
     .preferredColorScheme(.light)
+    .environmentObject(AppRouter())
 }
 
 #Preview("Search — dark, large text") {
@@ -274,15 +281,18 @@ struct SearchView: View {
         SearchView(repository: MockSearchRepository(), stores: SearchMockData.stores, groupOrder: SearchMockData.groupOrder)
     }
     .preferredColorScheme(.dark)
+    .environmentObject(AppRouter())
     .dynamicTypeSize(.accessibility3)
 }
 
 #Preview("Search — empty catalog") {
     NavigationStack { SearchView(repository: PreviewCatalogRepository()) }
+        .environmentObject(AppRouter())
 }
 
 #Preview("Search — offline, empty catalog") {
     @Previewable @State var repository = DefaultCatalogRepository()
     NavigationStack { SearchView(repository: repository) }
+        .environmentObject(AppRouter())
         .task { repository.updateConnectivity(isConnected: false) }
 }

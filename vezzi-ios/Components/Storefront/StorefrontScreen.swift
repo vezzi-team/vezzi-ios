@@ -36,9 +36,12 @@ struct StorefrontScreen: View {
         }
         // The scroll view can retain its refresh action after the cover is dismissed.
         .refreshable { [weak viewModel] in await viewModel?.refresh() }
-        .environment(\.isShimmerEnabled, viewModel.selectedDetail == nil && router.presentedSheet == nil &&
-                     ((page != .catalog && page != .home) || router.presentedCollection == nil) && !showsAddress)
+        .environment(\.isShimmerEnabled, isFeedVisible)
         .background(Color.Background.primary.ignoresSafeArea())
+        .onReceive(router.willOpenShoppingList) {
+            if viewModel.selectedDetail != nil { viewModel.dismissProduct() }
+            showsAddress = false
+        }
         .sheet(item: selectedDetail) { detail in
             ProductDetailView(product: detail.product, relatedProducts: viewModel.relatedProducts,
                               selection: viewModel.selection, selectedOffer: detail.promotion,
@@ -49,6 +52,11 @@ struct StorefrontScreen: View {
             LocationPickerView(coordinate: viewModel.list.origin, options: viewModel.list.routeOptions,
                                address: viewModel.list.originAddress, location: location, onConfirm: viewModel.list.setRoute)
         }
+    }
+
+    private var isFeedVisible: Bool {
+        viewModel.selectedDetail == nil && router.presentedSheet == nil && !showsAddress &&
+            ((page != .catalog && page != .home) || router.presentedCollection == nil)
     }
 
     @ViewBuilder private func feed(viewportHeight: CGFloat) -> some View {

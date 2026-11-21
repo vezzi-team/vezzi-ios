@@ -7,6 +7,7 @@ final class AppRouter: ObservableObject {
     @Published private(set) var navigationPaths: [Tab: [Route]]
     @Published private(set) var presentedSheet: Sheet?
     @Published var presentedCollection: StorefrontCollection?
+    let willOpenShoppingList = PassthroughSubject<Void, Never>()
 
     init(selectedTab: Tab = .home) {
         self.selectedTab = selectedTab
@@ -48,6 +49,14 @@ final class AppRouter: ObservableObject {
 
     func presentAuthentication() {
         presentedSheet = .authentication
+    }
+
+    func openShoppingList() {
+        willOpenShoppingList.send()
+        presentedCollection = nil
+        dismissSheet()
+        popToRoot(in: .shoppingList)
+        selectedTab = .shoppingList
     }
 
     func dismissSheet() {

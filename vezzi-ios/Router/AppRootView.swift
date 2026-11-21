@@ -85,6 +85,8 @@ struct AppRootView: View {
             }
         }
         .environmentObject(appRouter)
+        .modifier(CartAdditionNoticePresenter(hasAddedProduct: productSelection.hasAddedProductThisSession,
+                                             openList: appRouter.openShoppingList))
     }
 
     private func tabLabel(for tab: AppRouter.Tab) -> some View {
