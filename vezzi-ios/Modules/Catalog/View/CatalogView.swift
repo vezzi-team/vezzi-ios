@@ -3,131 +3,132 @@ import SwiftUI
 struct CatalogView<Header: View>: View {
     @ObservedObject var viewModel: StorefrontViewModel
     let viewportHeight: CGFloat
+    let transition: Namespace.ID
+    let openCategory: (ProductCategory) -> Void
     @ViewBuilder let header: Header
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var displayedFilter: CatalogFilter
-    @State private var isPastResultsTop = false
-    @State private var filterBarHeight: CGFloat = .zero
 
-    init(viewModel: StorefrontViewModel, viewportHeight: CGFloat, @ViewBuilder header: () -> Header) {
-        self.viewModel = viewModel
-        self.viewportHeight = viewportHeight
-        self.header = header()
-        _displayedFilter = State(initialValue: viewModel.selectedFilter)
-    }
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var visibleCategory: ProductCategory?
+    @State private var requestedCategory: ProductCategory?
+    @State private var filterBarHeight: CGFloat = 0
+    @State private var visibleEdge: VerticalEdge? = .top
+    @State private var lastShelfIsTall = false
 
     var body: some View {
         ScrollViewReader { proxy in
-            ScrollView { content(viewportHeight: viewportHeight) }
-                .onChange(of: viewModel.selectedFilter) { _, _ in
-                    showSelectedFilter(using: proxy)
+            ScrollView {
+                // Overlap the transparent padding so each lazy scroll target begins one pinned strip above its heading.
+                LazyVStack(alignment: .leading, spacing: -filterBarHeight, pinnedViews: [.sectionHeaders]) {
+                    VStack(spacing: 0) { header }
+                        .padding(.bottom, filterBarHeight)
+                    Section {
+                        ForEach(viewModel.catalogSections) { section in
+                            scrollTarget(for: section, using: proxy)
+                                .id(Anchor.category(section.id))
+                        }
+                    } header: {
+                        filterBar(using: proxy)
+                    }
                 }
-                .onScrollPhaseChange { _, phase in
-                    if phase == .idle { applySelectedFilter(using: proxy) }
-                }
-                .overlay(alignment: .bottom) {
-                    scrollToTopButton(using: proxy)
-                }
-        }
-    }
-
-    private func scrollToTopButton(using proxy: ScrollViewProxy) -> some View {
-        ScrollToTopButton(isVisible: isPastResultsTop && !viewModel.products.isEmpty,
-                          accessibilityIdentifier: AccessibilityID.Catalog.scrollToTop) {
-            proxy.scrollTo(Const.scrollTopID, anchor: .top)
-        }
-        .padding(Const.contentInset)
-        .frame(maxWidth: StorefrontScreen.maximumContentWidth, alignment: .trailing)
-        .frame(maxWidth: .infinity)
-    }
-
-    private func showSelectedFilter(using proxy: ScrollViewProxy) {
-        let displayedCount = viewModel.products(in: displayedFilter).count
-        let shouldAnimate = !reduceMotion && isPastResultsTop && viewModel.filteredProducts.count < displayedCount
-        guard shouldAnimate else {
-            applySelectedFilter(using: proxy)
-            return
-        }
-
-        // Keep the current feed until scrolling finishes so shrinking it cannot expose an empty viewport.
-        withAnimation(.easeInOut(duration: Const.filterScrollDuration)) {
-            proxy.scrollTo(Const.resultsTopID, anchor: .top)
-        }
-    }
-
-    private func applySelectedFilter(using proxy: ScrollViewProxy) {
-        guard displayedFilter != viewModel.selectedFilter else { return }
-        if isPastResultsTop {
-            proxy.scrollTo(Const.resultsTopID, anchor: .top)
-        }
-        displayedFilter = viewModel.selectedFilter
-    }
-
-    private func content(viewportHeight: CGFloat) -> some View {
-        VStack(spacing: .zero) {
-            header
-            productSection(viewportHeight: viewportHeight)
-        }
-        .frame(maxWidth: StorefrontScreen.maximumContentWidth)
-        .frame(maxWidth: .infinity)
-        .id(Const.scrollTopID)
-    }
-
-    private func productSection(viewportHeight: CGFloat) -> some View {
-        LazyVStack(spacing: .zero, pinnedViews: [.sectionHeaders]) {
-            Section {
-                productGrid
-                    .padding(.horizontal, ProductGridLayout.contentInset)
-                    .padding(.bottom, Const.contentInset)
-                    // A short filtered feed must still leave enough room to pin its header.
-                    .frame(minHeight: max(.zero, viewportHeight - filterBarHeight), alignment: .top)
-            } header: {
-                categoryFilters
+                .frame(maxWidth: StorefrontScreen.maximumContentWidth)
+                .frame(maxWidth: .infinity)
             }
-        }
-        // Keep the scroll target outside lazy children so it remains available offscreen.
-        .id(Const.resultsTopID)
-        .onGeometryChange(for: Bool.self) { geometry in
-            geometry.frame(in: .scrollView(axis: .vertical)).minY < -Const.scrollTopTolerance
-        } action: { isPastResultsTop = $0 }
-    }
-
-    private var categoryFilters: some View {
-        CatalogCategoryFilterBar(selectedFilter: $viewModel.selectedFilter, categories: viewModel.categories)
-            .padding(.bottom, Const.gridHeaderSpacing)
-            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { filterBarHeight = $0 }
-    }
-
-    private var productGrid: some View {
-        LazyVGrid(columns: ProductGridLayout.columns(for: dynamicTypeSize), alignment: .leading, spacing: Const.gridSpacing) {
-            ForEach(viewModel.products(in: displayedFilter)) { product in
-                ProductCard(product: product, quantity: quantityBinding(for: product.id)) {
-                    viewModel.showProduct(product)
-                }
-                .transition(reduceMotion ? .identity : AnyTransition(.blurReplace))
+            .coordinateSpace(name: Space.viewport)
+            .onScrollGeometryChange(for: VerticalEdge?.self) { geometry in
+                if geometry.contentOffset.y + geometry.contentInsets.top <= 1 { return .top }
+                if geometry.visibleRect.maxY - geometry.contentInsets.bottom >= geometry.contentSize.height - 1 { return .bottom }
+                return nil
+            } action: { _, edge in visibleEdge = edge }
+            .onScrollPhaseChange { _, phase in
+                if phase == .interacting || (phase == .idle && visibleEdge != .bottom) { requestedCategory = nil }
             }
+            .pauseShimmerWhileScrolling()
         }
-        .animation(reduceMotion ? nil : .easeOut(duration: Const.filterTransitionDuration),
-                   value: displayedFilter)
     }
 
-    private func quantityBinding(for productID: String) -> Binding<Int> {
-        Binding(
-            get: { viewModel.quantity(for: productID) },
-            set: { viewModel.setQuantity($0, for: productID) }
-        )
+    private func filterBar(using proxy: ScrollViewProxy) -> some View {
+        let categories = viewModel.catalogSections.map(\.id)
+        let visible = switch visibleEdge {
+        case .top: categories.first
+        case .bottom: categories.last
+        case nil: visibleCategory
+        }
+        let current = requestedCategory ?? visible
+        return CatalogCategoryFilterBar(categories: categories,
+                                        selected: current.flatMap { categories.contains($0) ? $0 : nil } ?? categories.first,
+                                        isFollowingFeed: requestedCategory == nil) { category in
+            requestedCategory = category
+            scroll(to: category, using: proxy)
+        }
+        .padding(.bottom, 12)
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { filterBarHeight = $0 }
     }
 
+    private func scroll(to category: ProductCategory, using proxy: ScrollViewProxy) {
+        let fitsAtEnd = category == viewModel.catalogSections.last?.id && !lastShelfIsTall
+        withAnimation(reduceMotion ? nil : .smooth(duration: 0.3)) {
+            proxy.scrollTo(Anchor.category(category), anchor: fitsAtEnd ? nil : .top)
+        }
+    }
+
+    @ViewBuilder private func scrollTarget(for section: CatalogSection, using proxy: ScrollViewProxy) -> some View {
+        let shelf = categorySection(section).padding(.top, filterBarHeight)
+        if section.id == viewModel.catalogSections.last?.id {
+            shelf.onGeometryChange(for: Bool.self) { $0.size.height > viewportHeight } action: { isTall in
+                guard lastShelfIsTall != isTall else { return }
+                lastShelfIsTall = isTall
+                // A distant last shelf can be measured for the first time during the jump.
+                if requestedCategory == section.id { scroll(to: section.id, using: proxy) }
+            }
+        } else {
+            shelf
+        }
+    }
+
+    private func categorySection(_ section: CatalogSection) -> some View {
+        CatalogShelf(section: section, viewModel: viewModel, transition: transition, openCategory: openCategory)
+            .onGeometryChange(for: Bool.self) { geometry in
+                let frame = geometry.frame(in: .named(Space.viewport))
+                let readingLine = filterBarHeight + 1
+                return frame.minY <= readingLine && frame.maxY > readingLine
+            } action: { isCurrent in
+                if isCurrent { visibleCategory = section.id }
+            }
+    }
+
+    private enum Anchor: Hashable {
+        case category(ProductCategory)
+    }
+
+    private nonisolated enum Space: Hashable { case viewport }
 }
 
-private enum Const {
-    static let scrollTopID = "catalog.top"
-    static let resultsTopID = "catalog.results.top"
-    static let scrollTopTolerance: CGFloat = 1
-    static let contentInset: CGFloat = 16
-    static let gridHeaderSpacing: CGFloat = 12
-    static let gridSpacing: CGFloat = 16
-    static let filterScrollDuration: TimeInterval = 0.22
-    static let filterTransitionDuration: TimeInterval = 0.18
+private struct CatalogShelf: View {
+    let section: CatalogSection
+    let viewModel: StorefrontViewModel
+    let transition: Namespace.ID
+    let openCategory: (ProductCategory) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(section.id.title)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(Color.Label.primary)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier(AccessibilityID.Catalog.heading(section.id))
+                .padding(.horizontal, ProductGridLayout.contentInset)
+            ProductCarousel(products: section.preview, selection: viewModel.selection, revealsNextCard: true) {
+                viewModel.showProduct($0)
+            }
+            .pauseShimmerWhileScrolling()
+            ProductSectionButton(title: Texts.Common.showMore) {
+                openCategory(section.id)
+            }
+            .accessibilityLabel(Texts.Catalog.showAll(in: section.id.title))
+            .accessibilityIdentifier(AccessibilityID.Catalog.showMore(section.id))
+            .matchedTransitionSource(id: StorefrontCollection.category(section.id), in: transition)
+            .padding(.horizontal, ProductGridLayout.contentInset)
+        }
+        .padding(.bottom, 24)
+    }
 }

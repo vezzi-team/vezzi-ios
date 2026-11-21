@@ -18,6 +18,7 @@ final class Texts {
     // MARK: - Shared Controls
 
     enum Common {
+        static let showMore = NSLocalizedString("CommonShowMore", comment: "Show more")
         static let scrollToTop = NSLocalizedString("ScrollToTop", comment: "Scroll to top")
     }
 
@@ -70,10 +71,12 @@ final class Texts {
     }
 
     enum Catalog {
-        enum Filters {
-            static let all = NSLocalizedString("CatalogFilterAll", comment: "All products")
+        static let emptyCategory = NSLocalizedString("CatalogEmptyCategory", comment: "Empty product category")
+        static func showAll(in category: String) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("CatalogShowAllInCategory", comment: "Open all products in a category"), category)
         }
 
+        static let uncategorized = NSLocalizedString("CatalogUncategorized", comment: "Category for products without a category")
         static let title = NSLocalizedString("CatalogTitle", comment: "Product catalog")
         static let offlineTitle = NSLocalizedString("CatalogOfflineTitle", comment: "Offline catalog")
         static let failedTitle = NSLocalizedString("CatalogFailedTitle", comment: "Refresh failed")
@@ -92,6 +95,13 @@ final class Texts {
     }
 
     enum Product {
+        enum Details {
+            static let title = NSLocalizedString("ProductDetailsTitle", comment: "Product details")
+            static let brand = NSLocalizedString("ProductDetailsBrand", comment: "Brand")
+            static let weight = NSLocalizedString("ProductDetailsWeight", comment: "Weight")
+            static let volume = NSLocalizedString("ProductDetailsVolume", comment: "Volume")
+        }
+
         enum Promotion {
             static func comparison(_ discount: String, _ price: String) -> String {
                 String.localizedStringWithFormat(NSLocalizedString("ProductPromotionComparison", comment: "Discount compared with the highest price at another store"), discount, price)
@@ -145,7 +155,6 @@ final class Texts {
         enum Stores {
             static let promotion = NSLocalizedString("ProductPromotionalOffer", comment: "Promotional offer")
             static let selected = NSLocalizedString("ProductSelectedStore", comment: "Selected store")
-            static let showMore = NSLocalizedString("ProductShowMoreStores", comment: "Show more")
             static let showLess = NSLocalizedString("ProductShowLessStores", comment: "Show less")
 
             enum Sort {
@@ -170,6 +179,8 @@ final class Texts {
         }
 
         enum Quantity {
+            static let addedToList = NSLocalizedString("ProductAddedToList", comment: "Confirmation after adding a product")
+            static let openList = NSLocalizedString("ProductOpenShoppingList", comment: "Opens the shopping list")
             static let add = NSLocalizedString("HomeAdd", comment: "Add")
 
             static func addProduct(_ name: String) -> String {
@@ -324,7 +335,6 @@ final class Texts {
         static let noResultsDescription = NSLocalizedString("SearchNoResultsDescription", comment: "Try another name or check your search for typos.")
         static let noOffers = NSLocalizedString("SearchNoOffers", comment: "No store offers available")
         static let unknownPriceDate = NSLocalizedString("SearchUnknownPriceDate", comment: "Price update date unknown")
-        static let resultLimit = NSLocalizedString("SearchResultLimit", comment: "Up to 50 products are shown. Refine your search to find more.")
     }
 
     // MARK: - Shopping List

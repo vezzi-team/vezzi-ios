@@ -116,6 +116,26 @@ struct ProductActions: View {
     }
 }
 
+struct ProductSectionButton: View {
+    let title: String
+    var icon: Image? = nil
+    var rotation: Angle = .zero
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                if let icon { icon.rotationEffect(rotation).accessibilityHidden(true) }
+                Text(title).contentTransition(.opacity)
+            }
+            .font(.subheadline.weight(.semibold))
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.glass)
+        .controlSize(.large)
+    }
+}
+
 #Preview("Product actions") {
     @Previewable @State var quantity = 0
     ProductActions(productName: ProductMockData.products[0].name, quantity: $quantity)

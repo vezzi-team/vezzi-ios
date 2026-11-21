@@ -95,7 +95,7 @@ struct MotiCollectionPager: View {
             .overlay(RoundedRectangle(cornerRadius: Const.cornerRadius).strokeBorder(Color.Border.primary))
             .shadow(color: Color.Shadow.primary.opacity(Const.shadowOpacity), radius: Const.shadowRadius, y: Const.shadowOffset)
             .frame(width: Const.cardWidth * size, height: Const.cardHeight * size)
-            .matchedTransitionSource(id: Self.collections[index], in: transition) { source in
+            .matchedTransitionSource(id: StorefrontCollection.moti(Self.collections[index]), in: transition) { source in
                 source.clipShape(.rect(cornerRadius: Const.cornerRadius))
             }
             .scaleEffect(1 - Const.depthScale * (1 - depth))

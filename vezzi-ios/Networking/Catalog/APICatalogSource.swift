@@ -1,8 +1,18 @@
 import Foundation
 
-/// Decodes the server's complete, versioned catalog away from the main actor.
-nonisolated struct APICatalogSource: CatalogSource {
+nonisolated struct APICatalogSource: CatalogSource, CatalogProductSearching {
     let client: APIClient
+
+    @concurrent func searchProducts(matching query: String) async throws -> [CatalogProduct] {
+        let request = APIRequest(path: "products/search", queryItems: [
+            URLQueryItem(name: "q", value: query),
+            URLQueryItem(name: "limit", value: String(CatalogSearch.serverResultLimit))
+        ])
+        let response = try await client.response(for: request)
+        let products: [CatalogProductDTO] = try response.decode()
+        var seen = Set<Int64>()
+        return products.filter { seen.insert($0.id).inserted }.prefix(CatalogSearch.serverResultLimit).map(\.record)
+    }
 
     @concurrent func loadCatalog(ifNoneMatch: String?) async throws -> CatalogSourceResult {
         let headers = ifNoneMatch.map { ["If-None-Match": $0] } ?? [:]

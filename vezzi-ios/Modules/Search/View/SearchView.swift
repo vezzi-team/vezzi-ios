@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SearchView: View {
+    @EnvironmentObject private var router: AppRouter
     @StateObject private var viewModel: SearchViewModel
     @ObservedObject private var selection: ProductSelection
     @State private var isSearching = false
@@ -26,7 +27,7 @@ struct SearchView: View {
             }
         }
         .animation(reduceMotion ? nil : .screenStateFade) { content in
-            content.background(viewModel.items.isEmpty ? Color.Background.iOSPrimary : Color.Background.primary)
+            content.background(viewModel.showsModePicker ? Color.Background.primary : Color.Background.iOSPrimary)
         }
         .toolbar(horizontalSizeClass == .compact ? .hidden : .automatic, for: .navigationBar)
         .toolbar { searchToolbar }
@@ -39,6 +40,11 @@ struct SearchView: View {
         .searchPresentationToolbarBehavior(horizontalSizeClass == .regular ? .avoidHidingContent : .automatic)
         .searchFocused($isSearchFocused)
         .onSubmit(of: .search) { isSearchFocused = false }
+        .onReceive(router.willOpenShoppingList) {
+            if viewModel.selectedProduct != nil { viewModel.dismissProduct() }
+            isSearchFocused = false
+            isSearching = false
+        }
         .sheet(item: selectedProduct) { product in
             ProductDetailView(product: product, relatedProducts: viewModel.relatedProducts, selection: selection,
                               showsPricePrefix: viewModel.selectedProductStoreID == nil)
@@ -92,7 +98,7 @@ struct SearchView: View {
     private var results: some View {
         ScrollView {
             visibleResults
-                .screenStateFade(for: viewModel.sections.isEmpty ? viewModel.emptyState : nil)
+                .screenStateFade(for: viewModel.showsSections ? nil : viewModel.emptyState)
         }
         .scrollIndicators(.hidden)
         .scrollPosition($scrollPosition)
@@ -120,7 +126,7 @@ struct SearchView: View {
     }
 
     @ViewBuilder private var visibleResults: some View {
-        if viewModel.sections.isEmpty {
+        if !viewModel.showsSections {
             emptyContent.frame(maxWidth: .infinity, minHeight: viewportHeight)
         } else {
             ZStack(alignment: .topLeading) {
@@ -128,6 +134,8 @@ struct SearchView: View {
                     .id(viewModel.mode)
                     .transition(resultsTransition)
             }
+            .disabled(!viewModel.resultsMatchQuery)
+            .accessibilityHidden(!viewModel.resultsMatchQuery)
         }
     }
 
@@ -137,18 +145,12 @@ struct SearchView: View {
                 productSection(section)
                     .transition(resultsTransition)
             }
-            if viewModel.isResultLimitReached {
-                Text(Texts.Search.resultLimit)
-                    .font(.footnote)
-                    .foregroundStyle(Color.Label.secondary)
-                    .padding(.horizontal, Const.contentInset)
-            }
         }
         .padding(.bottom, Const.contentInset)
     }
 
     private var scrollToTopButton: some View {
-        ScrollToTopButton(isVisible: isPastScrollTopThreshold && !viewModel.sections.isEmpty,
+        ScrollToTopButton(isVisible: isPastScrollTopThreshold && viewModel.showsSections,
                           accessibilityIdentifier: AccessibilityID.Search.scrollToTop) {
             isSearchFocused = false
             scrollPosition.scrollTo(edge: .top)
@@ -271,6 +273,7 @@ struct SearchView: View {
         SearchView(repository: MockSearchRepository(), stores: SearchMockData.stores, groupOrder: SearchMockData.groupOrder)
     }
     .preferredColorScheme(.light)
+    .environmentObject(AppRouter())
 }
 
 #Preview("Search — dark, large text") {
@@ -278,15 +281,18 @@ struct SearchView: View {
         SearchView(repository: MockSearchRepository(), stores: SearchMockData.stores, groupOrder: SearchMockData.groupOrder)
     }
     .preferredColorScheme(.dark)
+    .environmentObject(AppRouter())
     .dynamicTypeSize(.accessibility3)
 }
 
 #Preview("Search — empty catalog") {
     NavigationStack { SearchView(repository: PreviewCatalogRepository()) }
+        .environmentObject(AppRouter())
 }
 
 #Preview("Search — offline, empty catalog") {
     @Previewable @State var repository = DefaultCatalogRepository()
     NavigationStack { SearchView(repository: repository) }
+        .environmentObject(AppRouter())
         .task { repository.updateConnectivity(isConnected: false) }
 }

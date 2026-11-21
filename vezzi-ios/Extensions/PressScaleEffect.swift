@@ -17,8 +17,9 @@ private struct PressScaleModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .buttonStyle(PressTrackingButtonStyle(isPressed: $isPressed))
-            .scaleEffect(isPressed && !reduceMotion ? Const.pressedScale : Const.restingScale)
-            .animation(pressAnimation, value: isPressed)
+            .animation(pressAnimation) { view in
+                view.scaleEffect(isPressed && !reduceMotion ? Const.pressedScale : Const.restingScale)
+            }
     }
 
     private var pressAnimation: Animation? {

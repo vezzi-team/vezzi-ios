@@ -35,10 +35,16 @@ struct ShoppingListView: View {
         } action: { _, isPastTop in
             isPastSummaryTop = isPastTop
         }
-        .environment(\.isShimmerEnabled, viewModel.selectedProduct == nil && viewModel.routes == nil && !showsStores && !showsAddress)
+        .environment(\.isShimmerEnabled, isListVisible)
         .background(Color.Background.primary.ignoresSafeArea())
         .navigationTitle(Texts.ShoppingList.title)
         .toolbarTitleDisplayMode(.inlineLarge)
+        .onReceive(router.willOpenShoppingList) {
+            if viewModel.selectedProduct != nil { viewModel.dismissProduct() }
+            viewModel.routes = nil
+            showsAddress = false
+            showsStores = false
+        }
         .safeAreaBar(edge: .bottom) {
             if viewModel.contentState == .products || viewModel.contentState == .empty { bottomAction }
         }
@@ -59,6 +65,10 @@ struct ShoppingListView: View {
     }
 
     // MARK: - Header
+
+    private var isListVisible: Bool {
+        viewModel.selectedProduct == nil && viewModel.routes == nil && !showsStores && !showsAddress
+    }
 
     private var content: some View {
         // A lazy root preserves the native inline-large title's spacing at accessibility text sizes.

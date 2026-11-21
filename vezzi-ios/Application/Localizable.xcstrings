@@ -813,6 +813,23 @@
         }
       }
     },
+    "CatalogEmptyCategory" : {
+      "comment" : "Empty product category",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No products in this category yet"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В этой категории пока нет товаров"
+          }
+        }
+      }
+    },
     "CatalogFailedTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -826,23 +843,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не удалось обновить каталог"
-          }
-        }
-      }
-    },
-    "CatalogFilterAll" : {
-      "comment" : "All products",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "All"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Все"
           }
         }
       }
@@ -911,6 +911,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Потяните вниз или нажмите, чтобы обновить товары и цены."
+          }
+        }
+      }
+    },
+    "CatalogShowAllInCategory" : {
+      "comment" : "Open all products in a category",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show all products in %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все товары категории «%@»"
           }
         }
       }
@@ -1000,6 +1017,23 @@
         }
       }
     },
+    "CatalogUncategorized" : {
+      "comment" : "Category for products without a category",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other products"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Другие товары"
+          }
+        }
+      }
+    },
     "CatalogUpdating" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1013,6 +1047,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Обновляем…"
+          }
+        }
+      }
+    },
+    "CommonShowMore" : {
+      "comment" : "Show more",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show more"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать больше"
           }
         }
       }
@@ -2497,6 +2548,108 @@
         }
       }
     },
+    "ProductAddedToList" : {
+      "comment" : "Confirmation after adding a product",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In your list"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В списке"
+          }
+        }
+      }
+    },
+    "ProductDetailsBrand" : {
+      "comment" : "Brand",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brand"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бренд"
+          }
+        }
+      }
+    },
+    "ProductDetailsTitle" : {
+      "comment" : "Product details",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Product details"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подробнее о товаре"
+          }
+        }
+      }
+    },
+    "ProductDetailsVolume" : {
+      "comment" : "Volume",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volume"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Объём"
+          }
+        }
+      }
+    },
+    "ProductDetailsWeight" : {
+      "comment" : "Weight",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вес"
+          }
+        }
+      }
+    },
+    "ProductOpenShoppingList" : {
+      "comment" : "Opens the shopping list",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens My list"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открывает раздел «Мой список»"
+          }
+        }
+      }
+    },
     "ProductPromotionComparison" : {
       "comment" : "Discount compared with the highest price at another store",
       "localizations" : {
@@ -2561,23 +2714,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Скрыть"
-          }
-        }
-      }
-    },
-    "ProductShowMoreStores" : {
-      "comment" : "Show more",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show more"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показать больше"
           }
         }
       }
@@ -4158,23 +4294,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Найти товары"
-          }
-        }
-      }
-    },
-    "SearchResultLimit" : {
-      "comment" : "Up to 50 products are shown. Refine your search to find more.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Up to 50 products are shown. Refine your search to find more."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показано до 50 товаров. Уточните запрос, чтобы найти нужный."
           }
         }
       }

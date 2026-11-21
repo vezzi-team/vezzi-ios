@@ -2,46 +2,60 @@ import SwiftUI
 
 struct CatalogCategoryFilterBar: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Binding var selectedFilter: CatalogFilter
-    var categories: [ProductCategory] = ProductCategory.allCases
+    @State private var fullyVisibleCategories: [ProductCategory] = []
+    @State private var isAutoScrolling = false
+    @State private var needsRecentering = false
+    let categories: [ProductCategory]
+    let selected: ProductCategory?
+    var isFollowingFeed = true
+    let select: (ProductCategory) -> Void
 
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal) {
-                filters(scrollProxy: proxy)
+                filters(using: proxy)
             }
             .scrollIndicators(.hidden)
             .scrollClipDisabled()
             .accessibilityIdentifier(AccessibilityID.Catalog.Filters.bar)
-            .onChange(of: selectedFilter, initial: true) { _, filter in
-                center(filter, using: proxy)
+            .onScrollTargetVisibilityChange(idType: ProductCategory.self, threshold: 1) {
+                fullyVisibleCategories = $0
+            }
+            .onScrollPhaseChange { _, phase in
+                isAutoScrolling = phase == .animating
+                if phase == .idle, needsRecentering {
+                    needsRecentering = false
+                    if let selected { center(selected, using: proxy) }
+                } else if phase == .tracking || phase == .interacting {
+                    needsRecentering = false
+                }
+            }
+            .onChange(of: selected) { _, category in
+                guard isFollowingFeed, let category else { return }
+                center(category, using: proxy, onlyIfNeeded: true)
             }
         }
     }
 
     // MARK: - Filters
 
-    private func filters(scrollProxy: ScrollViewProxy) -> some View {
+    private func filters(using proxy: ScrollViewProxy) -> some View {
         GlassEffectContainer(spacing: Const.spacing) {
-            HStack(spacing: Const.spacing) {
-                filterButton(for: .all, scrollProxy: scrollProxy)
+            LazyHStack(spacing: Const.spacing) {
                 ForEach(categories) { category in
-                    filterButton(for: .category(category), scrollProxy: scrollProxy)
+                    filterButton(for: category, using: proxy)
                 }
             }
+            .scrollTargetLayout()
             .padding(.horizontal, Const.horizontalInset)
         }
-        .animation(selectionAnimation, value: selectedFilter)
     }
 
-    private func filterButton(for filter: CatalogFilter, scrollProxy: ScrollViewProxy) -> some View {
-        let isSelected = selectedFilter == filter
+    private func filterButton(for filter: ProductCategory, using proxy: ScrollViewProxy) -> some View {
+        let isSelected = selected == filter
         return Button {
-            if isSelected {
-                center(filter, using: scrollProxy)
-            } else {
-                selectedFilter = filter
-            }
+            select(filter)
+            center(filter, using: proxy)
         } label: {
             filterLabel(for: filter, isSelected: isSelected)
                 .frame(minHeight: Const.minimumHitHeight)
@@ -54,7 +68,7 @@ struct CatalogCategoryFilterBar: View {
         .id(filter)
     }
 
-    private func filterLabel(for filter: CatalogFilter, isSelected: Bool) -> some View {
+    private func filterLabel(for filter: ProductCategory, isSelected: Bool) -> some View {
         ZStack {
             Text(filter.title)
                 .appTextStyle(size: Const.fontSize, lineHeight: Const.lineHeight,
@@ -67,14 +81,23 @@ struct CatalogCategoryFilterBar: View {
         }
         .padding(.horizontal, Const.chipHorizontalInset)
         .padding(.vertical, Const.chipVerticalInset)
-        .glassEffect(isSelected ? .regular.tint(.accentColor).interactive() : .regular.interactive(), in: .capsule)
+        .background {
+            Capsule().fill(Color.accentColor)
+                .opacity(isSelected ? 1 : 0)
+        }
+        .animation(selectionAnimation, value: isSelected)
+        .glassEffect(.regular.interactive(), in: .capsule)
     }
 
     // MARK: - Presentation
 
-    private func center(_ filter: CatalogFilter, using proxy: ScrollViewProxy) {
-        withAnimation(selectionAnimation) {
-            proxy.scrollTo(filter, anchor: .center)
+    private func center(_ category: ProductCategory, using proxy: ScrollViewProxy, onlyIfNeeded: Bool = false) {
+        if isAutoScrolling {
+            // An earlier animation can win on iOS 27. Reconcile the final selection when it settles.
+            needsRecentering = true
+        }
+        if !onlyIfNeeded || !fullyVisibleCategories.contains(category) {
+            withAnimation(selectionAnimation) { proxy.scrollTo(category, anchor: .center) }
         }
     }
 
@@ -94,19 +117,9 @@ struct CatalogCategoryFilterBar: View {
     }
 }
 
-#Preview("Filters — light") {
-    @Previewable @State var selectedFilter: CatalogFilter = .all
-    CatalogCategoryFilterBar(selectedFilter: $selectedFilter)
+#Preview("Category navigation") {
+    @Previewable @State var selected: ProductCategory? = .dairy
+    CatalogCategoryFilterBar(categories: ProductCategory.allCases, selected: selected) { selected = $0 }
         .padding(.vertical)
         .background(Color.Background.primary)
-        .preferredColorScheme(.light)
-}
-
-#Preview("Filters — dark, large text") {
-    @Previewable @State var selectedFilter: CatalogFilter = .category(.produce)
-    CatalogCategoryFilterBar(selectedFilter: $selectedFilter)
-        .padding(.vertical)
-        .background(Color.Background.primary)
-        .preferredColorScheme(.dark)
-        .dynamicTypeSize(.accessibility3)
 }

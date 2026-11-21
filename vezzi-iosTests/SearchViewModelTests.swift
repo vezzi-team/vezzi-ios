@@ -4,6 +4,202 @@ import XCTest
 
 @MainActor
 final class SearchViewModelTests: XCTestCase {
+    func testServerMatchesUseCatalogOffersAndUpdateBothModesWithoutRepeatingTheQuery() async throws {
+        let hit = CatalogProduct(id: "p1", name: "Remote product")
+        let source = SearchCatalogSource { _ in [hit] }
+        let repository = DefaultCatalogRepository(source: source)
+        let model = SearchViewModel(repository: repository)
+        model.query = "   synonym   "
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.first?.product == hit })
+        XCTAssertNil(model.sections.first?.products.first?.lowestPrice)
+        model.mode = .faster
+        XCTAssertTrue(model.sections.isEmpty)
+
+        var batch = CatalogFixtures.catalog(price: 112)
+        batch.products.append(CatalogProduct(id: "local", name: "synonym"))
+        try await repository.importCatalog(batch)
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.first?.offers.first?.offer.price == 112 })
+        XCTAssertEqual(model.sections.map(\.storeID), ["s1"])
+        XCTAssertEqual(model.sections.first?.products.first?.lowestPrice, 112)
+        model.mode = .cheaper
+        XCTAssertEqual(model.sections.flatMap(\.products).map(\.id), ["p1"])
+        XCTAssertEqual(model.sections.first?.products.first?.name, "Молоко")
+
+        try await repository.importCatalog(CatalogFixtures.catalog(price: 98))
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.first?.offers.first?.offer.price == 98 })
+        XCTAssertEqual(model.sections.first?.products.first?.lowestPrice, 98)
+        let queries = await source.queries
+        XCTAssertEqual(queries, ["synonym"])
+    }
+
+    func testOfflineSearchUsesRestoredCatalogAndRetriesSameQueryWhenConnected() async throws {
+        let source = SearchCatalogSource { query in
+            if query == "Brand" { throw URLError(.networkConnectionLost) }
+            return []
+        }
+        let cache = ControlledCatalogCache()
+        cache.snapshot = try CatalogFixtures.snapshot()
+        let repository = DefaultCatalogRepository(cache: cache, source: source)
+        repository.updateConnectivity(isConnected: false)
+        await repository.prepareCache()
+        let model = SearchViewModel(repository: repository)
+        model.query = "Молоко"
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.first?.id == "p1" })
+        model.mode = .faster
+        XCTAssertEqual(model.sections.first?.storeID, "s1")
+        let offlineQueries = await source.queries
+        XCTAssertTrue(offlineQueries.isEmpty)
+
+        repository.updateConnectivity(isConnected: true)
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.isEmpty })
+        XCTAssertTrue(model.sections.isEmpty, "An empty server result is authoritative even with a local match")
+        model.query = "Brand"
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.first?.id == "p1" })
+        XCTAssertEqual(model.sections.first?.products.first?.lowestPrice, Decimal(string: "99.90"))
+        let onlineQueries = await source.queries
+        XCTAssertEqual(onlineQueries, ["Молоко", "Brand"])
+    }
+
+    func testReconnectingAfterColdOfflineLaunchLoadsStoreOffersForActiveSearch() async throws {
+        let catalog = ControlledCatalogSource()
+        let source = SearchCatalogSource(export: catalog) { _ in [CatalogProduct(id: "p1", name: "Milk")] }
+        let repository = DefaultCatalogRepository(source: source)
+        repository.updateConnectivity(isConnected: false)
+        let model = SearchViewModel(repository: repository)
+        model.mode = .faster
+        model.query = "synonym"
+        await model.refresh()
+        let offline = expectation(description: "Cold launch reports no offline data")
+        let observation = model.$emptyState.first(where: { $0 == .offline }).sink { _ in offline.fulfill() }
+        defer { observation.cancel() }
+        await fulfillment(of: [offline], timeout: 3)
+        XCTAssertEqual(model.emptyState, .offline)
+        await catalog.succeed(with: CatalogFixtures.catalog(price: 118))
+        repository.updateConnectivity(isConnected: true)
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.first?.offers.first?.offer.price == 118 })
+        XCTAssertEqual(model.sections.map(\.storeID), ["s1"])
+        let queries = await source.queries
+        XCTAssertEqual(queries, ["synonym"])
+    }
+
+    func testChangingQueryCancelsPendingDebounceAndIgnoresLateMatches() async {
+        let started = expectation(description: "First search started")
+        let cancelled = expectation(description: "First request cancelled")
+        let source = SearchCatalogSource { query in
+            if query == "old" {
+                started.fulfill()
+                do { try await Task.sleep(for: .seconds(10)) } catch { cancelled.fulfill() }
+            }
+            return [CatalogProduct(id: query, name: query)]
+        }
+        let model = SearchViewModel(repository: DefaultCatalogRepository(source: source))
+        var seenIDs: [String] = []
+        let observation = model.$items.sink { seenIDs.append(contentsOf: $0.map(\.id)) }
+        defer { observation.cancel() }
+        model.query = "o"
+        model.query = "old"
+        await fulfillment(of: [started], timeout: 3)
+        model.query = "new"
+        await fulfillment(of: [cancelled], timeout: 3)
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.first?.id == "new" })
+        XCTAssertEqual(seenIDs, ["new"])
+        model.query = ""
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.isEmpty })
+        let queries = await source.queries
+        XCTAssertEqual(queries, ["old", "new"])
+    }
+
+    func testReconnectRevalidatesOlderCachedCatalogAndJoinsNewStoresToActiveResults() async throws {
+        let product = CatalogProduct(id: "new", name: "New milk")
+        let export = ControlledCatalogSource()
+        let source = SearchCatalogSource(export: export) { _ in [product] }
+        let cache = ControlledCatalogCache()
+        cache.snapshot = try CatalogSnapshot().applying(CatalogFixtures.export(version: 7)).snapshot
+        let repository = DefaultCatalogRepository(cache: cache, source: source)
+        repository.updateConnectivity(isConnected: false)
+        await repository.prepareCache()
+        let model = SearchViewModel(repository: repository)
+        model.mode = .faster
+        model.query = "new"
+        await model.refresh()
+
+        var latest = CatalogFixtures.catalog()
+        latest.products.append(product)
+        latest.offers.append(CatalogOffer(id: "newOffer", productID: product.id, storeID: "s1", price: 45, currency: "RUB"))
+        await export.succeed(with: latest)
+        repository.updateConnectivity(isConnected: true)
+        repository.updateConnectivity(isConnected: true)
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.first?.offers.first?.id == "newOffer" })
+        XCTAssertEqual(model.sections.first?.products.first?.lowestPrice, 45)
+        XCTAssertEqual(model.sections.first?.storeID, "s1")
+        let headers = await source.exportETags
+        XCTAssertEqual(headers, ["\"7\"", "\"7\""])
+        let queries = await source.queries
+        XCTAssertEqual(queries, ["new"])
+    }
+
+    func testConfirmedEmptyServerSearchSurvivesExportFailureUntilTheNextQuery() async {
+        let source = SearchCatalogSource { _ in [] }
+        let repository = DefaultCatalogRepository(source: source)
+        try? await repository.refresh()
+        let model = SearchViewModel(repository: repository)
+        XCTAssertEqual(model.emptyState, .offline)
+        model.query = "missing"
+        let resolved = expectation(description: "Server confirmed no matches")
+        let observation = model.$emptyState.first { $0 == .empty }.sink { _ in resolved.fulfill() }
+        defer { observation.cancel() }
+        await fulfillment(of: [resolved], timeout: 3)
+        var changes: [CatalogEmptyState] = []
+        let subsequent = model.$emptyState.dropFirst().sink { changes.append($0) }
+        defer { subsequent.cancel() }
+        try? await repository.refresh()
+        XCTAssertTrue(changes.isEmpty)
+        XCTAssertFalse(model.showsSections)
+
+        repository.updateConnectivity(isConnected: false)
+        model.query = "another"
+        let offline = expectation(description: "New offline query uses catalog feedback")
+        let fallback = model.$emptyState.first { $0 == .offline }.sink { _ in offline.fulfill() }
+        defer { fallback.cancel() }
+        await fulfillment(of: [offline], timeout: 3)
+    }
+
+    func testSlowReplacementHidesPreviousCardsAndSameQueryRefreshKeepsCurrentCards() async throws {
+        let started = expectation(description: "Replacement request started")
+        let gate = AsyncStream<Void>.makeStream()
+        defer { gate.continuation.finish() }
+        let source = SearchCatalogSource { query in
+            if query == "new" {
+                started.fulfill()
+                for await _ in gate.stream { break }
+            }
+            return [CatalogProduct(id: query, name: query)]
+        }
+        let repository = DefaultCatalogRepository(source: source)
+        let model = SearchViewModel(repository: repository)
+        model.query = "old"
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.first?.id == "old" })
+
+        var keptCurrentCards = false
+        let refreshing = model.$emptyState.dropFirst().sink { state in
+            if state == .loading { keptCurrentCards = model.resultsMatchQuery && model.showsSections }
+        }
+        await model.refresh()
+        refreshing.cancel()
+        XCTAssertTrue(keptCurrentCards)
+
+        model.query = "new"
+        XCTAssertFalse(model.resultsMatchQuery, "Disable old cards during the debounce")
+        await fulfillment(of: [started], timeout: 3)
+        XCTAssertEqual(model.emptyState, .loading)
+        XCTAssertFalse(model.showsSections)
+        XCTAssertFalse(model.showsModePicker)
+        gate.continuation.yield(())
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.first?.id == "new" })
+        XCTAssertTrue(model.showsSections)
+        XCTAssertTrue(model.resultsMatchQuery)
+    }
+
     func testOfflineEmptySearchDoesNotMistakeANonmatchingQueryForMissingCache() async throws {
         let repository = DefaultCatalogRepository()
         repository.updateConnectivity(isConnected: false)
@@ -105,11 +301,46 @@ final class SearchViewModelTests: XCTestCase {
 
     func testCheaperModeGroupsProductsAndSortsEachShelfByPrice() {
         let model = mockViewModel()
-        XCTAssertEqual(model.sections.map(\.id), SearchMockData.groupOrder)
-        let bread = model.sections.first { $0.id == "bread" }
+        XCTAssertEqual(model.sections.map(\.title), SearchMockData.groupOrder)
+        let bread = model.sections.first { $0.title == Texts.Search.Mock.bread }
         XCTAssertEqual(bread?.products.map(\.lowestPrice), [55, 59, 65])
         XCTAssertTrue(model.sections.allSatisfy { $0.storeID == nil && $0.products.count == 3 })
         XCTAssertTrue(model.sections.flatMap(\.products).allSatisfy { $0.offers.count == 2 })
+    }
+
+    func testCheaperModeMergesCategoryTitlesAcrossProductTypesAndKeepsOtherCategoriesSeparate() async throws {
+        let products = [
+            CatalogProduct(id: "milk", name: "Молоко", category: "Молочные продукты", productType: "Молоко"),
+            CatalogProduct(id: "kefir", name: "Кефир", category: "Молочные продукты", productType: "Кефир"),
+            CatalogProduct(id: "yogurt", name: "Йогурт", category: "Молочные продукты", productType: "Йогурт"),
+            CatalogProduct(id: "cream", name: "Сливки", category: " МОЛОЧНЫЕ  продукты ", productType: "Сливки"),
+            CatalogProduct(id: "baby", name: "Детское молоко", category: "Детское питание", productType: "Молоко")
+        ]
+        let batch = CatalogImport(products: products, stores: [CatalogStore(id: "s", name: "Store")],
+                                  offers: [("milk", 100), ("kefir", 80), ("yogurt", 80), ("baby", 70)].map { id, price in
+                                      CatalogOffer(id: id, productID: id, storeID: "s", price: Decimal(price), currency: "RUB")
+                                  })
+        let model = SearchViewModel(repository: PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(batch)))
+        XCTAssertEqual(model.sections.map(\.title), ["Детское питание", "Молочные продукты"])
+        let dairy = try XCTUnwrap(model.sections.first { $0.title == "Молочные продукты" })
+        XCTAssertEqual(dairy.products.map(\.id), ["kefir", "yogurt", "milk", "cream"])
+        XCTAssertEqual(model.sections.first?.products.map(\.id), ["baby"])
+
+        model.query = "кефир"
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.count == 1 })
+        XCTAssertEqual(model.sections.map(\.id), [dairy.id])
+        XCTAssertEqual(model.sections.first?.products.map(\.id), ["kefir"])
+    }
+
+    func testCheaperModeUsesTheSameShelfForMatchingFallbackTitles() throws {
+        let batch = CatalogImport(products: [
+            CatalogProduct(id: "category", name: "Apple juice", category: "Juice"),
+            CatalogProduct(id: "type", name: "Orange juice", category: "  ", productType: "  Juice"),
+            CatalogProduct(id: "name", name: "Juice ", productType: " ")
+        ])
+        let model = SearchViewModel(repository: PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(batch)))
+        XCTAssertEqual(model.sections.map(\.title), ["Juice"])
+        XCTAssertEqual(model.sections.first?.products.map(\.id), ["category", "name", "type"])
     }
 
     func testFasterModeOrdersStoresAndUsesOnlyTheirOwnPrices() {
@@ -197,7 +428,7 @@ final class SearchViewModelTests: XCTestCase {
                 let snapshot = try CatalogSnapshot().applying(CatalogFixtures.export(batch, date: now)).snapshot.evaluated(at: now)
                 let repository = PreviewCatalogRepository(snapshot: snapshot)
                 let catalog = StorefrontViewModel(page: .catalog, repository: repository)
-                XCTAssertEqual(catalog.products.first?.offers.first?.id, "available")
+                XCTAssertEqual(catalog.catalogSections.first?.preview.first?.offers.first?.id, "available")
                 let search = SearchViewModel(repository: repository)
                 for mode in ProductSearchMode.allCases {
                     search.mode = mode
@@ -278,7 +509,7 @@ final class SearchViewModelTests: XCTestCase {
         let model = mockViewModel()
         model.query = "  " + Texts.Search.Mock.milk.uppercased() + "  "
         _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.count == 3 })
-        XCTAssertEqual(model.sections.map(\.id), ["milk"])
+        XCTAssertEqual(model.sections.map(\.title), [Texts.Search.Mock.milk])
         model.mode = .faster
         XCTAssertEqual(model.sections.map { $0.products.count }, [3, 3])
         model.query = "__missing_product__"
@@ -296,10 +527,10 @@ final class SearchViewModelTests: XCTestCase {
         let search = mockViewModel()
         let product = search.sections[0].products[0]
         selection.setQuantity(2, for: product.id)
-        XCTAssertEqual(home.quantity(for: product.id), 2)
+        XCTAssertEqual(home.selection.quantity(for: product.id), 2)
         search.mode = .faster
         XCTAssertEqual(selection.quantity(for: product.id), 2)
-        home.setQuantity(3, for: product.id)
+        home.selection.setQuantity(3, for: product.id)
         XCTAssertEqual(selection.quantity(for: product.id), 3)
         selection.setQuantity(1_000, for: product.id)
         XCTAssertEqual(selection.quantity(for: product.id), ProductSelection.quantityRange.upperBound)
@@ -333,6 +564,29 @@ final class SearchViewModelTests: XCTestCase {
         let updated = await publishedItems(viewModel.$items.eraseToAnyPublisher(), where: { $0.first?.offers.first?.offer.price == 120 })
         XCTAssertEqual(updated.first?.offers.first?.offer.price, 120)
         XCTAssertTrue(emptyStates.isEmpty, "Refreshing an available snapshot should not republish unchanged empty feedback")
+    }
+}
+
+private actor SearchCatalogSource: CatalogSource, CatalogProductSearching {
+    private let respond: @Sendable (String) async throws -> [CatalogProduct]
+    private let export: any CatalogSource
+    private(set) var queries: [String] = []
+    private(set) var exportETags: [String?] = []
+
+    init(export: any CatalogSource = ControlledCatalogSource(),
+         respond: @escaping @Sendable (String) async throws -> [CatalogProduct]) {
+        self.export = export
+        self.respond = respond
+    }
+
+    func searchProducts(matching query: String) async throws -> [CatalogProduct] {
+        queries.append(query)
+        return try await respond(query)
+    }
+
+    func loadCatalog(ifNoneMatch: String?) async throws -> CatalogSourceResult {
+        exportETags.append(ifNoneMatch)
+        return try await export.loadCatalog(ifNoneMatch: ifNoneMatch)
     }
 }
 

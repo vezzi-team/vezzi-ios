@@ -8,7 +8,8 @@ enum SearchMockData {
         "perekrestok": SearchStoreInfo(walkingMinutes: 15, distance: Measurement(value: 1, unit: .kilometers))
     ]
 
-    static let groupOrder = ProductMockData.products.map(\.id)
+    static let groupOrder = [Texts.Search.Mock.milk, Texts.Search.Mock.bread, Texts.Product.Mock.apples,
+                             Texts.Product.Mock.eggs, Texts.Product.Mock.pasta, Texts.Product.Mock.tomatoes]
 
     static func snapshot() -> CatalogSnapshot {
         let storeRecords = [
@@ -17,10 +18,8 @@ enum SearchMockData {
             CatalogStore(id: "perekrestok", name: Texts.Search.Mock.perekrestok,
                          chainName: Texts.Search.Mock.perekrestok, address: Texts.Home.Mock.workAddress)
         ]
-        let groupTitles = [Texts.Search.Mock.milk, Texts.Search.Mock.bread, Texts.Product.Mock.apples,
-                           Texts.Product.Mock.eggs, Texts.Product.Mock.pasta, Texts.Product.Mock.tomatoes]
         var batch = CatalogImport(stores: storeRecords)
-        for (group, title) in zip(ProductMockData.productGroups, groupTitles) {
+        for (group, title) in zip(ProductMockData.productGroups, groupOrder) {
             guard let groupID = group.first?.id else { continue }
             for product in group {
                 batch.products.append(CatalogProduct(id: product.id, name: product.name, brand: product.brand,
