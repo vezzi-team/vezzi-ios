@@ -4,7 +4,7 @@ import Foundation
 @MainActor
 final class ShoppingListViewModel: ObservableObject {
     enum ContentState { case products, loading, empty, offline, unavailable }
-    @Published var mode = ShoppingListMode.cheaper
+    @Published var mode = ShoppingMode.cheaper
     @Published private(set) var selectedProduct: Product?
     @Published private(set) var selectedProductOffer: ProductOffer?
     @Published private(set) var relatedProducts: [Product] = []

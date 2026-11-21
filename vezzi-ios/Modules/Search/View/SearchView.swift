@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SearchView: View {
+    @Environment(\.preferredShoppingMode) private var preferredMode
     @EnvironmentObject private var router: AppRouter
     @StateObject private var viewModel: SearchViewModel
     @ObservedObject private var selection: ProductSelection
@@ -39,6 +40,9 @@ struct SearchView: View {
         .searchable(text: $viewModel.query, isPresented: $isSearching, prompt: Texts.Search.prompt)
         .searchPresentationToolbarBehavior(horizontalSizeClass == .regular ? .avoidHidingContent : .automatic)
         .searchFocused($isSearchFocused)
+        .onChange(of: router.selectedTab == .search ? preferredMode : nil, initial: true) { _, mode in
+            if let mode, viewModel.mode != mode { viewModel.mode = mode }
+        }
         .onSubmit(of: .search) { isSearchFocused = false }
         .onReceive(router.willOpenShoppingList) {
             if viewModel.selectedProduct != nil { viewModel.dismissProduct() }
@@ -71,7 +75,7 @@ struct SearchView: View {
 
     private var modePicker: some View {
         Picker(Texts.Search.mode, selection: modeSelection) {
-            ForEach(ProductSearchMode.allCases) { mode in
+            ForEach(ShoppingMode.allCases) { mode in
                 Text(mode == .cheaper ? Texts.Search.cheaper : Texts.Search.faster).tag(mode)
             }
         }
@@ -85,7 +89,7 @@ struct SearchView: View {
         .accessibilityIdentifier(AccessibilityID.Search.mode)
     }
 
-    private var modeSelection: Binding<ProductSearchMode> {
+    private var modeSelection: Binding<ShoppingMode> {
         Binding(get: { viewModel.mode }, set: { mode in
             withAnimation(reduceMotion ? nil : .easeInOut(duration: Const.modeDuration)) {
                 viewModel.mode = mode

@@ -3,7 +3,7 @@ import SwiftUI
 struct ShoppingListPriceSummary: View {
     let total: Decimal?
     let comparison: Decimal?
-    let mode: ShoppingListMode
+    let mode: ShoppingMode
     let isLoading: Bool
     var isCompact = false
 
@@ -197,7 +197,7 @@ struct ShoppingListPriceSummary: View {
 }
 
 #Preview("Prices — transitions and loading") {
-    @Previewable @State var mode = ShoppingListMode.cheaper
+    @Previewable @State var mode = ShoppingMode.cheaper
     @Previewable @State var isLoading = false
     @Previewable @State var isCompact = false
     VStack {
@@ -205,8 +205,8 @@ struct ShoppingListPriceSummary: View {
                                  comparison: isLoading ? nil : 12422, mode: mode, isLoading: isLoading,
                                  isCompact: isCompact)
         Picker(Texts.Search.mode, selection: $mode.animation(.smooth)) {
-            Text(Texts.Search.cheaper).tag(ShoppingListMode.cheaper)
-            Text(Texts.Search.faster).tag(ShoppingListMode.faster)
+            Text(Texts.Search.cheaper).tag(ShoppingMode.cheaper)
+            Text(Texts.Search.faster).tag(ShoppingMode.faster)
         }.pickerStyle(.segmented)
         Toggle(Texts.ShoppingList.updating, isOn: $isLoading)
         Toggle(isOn: $isCompact) { Text(verbatim: "Compact") }

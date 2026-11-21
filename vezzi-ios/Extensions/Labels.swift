@@ -12,7 +12,7 @@ final class Texts {
     // MARK: - App Info
     
     enum AppInfo {
-        static let title = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Planzo"
+        static let title = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Polka"
     }
     
     // MARK: - Shared Controls
@@ -242,40 +242,57 @@ final class Texts {
     }
 
     enum Profile {
+        enum Controls {
+            static let save = NSLocalizedString("ProfileControlsSave", comment: "Save")
+        }
+
+        enum Addresses {
+            static let title = NSLocalizedString("ProfileAddressesTitle", comment: "My address")
+            static let edit = NSLocalizedString("ProfileEditAddress", comment: "Change address")
+        }
+
+        enum Shopping {
+            static let title = NSLocalizedString("ProfileShoppingTitle", comment: "How to shop")
+            static let economical = NSLocalizedString("ProfileShoppingEconomical", comment: "Save money")
+            static let priceDescription = NSLocalizedString("ProfileShoppingPriceDescription", comment: "Lowest total for your list")
+            static let timeDescription = NSLocalizedString("ProfileShoppingTimeDescription", comment: "Spend less time shopping")
+        }
+
+        enum Support {
+            static let title = NSLocalizedString("ProfileSupportTitle", comment: "Contact us")
+            static let subtitle = NSLocalizedString("ProfileSupportSubtitle", comment: "Help with prices and shopping")
+        }
+
+        enum About {
+            static let tagline = NSLocalizedString("ProfileAboutTagline", comment: "Your list. A better choice.")
+            static let description = NSLocalizedString("ProfileAboutDescription", comment: "Compare grocery prices in nearby stores and choose a convenient shopping route.")
+            static func version(_ value: String) -> String {
+                String.localizedStringWithFormat(NSLocalizedString("ProfileAboutVersion", comment: "App version"), value)
+            }
+        }
+
         enum Main {
             static let title = NSLocalizedString("ProfileMainTitle", comment: "Profile")
-            static let subtitle = NSLocalizedString("ProfileMainSubtitle", comment: "Address, preferences and settings")
-            static let yourProfile = NSLocalizedString("ProfileMainYourProfile", comment: "Your profile")
-            static let personalDetails = NSLocalizedString("ProfileMainPersonalDetails", comment: "Personal details")
-            static let shopping = NSLocalizedString("ProfileMainShopping", comment: "Shopping")
-            static let address = NSLocalizedString("ProfileMainAddress", comment: "Shopping address")
-            static let priority = NSLocalizedString("ProfileMainPriority", comment: "Shopping priority")
+            static let personalDetails = NSLocalizedString("ProfileMainPersonalDetails", comment: "My details")
+            static let email = NSLocalizedString("ProfileEmail", comment: "Email address")
             static let settings = NSLocalizedString("ProfileMainSettings", comment: "Settings")
             static let debug = NSLocalizedString("ProfileMainDebug", comment: "Debug")
-            static let notifications = NSLocalizedString("ProfileMainNotifications", comment: "Notifications")
-            static let help = NSLocalizedString("ProfileMainHelp", comment: "Help")
-            static let about = NSLocalizedString("ProfileMainAbout", comment: "About")
+            static let about = NSLocalizedString("ProfileMainAbout", comment: "About Polka")
             static let terms = NSLocalizedString("ProfileMainTerms", comment: "Terms of use and privacy")
         }
 
         enum Settings {
-            static let balanced = NSLocalizedString("ProfileSettingsBalanced", comment: "Balance price and time")
-            static let lowestPrice = NSLocalizedString("ProfileSettingsLowestPrice", comment: "Lowest price")
-            static let fastest = NSLocalizedString("ProfileSettingsFastest", comment: "Save time")
-            static let enabled = NSLocalizedString("ProfileSettingsEnabled", comment: "On")
-            static let disabled = NSLocalizedString("ProfileSettingsDisabled", comment: "Off")
+            static let language = NSLocalizedString("ProfileLanguage", comment: "App language")
+            static let languagePrompt = NSLocalizedString("ProfileLanguagePrompt", comment: "Open the app’s settings to change its language?")
+            static let openSettings = NSLocalizedString("ProfileOpenSettings", comment: "Open Settings")
+            static let appearance = NSLocalizedString("ProfileAppearance", comment: "Appearance")
+            static let system = NSLocalizedString("ProfileAppearanceSystem", comment: "System")
+            static let light = NSLocalizedString("ProfileAppearanceLight", comment: "Light")
+            static let dark = NSLocalizedString("ProfileAppearanceDark", comment: "Dark")
             static let signOut = NSLocalizedString("ProfileSettingsSignOut", comment: "Sign out")
+            static let confirmSignOut = NSLocalizedString("ProfileSettingsConfirmSignOut", comment: "Confirm signing out")
             static let signOutConfirmation = NSLocalizedString("ProfileSettingsSignOutConfirmation", comment: "Sign out of your account?")
         }
-
-        enum Information {
-            static let help = NSLocalizedString("ProfileInformationHelp", comment: "Browse products on Home and add them to your list with the + button. Open a product to compare offers and alternatives.")
-            static let about = NSLocalizedString("ProfileInformationAbout", comment: "Plan your shopping, compare offers and discover ideas for dinner.")
-            static let version = NSLocalizedString("ProfileInformationVersion", comment: "Version")
-            static let notifications = NSLocalizedString("ProfileInformationNotifications", comment: "Notifications aren’t sent in this preview. You can try the preference here.")
-            static let terms = NSLocalizedString("ProfileInformationTerms", comment: "Terms of use and the privacy policy will be available before account registration launches.")
-        }
-
     }
 
     // MARK: - Debug

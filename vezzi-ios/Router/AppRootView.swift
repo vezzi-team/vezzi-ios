@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Composes the app's modules and owns state shared across tabs.
 struct AppRootView: View {
+    @StateObject private var preferences: ShoppingPreferences
     @StateObject private var appRouter: AppRouter
     @ObservedObject private var productSelection: ProductSelection
     private let shoppingList: ShoppingListRepository
@@ -22,6 +23,7 @@ struct AppRootView: View {
     ) {
         self.catalog = catalog
         self.authentication = authentication
+        _preferences = StateObject(wrappedValue: ShoppingPreferences(authentication: authentication))
         let list = shoppingList ?? ShoppingListRepository()
         self.shoppingList = list
         self.location = location ?? DeviceLocationService()
@@ -65,7 +67,8 @@ struct AppRootView: View {
             Button(Texts.ShoppingList.understood, role: .cancel) {}
         } message: { Text(Texts.ShoppingList.limitDescription) }
         .sheet(item: presentedSheet) { sheet in
-            DestinationFactory.sheet(for: sheet, authentication: authentication)
+            DestinationFactory.sheet(for: sheet, authentication: authentication, preferences: preferences,
+                                     list: shoppingList, location: location)
         }
         .fullScreenCover(item: $appRouter.presentedCollection) { collection in
             let cover = DestinationFactory.collection(collection, catalog: catalog, authentication: authentication,
@@ -84,6 +87,10 @@ struct AppRootView: View {
                 appRouter.popToRoot(in: .catalog)
             }
         }
+        .onChange(of: authentication.identity?.sessionID) {
+            if case .profile? = appRouter.presentedSheet { appRouter.dismissSheet() }
+        }
+        .environment(\.preferredShoppingMode, preferences.mode)
         .environmentObject(appRouter)
         .modifier(CartAdditionNoticePresenter(hasAddedProduct: productSelection.hasAddedProductThisSession,
                                              openList: appRouter.openShoppingList))

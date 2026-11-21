@@ -10,7 +10,6 @@ final class AuthenticationSession: ObservableObject {
     @Published private(set) var isVerifying = false
     @Published private(set) var isSigningOut = false
     @Published private(set) var lastError: AuthenticationFailure?
-    @Published var preferences = ProfilePreferences()
 
     private let service: any AuthenticationService
     private var revision = UUID()
@@ -66,7 +65,6 @@ final class AuthenticationSession: ObservableObject {
             lastError = failure
             if failure.invalidatesSession {
                 identity = nil
-                preferences = ProfilePreferences()
             }
         }
     }
@@ -89,7 +87,6 @@ final class AuthenticationSession: ObservableObject {
             pendingGrant = nil
             activeSignIn = nil
             hasRestored = true
-            preferences = ProfilePreferences()
             identity = AuthenticationIdentity(sessionID: response.session.id, user: user)
         } catch {
             if let grant {
@@ -134,7 +131,6 @@ final class AuthenticationSession: ObservableObject {
         do {
             try await service.signOut()
             identity = nil
-            preferences = ProfilePreferences()
             lastError = nil
             hasRestored = true
         } catch {

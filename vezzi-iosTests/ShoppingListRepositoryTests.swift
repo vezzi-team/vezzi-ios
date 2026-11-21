@@ -1294,7 +1294,7 @@ final class ShoppingListRepositoryTests: XCTestCase {
             .joined(separator: "\n")
         XCTAssertEqual(restored.failure, .offline)
         XCTAssertEqual(restored.routeOptions, options)
-        for mode in ShoppingListMode.allCases {
+        for mode in ShoppingMode.allCases {
             model.mode = mode
             XCTAssertNil(model.plan)
             XCTAssertEqual(model.message, expectedMessage)

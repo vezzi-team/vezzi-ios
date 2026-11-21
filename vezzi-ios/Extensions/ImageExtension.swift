@@ -14,6 +14,7 @@ extension Image {
     enum System {
         static let location = Image(systemName: "location")
         static let locationFill = Image(systemName: "location.fill")
+        static let profileDebug = Image(systemName: "ladybug")
         static let person = Image(systemName: "person.crop.circle")
         static let walk = Image(systemName: "figure.walk")
         static let chevronRight = Image(systemName: "chevron.right")
@@ -47,12 +48,20 @@ extension Image {
         }
     }
 
+    enum Profile {
+        static let pin = Image("ProfilePin")
+        static let route = Image("ProfileRoute")
+        static let settings = Image("ProfileSettings")
+        static let about = Image("ProfileAbout")
+    }
+
     // MARK: - Branding
 
     enum Brand {
         static let wordmark = Image("BrandWordmark")
         static let motiYarn = Image("MotiYarn")
         static let motiWinkingFace = Image("MotiWinkingFace")
+        static let motiSmilingFace = Image("MotiSmilingFace")
         static let motiSadFace = Image("MotiSadFace")
     }
 

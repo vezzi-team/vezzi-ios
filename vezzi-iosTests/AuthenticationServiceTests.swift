@@ -394,7 +394,7 @@ final class AuthenticationServiceTests: XCTestCase {
         await waitUntil { server.count("auth/logout") >= 1 }
     }
 
-    func testServerRejectionClearsAccountAndPreferencesEvenWhenRemovalFails() async throws {
+    func testServerRejectionClearsAccountEvenWhenRemovalFails() async throws {
         for rejectsRefresh in [true, false] {
             let store = MemoryAuthenticationStore(AuthFixtures.saved(), failsRemoval: true)
             let (service, server) = makeService(store: store) { request, _ in
@@ -403,10 +403,8 @@ final class AuthenticationServiceTests: XCTestCase {
                 return .json("{}", status: 401)
             }
             let session = AuthenticationSession(service: service)
-            session.preferences.address = "Private address"
             await session.restore()
             XCTAssertNil(session.user)
-            XCTAssertEqual(session.preferences.address, ProfilePreferences().address)
             XCTAssertEqual(session.lastError, .sessionCleanupFailed)
             for _ in 0..<3 { await session.restore(force: true) }
             XCTAssertNil(session.user)
@@ -638,6 +636,7 @@ final class AuthenticationServiceTests: XCTestCase {
         XCTAssertNil(session.user)
         XCTAssertNil(store.snapshot)
         XCTAssertEqual(server.count("users/me"), 0)
+        await waitUntil { server.count("auth/logout") == 1 }
     }
 
     func testKeychainInvalidationFileSurvivesStoreRecreationAndContainsOnlyTheSessionID() async throws {

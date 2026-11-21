@@ -194,37 +194,10 @@ struct LoginView: View {
     }
 
     private var signInButton: some View {
-        Button { submit(.signIn) } label: {
-            actionLabel(title: Texts.Authentication.signIn, isLoading: isSigningIn)
-        }
-        .buttonStyle(.glassProminent)
-        .controlSize(.large)
+        PrimaryActionButton(title: Texts.Authentication.signIn, isLoading: isSigningIn) { submit(.signIn) }
         .disabled(viewModel.isBusy)
         .accessibilityLabel(isSigningIn ? Texts.Authentication.signingIn : Texts.Authentication.signIn)
         .accessibilityIdentifier(AccessibilityID.Authentication.signIn)
-    }
-
-    private func actionLabel(title: String, isLoading: Bool) -> some View {
-        // Keep the title's layout, including Dynamic Type wrapping, while replacing its visible content.
-        Text(title)
-            .appTextStyle(.appText, weight: .semibold)
-            .hidden()
-            .frame(maxWidth: .infinity, minHeight: Const.buttonContentHeight)
-            .overlay {
-                ZStack {
-                    if isLoading {
-                        ProgressView()
-                            .controlSize(.regular)
-                            .tint(Color.Label.primary)
-                            .transition(stateTransition)
-                    } else {
-                        Text(title)
-                            .appTextStyle(.appText, weight: .semibold)
-                            .transition(stateTransition)
-                    }
-                }
-            }
-            .accessibilityHidden(true)
     }
 
     private var termsLink: some View {
@@ -255,7 +228,7 @@ struct LoginView: View {
 
     private var registerButton: some View {
         Button { submit(.register) } label: {
-            actionLabel(title: Texts.Authentication.register, isLoading: isRegistering)
+            ActionButtonLabel(title: Texts.Authentication.register, isLoading: isRegistering)
         }
         .buttonStyle(.glass)
         .controlSize(.large)
@@ -313,7 +286,6 @@ struct LoginView: View {
         static let fieldHeight: CGFloat = 48
         static let fieldRadius: CGFloat = 10
         static let borderWidth: CGFloat = 1
-        static let buttonContentHeight: CGFloat = 24
         static let linkHeight: CGFloat = 44
         static let messageScale: CGFloat = 0.96
         static let animationDuration: TimeInterval = 0.26
