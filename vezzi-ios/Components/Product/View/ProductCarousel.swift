@@ -8,14 +8,15 @@ struct ProductCarousel: View {
     @ObservedObject var selection: ProductSelection
     var showsStoreBadges = true
     var showsPricePrefix = true
+    var revealsNextCard = false
     let open: (Product) -> Void
 
     var body: some View {
         ScrollView(.horizontal) {
-            LazyHStack(alignment: .top, spacing: ProductGridLayout.columnSpacing) {
+            LazyHStack(alignment: .top, spacing: revealsNextCard ? Const.previewSpacing : ProductGridLayout.columnSpacing) {
                 ForEach(products) { product in
                     ProductCard(product: product, promotion: product.promotion, showsStoreBadges: showsStoreBadges,
-                                showsPricePrefix: showsPricePrefix, quantity: quantityBinding(for: product.id)) {
+                                showsPricePrefix: showsPricePrefix, quantity: $selection[productID: product.id]) {
                         open(product)
                     }
                     .containerRelativeFrame(.horizontal) { width, _ in
@@ -28,17 +29,14 @@ struct ProductCarousel: View {
             .padding(.vertical, Const.shadowInset)
         }
         .contentMargins(.horizontal, ProductGridLayout.contentInset, for: .scrollContent)
-        .scrollIndicators(.hidden)
+        .scrollIndicators(.hidden, axes: .horizontal)
         .scrollTargetBehavior(.viewAligned)
         .fixedSize(horizontal: false, vertical: true)
     }
 
-    private func quantityBinding(for productID: String) -> Binding<Int> {
-        Binding(get: { selection.quantity(for: productID) },
-                set: { selection.setQuantity($0, for: productID) })
-    }
-
     private enum Const {
+        // Tighter gaps reveal the following card while retaining the grid's card width.
+        static let previewSpacing: CGFloat = 6
         static let shadowInset: CGFloat = 6
     }
 }

@@ -24,8 +24,8 @@ struct StorefrontScreen: View {
 
     var body: some View {
         GeometryReader { geometry in
-            if case .collection = page {
-                collectionFeed(viewportHeight: geometry.size.height)
+            if case .collection(let collection) = page {
+                collectionFeed(collection, viewportHeight: geometry.size.height)
             } else {
                 feed(viewportHeight: geometry.size.height)
                     .screenStateFade(for: viewModel.hasProducts)
@@ -37,7 +37,7 @@ struct StorefrontScreen: View {
         // The scroll view can retain its refresh action after the cover is dismissed.
         .refreshable { [weak viewModel] in await viewModel?.refresh() }
         .environment(\.isShimmerEnabled, viewModel.selectedDetail == nil && router.presentedSheet == nil &&
-                     (page != .home || router.presentedCollection == nil) && !showsAddress)
+                     ((page != .catalog && page != .home) || router.presentedCollection == nil) && !showsAddress)
         .background(Color.Background.primary.ignoresSafeArea())
         .sheet(item: selectedDetail) { detail in
             ProductDetailView(product: detail.product, relatedProducts: viewModel.relatedProducts,
@@ -65,20 +65,27 @@ struct StorefrontScreen: View {
                 .frame(maxWidth: .infinity)
             }
         } else if page == .catalog {
-            CatalogView(viewModel: viewModel, viewportHeight: viewportHeight) { header }
+            CatalogView(viewModel: viewModel, viewportHeight: viewportHeight, transition: storefrontTransition,
+                        openCategory: { router.presentedCollection = .category($0) }) { header }
         } else {
             HomeView(shelves: viewModel.shelves, selection: viewModel.selection, open: viewModel.showProduct,
-                     collectionTransition: storefrontTransition, openCollection: { router.presentedCollection = $0 }) { header }
+                     collectionTransition: storefrontTransition, openCollection: { router.presentedCollection = .moti($0) }) { header }
         }
     }
 
-    private func collectionFeed(viewportHeight: CGFloat) -> some View {
-        ScrollView {
+    @ViewBuilder private func collectionFeed(_ collection: StorefrontCollection, viewportHeight: CGFloat) -> some View {
+        let feed = ScrollView {
             collectionContent(viewportHeight: viewportHeight)
                 .screenStateFade(for: viewModel.products.isEmpty ? viewModel.emptyState : nil)
         }
-        .scrollIndicators(.hidden, axes: .vertical)
-        .accessibilityIdentifier(AccessibilityID.Home.collectionProducts)
+        .accessibilityIdentifier(AccessibilityID.collectionProducts(collection))
+
+        switch collection {
+        case .category:
+            feed.modifier(CategoryScrollControls(hasProducts: !viewModel.products.isEmpty))
+        case .moti:
+            feed.scrollIndicators(.hidden, axes: .vertical)
+        }
     }
 
     @ViewBuilder private func collectionContent(viewportHeight: CGFloat) -> some View {
@@ -195,8 +202,12 @@ struct StorefrontScreen: View {
             MotiStateView.offline
                 .accessibilityIdentifier(AccessibilityID.Home.offline)
         case .empty:
-            if case .collection = page {
-                MotiStateView(title: Texts.Home.Discovery.emptyCollection)
+            if case .collection(let collection) = page {
+                let title = switch collection {
+                case .category: Texts.Catalog.emptyCategory
+                case .moti: Texts.Home.Discovery.emptyCollection
+                }
+                MotiStateView(title: title)
             } else {
                 MotiStateView(title: Texts.Search.emptyTitle, description: Texts.Search.emptyDescription)
                     .accessibilityIdentifier(AccessibilityID.Home.empty)
@@ -223,5 +234,29 @@ struct StorefrontScreen: View {
         static let headingLineHeight: CGFloat = 22
         static let captionFontSize: CGFloat = 13
         static let captionLineHeight: CGFloat = 18
+    }
+}
+
+private struct CategoryScrollControls: ViewModifier {
+    let hasProducts: Bool
+    @State private var position = ScrollPosition(edge: .top)
+    @State private var isPastTop = false
+
+    func body(content: Content) -> some View {
+        content
+            .scrollPosition($position)
+            .scrollIndicators(.visible, axes: .vertical)
+            .scrollIndicatorsFlash(onAppear: true)
+            .pauseShimmerWhileScrolling()
+            .onScrollGeometryChange(for: Bool.self) { geometry in
+                geometry.contentOffset.y + geometry.contentInsets.top > 200
+            } action: { _, isPastTop in self.isPastTop = isPastTop }
+            .overlay(alignment: .bottomTrailing) {
+                ScrollToTopButton(isVisible: hasProducts && isPastTop,
+                                  accessibilityIdentifier: AccessibilityID.Catalog.categoryScrollToTop) {
+                    position.scrollTo(edge: .top)
+                }
+                .padding(ProductGridLayout.contentInset)
+            }
     }
 }

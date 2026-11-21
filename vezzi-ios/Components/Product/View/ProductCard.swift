@@ -19,11 +19,13 @@ struct ProductCard: View {
             if dynamicTypeSize.isAccessibilitySize { accessibleControls }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Color.Background.elevated)
-        .clipShape(.rect(cornerRadius: Const.cornerRadius))
+        .background {
+            RoundedRectangle(cornerRadius: Const.cornerRadius)
+                .fill(Color.Background.elevated)
+                .shadow(color: Color.Shadow.primary.opacity(Const.shadowOpacity), radius: Const.shadowRadius, y: Const.shadowOffset)
+        }
         .overlay(RoundedRectangle(cornerRadius: Const.cornerRadius)
             .strokeBorder(Color.Border.primary, lineWidth: Const.borderWidth))
-        .shadow(color: Color.Shadow.primary.opacity(Const.shadowOpacity), radius: Const.shadowRadius, y: Const.shadowOffset)
         .pressScaleEffect()
     }
 
@@ -42,7 +44,8 @@ struct ProductCard: View {
     }
 
     private var artwork: some View {
-        RoundedRectangle(cornerRadius: Const.artworkCornerRadius)
+        UnevenRoundedRectangle(topLeadingRadius: Const.cornerRadius, bottomLeadingRadius: Const.artworkCornerRadius,
+                               bottomTrailingRadius: Const.artworkCornerRadius, topTrailingRadius: Const.cornerRadius)
             .fill(Color.Background.placeholder)
             .aspectRatio(Const.artworkAspectRatio, contentMode: .fit)
             .shimmer()
@@ -82,82 +85,95 @@ struct ProductCard: View {
     private var productInfo: some View {
         VStack(alignment: .leading, spacing: .zero) {
             productDescription
-            if let offer = promotion?.offer ?? product.lowestOffer {
-                prices(for: offer)
-            }
+            prices
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                .minimumScaleFactor(dynamicTypeSize.isAccessibilitySize ? 1 : 0.7)
         }
         .multilineTextAlignment(.leading)
         .padding(.horizontal, Const.contentInset)
         .padding(.bottom, Const.bottomInset)
     }
 
-    @ViewBuilder private func prices(for offer: ProductOffer) -> some View {
-        let price = ProductPriceLabel(price: offer.price, currency: offer.currency,
-                                     showsPrefix: promotion == nil && showsPricePrefix, isStale: !offer.isFresh)
-            .appTextStyle(size: Const.priceFontSize, lineHeight: Const.priceLineHeight,
-                          weight: .semibold, relativeTo: .headline)
+    @ViewBuilder private var prices: some View {
         if let promotion {
-            let formatted = promotion.comparisonPrice.formatted(.currency(code: offer.currency).precision(.fractionLength(0...2)))
+            let price = priceLabel(promotion.offer)
+            let formatted = promotion.comparisonPrice.formatted(.currency(code: promotion.offer.currency).precision(.fractionLength(0...2)))
             let comparison = Text(formatted)
                 .font(.caption)
                 .strikethrough()
                 .foregroundStyle(Color.Label.secondary)
                 .accessibilityHidden(true)
-            ViewThatFits(in: .horizontal) {
-                HStack(alignment: .firstTextBaseline, spacing: Const.controlsSpacing) {
-                    price
-                    comparison
-                }
-                .fixedSize(horizontal: true, vertical: false)
-                VStack(alignment: .leading, spacing: .zero) {
-                    price
-                    comparison
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: .zero) {
+                        price
+                        comparison
+                    }
+                } else {
+                    HStack(alignment: .firstTextBaseline, spacing: Const.controlsSpacing) {
+                        price.layoutPriority(1)
+                        comparison
+                    }
                 }
             }
             .accessibilityElement(children: .combine)
             .accessibilityValue(Texts.Product.Promotion.comparison(discountTitle(promotion), formatted))
         } else {
-            price
+            VStack(alignment: .leading, spacing: .zero) {
+                priceLabel(product.lowestOffer)
+                if dynamicTypeSize.isAccessibilitySize { textSlot("").font(.caption) }
+            }
         }
+    }
+
+    private func priceLabel(_ offer: ProductOffer?) -> some View {
+        Group {
+            if let offer {
+                ProductPriceLabel(price: offer.price, currency: offer.currency,
+                                  showsPrefix: promotion == nil && showsPricePrefix, isStale: !offer.isFresh)
+            } else {
+                textSlot("")
+            }
+        }
+        .appTextStyle(size: Const.priceFontSize, lineHeight: Const.priceLineHeight,
+                      weight: .semibold, relativeTo: .headline)
     }
 
     private var productDescription: some View {
         VStack(alignment: .leading, spacing: Const.descriptionSpacing) {
             productName
-            brandLabel
-            Text(product.package)
+            textSlot(product.brand.trimmingCharacters(in: .whitespacesAndNewlines))
+                .appTextStyle(size: Const.brandFontSize, lineHeight: Const.brandLineHeight, relativeTo: .caption)
+                .foregroundStyle(Color.Label.secondary)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                .fixedSize(horizontal: false, vertical: true)
+            textSlot(product.package)
                 .appTextStyle(size: Const.packageFontSize, lineHeight: Const.packageLineHeight,
                                relativeTo: .caption2)
                 .foregroundStyle(Color.Label.secondary)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
 
-    @ViewBuilder private var brandLabel: some View {
-        if !product.brand.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            Text(product.brand)
-                .appTextStyle(size: Const.brandFontSize, lineHeight: Const.brandLineHeight, relativeTo: .caption)
-                .foregroundStyle(Color.Label.secondary)
-                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : Const.brandLineLimit)
-                .fixedSize(horizontal: false, vertical: true)
-        }
+    // A blank line uses the same font metrics as a populated field, including with Dynamic Type.
+    private func textSlot(_ value: String) -> some View {
+        Text(verbatim: value.isEmpty ? " " : value)
+            .accessibilityHidden(value.isEmpty)
     }
 
-    @ViewBuilder private var productName: some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            nameLabel.fixedSize(horizontal: false, vertical: true)
-        } else {
-            nameLabel
-                .lineLimit(Const.nameLineLimit, reservesSpace: true)
+    private var productName: some View {
+        ZStack(alignment: .topLeading) {
+            // Two actual lines include the interline spacing of our typography.
+            Text(verbatim: "A\nA").hidden().accessibilityHidden(true)
+            textSlot(product.displayName)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : Const.nameLineLimit)
                 .truncationMode(.tail)
         }
-    }
-
-    private var nameLabel: some View {
-        Text(product.displayName)
-            .appTextStyle(size: Const.nameFontSize, lineHeight: Const.nameLineHeight,
-                           weight: .semibold, relativeTo: .caption)
-            .foregroundStyle(Color.Label.primary)
+        .fixedSize(horizontal: false, vertical: true)
+        .appTextStyle(size: Const.nameFontSize, lineHeight: Const.nameLineHeight,
+                      weight: .semibold, relativeTo: .caption)
+        .foregroundStyle(Color.Label.primary)
     }
 
     // MARK: - Offers
@@ -196,15 +212,15 @@ struct ProductCard: View {
 
     @ViewBuilder private var storeBadges: some View {
         let stores = product.offers.filter { $0.inStock != false }
-        if !stores.isEmpty {
-            GeometryReader { geometry in
+        GeometryReader { geometry in
+            if !stores.isEmpty {
                 storeIcons(stores, fitting: geometry.size.width)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Texts.Product.offeredAtStores)
                     .accessibilityValue(stores.map(\.name).joined(separator: ", "))
             }
-            .frame(height: Const.storeSize)
         }
+        .frame(height: Const.storeSize)
     }
 
     private func storeIcons(_ stores: [ProductOffer], fitting width: CGFloat) -> some View {
@@ -254,7 +270,6 @@ struct ProductCard: View {
         static let nameLineLimit = 2
         static let nameFontSize: CGFloat = 14
         static let nameLineHeight: CGFloat = 18
-        static let brandLineLimit = 1
         static let brandFontSize: CGFloat = 12
         static let brandLineHeight: CGFloat = 16
         static let packageFontSize: CGFloat = 11

@@ -49,6 +49,7 @@ struct ProductCategory: RawRepresentable, Hashable, Identifiable {
 
     var title: String {
         switch self {
+        case .uncategorized: Texts.Catalog.uncategorized
         case .dairy: Texts.Home.Filters.dairy
         case .produce: Texts.Home.Filters.produce
         case .bakery: Texts.Home.Filters.bakery
@@ -58,6 +59,7 @@ struct ProductCategory: RawRepresentable, Hashable, Identifiable {
         }
     }
 
+    static let uncategorized = Self(rawValue: "")
     static let dairy = Self(rawValue: "dairy")
     static let produce = Self(rawValue: "produce")
     static let bakery = Self(rawValue: "bakery")

@@ -10,7 +10,7 @@ struct ScrollToTopButton: View {
         ZStack {
             if isVisible {
                 button
-                    .transition(reduceMotion ? .identity : .opacity.combined(with: .scale(scale: Const.transitionScale)))
+                    .transition(reduceMotion ? .identity : .opacity)
             }
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: Const.transitionDuration), value: isVisible)
@@ -36,7 +36,6 @@ struct ScrollToTopButton: View {
     private enum Const {
         static let scrollDuration: TimeInterval = 0.35
         static let transitionDuration: TimeInterval = 0.2
-        static let transitionScale: CGFloat = 0.9
     }
 }
 

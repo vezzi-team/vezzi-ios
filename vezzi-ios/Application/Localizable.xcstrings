@@ -813,6 +813,23 @@
         }
       }
     },
+    "CatalogEmptyCategory" : {
+      "comment" : "Empty product category",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No products in this category yet"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В этой категории пока нет товаров"
+          }
+        }
+      }
+    },
     "CatalogFailedTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -826,23 +843,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не удалось обновить каталог"
-          }
-        }
-      }
-    },
-    "CatalogFilterAll" : {
-      "comment" : "All products",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "All"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Все"
           }
         }
       }
@@ -911,6 +911,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Потяните вниз или нажмите, чтобы обновить товары и цены."
+          }
+        }
+      }
+    },
+    "CatalogShowAllInCategory" : {
+      "comment" : "Open all products in a category",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show all products in %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все товары категории «%@»"
           }
         }
       }
@@ -1000,6 +1017,23 @@
         }
       }
     },
+    "CatalogUncategorized" : {
+      "comment" : "Category for products without a category",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other products"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Другие товары"
+          }
+        }
+      }
+    },
     "CatalogUpdating" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1013,6 +1047,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Обновляем…"
+          }
+        }
+      }
+    },
+    "CommonShowMore" : {
+      "comment" : "Show more",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show more"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать больше"
           }
         }
       }
@@ -2561,23 +2612,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Скрыть"
-          }
-        }
-      }
-    },
-    "ProductShowMoreStores" : {
-      "comment" : "Show more",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show more"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показать больше"
           }
         }
       }

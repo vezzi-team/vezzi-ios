@@ -6,12 +6,11 @@ final class StorefrontViewModel: ObservableObject {
     @Published private(set) var shelves = HomeShelves()
     @Published private var catalogHasProducts: Bool?
     @Published private(set) var products: [Product] = []
-    @Published private(set) var categories: [ProductCategory] = []
+    @Published private(set) var catalogSections: [CatalogSection] = []
     @Published private(set) var catalogStatus = CatalogStatus()
     @Published private var cacheState = CatalogCacheState.disabled
     @Published private(set) var selectedDetail: StorefrontProductDetail?
     @Published private(set) var relatedProducts: [Product] = []
-    @Published var selectedFilter: CatalogFilter = .all
     let selection: ProductSelection
     let list: ShoppingListRepository
     private let repository: any CatalogRepository
@@ -24,7 +23,6 @@ final class StorefrontViewModel: ObservableObject {
         self.list = list
         self.selection = list.selection
         list.$originAddress.removeDuplicates().sink { [weak self] _ in self?.objectWillChange.send() }.store(in: &subscriptions)
-        self.selection.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }.store(in: &subscriptions)
         repository.status.sink { [weak self] in self?.catalogStatus = $0 }.store(in: &subscriptions)
         repository.cacheState.removeDuplicates().sink { [weak self] in self?.cacheState = $0 }.store(in: &subscriptions)
         repository.observeAllProducts().sink { [weak self] items in
@@ -36,43 +34,24 @@ final class StorefrontViewModel: ObservableObject {
             case .collection(let collection):
                 self.products = collection.products(from: items)
             case .catalog:
-                self.products = items.map { Product(catalog: $0) }
-                self.categories = Array(Set(self.products.compactMap(\.category))).sorted { $0.title < $1.title }
-                if case .category(let category) = self.selectedFilter, !self.categories.contains(category) {
-                    self.selectedFilter = .all
-                }
+                self.catalogSections = CatalogSection.sections(from: items)
             }
         }.store(in: &subscriptions)
     }
 
     nonisolated deinit {}
 
-    var quantities: [String: Int] { selection.quantities }
     var isCacheUnavailable: Bool { cacheState == .unavailable }
     var hasProducts: Bool { catalogHasProducts == true }
     var emptyState: CatalogEmptyState {
         guard catalogHasProducts != nil else { return .loading }
         return CatalogEmptyState(status: catalogStatus, cacheState: cacheState)
     }
-    var filteredProducts: [Product] { products(in: selectedFilter) }
 
     func refresh() async {
         async let cache: Void = repository.prepareCache()
         if repository.canRefresh { try? await repository.refresh() }
         await cache
-    }
-
-    func quantity(for productID: String) -> Int { selection.quantity(for: productID) }
-
-    func products(in filter: CatalogFilter) -> [Product] {
-        switch filter {
-        case .all: products
-        case .category(let category): products.filter { $0.category == category }
-        }
-    }
-
-    func setQuantity(_ quantity: Int, for productID: String) {
-        selection.setQuantity(quantity, for: productID)
     }
 
     func showProduct(_ product: Product, promotion: ProductOffer? = nil) {
@@ -91,13 +70,24 @@ final class StorefrontViewModel: ObservableObject {
     }
 }
 
-enum CatalogFilter: Hashable {
-    case all, category(ProductCategory)
+enum StorefrontCollection: Hashable, Identifiable {
+    case moti(MotiCollection)
+    case category(ProductCategory)
+
+    var id: Self { self }
 
     var title: String {
         switch self {
-        case .all: Texts.Catalog.Filters.all
+        case .moti(let collection): collection.title
         case .category(let category): category.title
+        }
+    }
+
+    func products(from items: [CatalogItem]) -> [Product] {
+        switch self {
+        case .moti(let collection): collection.products(from: items)
+        case .category(let category):
+            items.compactMap { ProductCategory(catalogValue: $0.product.category) == category ? Product(catalog: $0) : nil }
         }
     }
 }
@@ -110,7 +100,12 @@ struct StorefrontProductDetail: Identifiable {
 
 enum StorefrontPage: Equatable {
     case home, catalog
-    case collection(MotiCollection)
+    case collection(StorefrontCollection)
 
-    var tab: AppRouter.Tab { self == .catalog ? .catalog : .home }
+    var tab: AppRouter.Tab {
+        switch self {
+        case .catalog, .collection(.category): .catalog
+        case .home, .collection(.moti): .home
+        }
+    }
 }

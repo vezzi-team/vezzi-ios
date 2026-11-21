@@ -234,23 +234,13 @@ private struct ProductDetailPage: View {
     }
 
     private var storesExpansionButton: some View {
-        Button {
+        ProductSectionButton(title: showsAllStores ? Texts.Product.Stores.showLess : Texts.Common.showMore,
+                             icon: Image.System.chevronDown,
+                             rotation: .degrees(showsAllStores ? Const.expandedChevronRotation : .zero)) {
             withAnimation(reduceMotion ? nil : .smooth(duration: Const.storeExpansionDuration)) {
                 showsAllStores.toggle()
             }
-        } label: {
-            Label {
-                Text(showsAllStores ? Texts.Product.Stores.showLess : Texts.Product.Stores.showMore)
-                    .contentTransition(.opacity)
-            } icon: {
-                Image.System.chevronDown
-                    .rotationEffect(.degrees(showsAllStores ? Const.expandedChevronRotation : .zero))
-            }
-            .font(.subheadline.weight(.semibold))
-            .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.glass)
-        .controlSize(.large)
         .sensoryFeedback(.impact(weight: .light), trigger: showsAllStores)
         .accessibilityIdentifier(AccessibilityID.Product.Detail.toggleStores)
     }

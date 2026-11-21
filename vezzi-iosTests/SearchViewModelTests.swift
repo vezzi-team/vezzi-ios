@@ -197,7 +197,7 @@ final class SearchViewModelTests: XCTestCase {
                 let snapshot = try CatalogSnapshot().applying(CatalogFixtures.export(batch, date: now)).snapshot.evaluated(at: now)
                 let repository = PreviewCatalogRepository(snapshot: snapshot)
                 let catalog = StorefrontViewModel(page: .catalog, repository: repository)
-                XCTAssertEqual(catalog.products.first?.offers.first?.id, "available")
+                XCTAssertEqual(catalog.catalogSections.first?.preview.first?.offers.first?.id, "available")
                 let search = SearchViewModel(repository: repository)
                 for mode in ProductSearchMode.allCases {
                     search.mode = mode
@@ -296,10 +296,10 @@ final class SearchViewModelTests: XCTestCase {
         let search = mockViewModel()
         let product = search.sections[0].products[0]
         selection.setQuantity(2, for: product.id)
-        XCTAssertEqual(home.quantity(for: product.id), 2)
+        XCTAssertEqual(home.selection.quantity(for: product.id), 2)
         search.mode = .faster
         XCTAssertEqual(selection.quantity(for: product.id), 2)
-        home.setQuantity(3, for: product.id)
+        home.selection.setQuantity(3, for: product.id)
         XCTAssertEqual(selection.quantity(for: product.id), 3)
         selection.setQuantity(1_000, for: product.id)
         XCTAssertEqual(selection.quantity(for: product.id), ProductSelection.quantityRange.upperBound)

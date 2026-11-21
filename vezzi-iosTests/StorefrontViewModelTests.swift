@@ -37,7 +37,7 @@ final class StorefrontViewModelTests: XCTestCase {
         XCTAssertTrue(model.selection === catalog.selection)
         XCTAssertTrue(model.hasProducts)
         XCTAssertFalse(model.shelves.deals.isEmpty)
-        XCTAssertFalse(catalog.products.isEmpty)
+        XCTAssertFalse(catalog.catalogSections.isEmpty)
         list.setRoute(origin: .defaultOrigin, options: .init(), address: "Chosen street")
         XCTAssertEqual(model.list.originAddress, "Chosen street")
         XCTAssertEqual(model.list.origin, .defaultOrigin)
@@ -208,9 +208,10 @@ final class StorefrontViewModelTests: XCTestCase {
         XCTAssertEqual(home.shelves.deals.first?.promotion?.comparisonPrice, 100)
 
         let catalog = StorefrontViewModel(page: .catalog, repository: repository)
-        XCTAssertEqual(Set(catalog.products.map(\.id)), ["p1", "other"])
-        XCTAssertTrue(catalog.products.allSatisfy { $0.promotion == nil })
-        let product = try XCTUnwrap(catalog.products.first { $0.id == "p1" })
+        let previews = catalog.catalogSections.flatMap(\.preview)
+        XCTAssertEqual(Set(previews.map(\.id)), ["p1", "other"])
+        XCTAssertTrue(previews.allSatisfy { $0.promotion == nil })
+        let product = try XCTUnwrap(previews.first { $0.id == "p1" })
         XCTAssertEqual(product.lowestPrice, 80)
         catalog.showProduct(product)
         let detail = try XCTUnwrap(catalog.selectedDetail)
@@ -228,7 +229,7 @@ final class StorefrontViewModelTests: XCTestCase {
             offers: [CatalogOffer(id: "offer", productID: "milk", storeID: "store", price: 90, currency: "RUB")])
         let snapshot = try CatalogFixtures.snapshot(batch)
         let model = StorefrontViewModel(page: .catalog, repository: PreviewCatalogRepository(snapshot: snapshot))
-        let product = try XCTUnwrap(model.products.first)
+        let product = try XCTUnwrap(model.catalogSections.first?.preview.first)
         let offer = try XCTUnwrap(product.offers.first)
         XCTAssertEqual(product.displayName, "Молоко 2,5%")
         XCTAssertEqual(product.brand, "Простоквашино")
@@ -267,9 +268,9 @@ final class StorefrontViewModelTests: XCTestCase {
             stores: [CatalogStore(id: "s", name: name, chainName: " METRO ", address: address)],
             offers: [CatalogOffer(id: "o", productID: "p", storeID: "s", price: 124, currency: "RUB")])
         let repository = PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(batch))
-        let home = StorefrontViewModel(page: .catalog, repository: repository)
+        let catalog = StorefrontViewModel(page: .catalog, repository: repository)
         let search = SearchViewModel(repository: repository)
-        for offer in [home.products.first?.offers.first, search.sections.first?.products.first?.offers.first] {
+        for offer in [catalog.catalogSections.first?.preview.first?.offers.first, search.sections.first?.products.first?.offers.first] {
             let offer = try XCTUnwrap(offer)
             XCTAssertEqual(offer.storeTitle, "METRO")
             XCTAssertEqual(offer.name, name)
@@ -282,41 +283,48 @@ final class StorefrontViewModelTests: XCTestCase {
         XCTAssertEqual(fallback.storeTitle, "Магазин")
     }
 
-    func testRepositoryCategoriesAndFilteringPreserveSharedQuantities() throws {
-        let batch = CatalogImport(products: [
-            CatalogProduct(id: "milk", name: "Milk", category: "Dairy", productType: "milk"),
-            CatalogProduct(id: "other-milk", name: "Other milk", category: "Dairy", productType: "milk"),
-            CatalogProduct(id: "apples", name: "Apples", category: "Produce")
+    func testCatalogSectionsAndFullCategoryUseTheSameOrderAndSharedSelection() throws {
+        var products = (0..<7).map { CatalogProduct(id: "milk-\($0)", name: "Milk \($0)", category: " Dairy ", productType: "milk") }
+        products.append(contentsOf: [
+            CatalogProduct(id: "fruit", name: "Apple", category: "Produce"),
+            CatalogProduct(id: "extra", name: "Extra", category: "Accessories"),
+            CatalogProduct(id: "unknown", name: "Unknown", category: "  "),
+            CatalogProduct(id: "missing", name: "Missing")
         ])
-        let selection = ProductSelection()
-        let model = StorefrontViewModel(page: .catalog, repository: PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(batch)), list: ShoppingListRepository(selection: selection))
-        XCTAssertEqual(model.categories.map(\.rawValue), ["Dairy", "Produce"])
-        model.setQuantity(2, for: "milk")
-        model.selectedFilter = .category(ProductCategory(rawValue: "Produce"))
-        XCTAssertEqual(model.filteredProducts.map(\.id), ["apples"])
-        selection.setQuantity(3, for: "milk")
-        model.selectedFilter = .all
-        XCTAssertEqual(model.filteredProducts.count, 3)
-        XCTAssertEqual(model.quantity(for: "milk"), 3)
-        model.showProduct(try XCTUnwrap(model.products.first { $0.id == "milk" }))
-        XCTAssertEqual(model.relatedProducts.map(\.id), ["other-milk"])
-        model.dismissProduct()
-        XCTAssertNil(model.selectedDetail)
-        XCTAssertEqual(model.relatedProducts.map(\.id), ["other-milk"])
+        let repo = PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(CatalogImport(products: products)))
+        let list = ShoppingListRepository()
+        let model = StorefrontViewModel(page: .catalog, repository: repo, list: list)
+        let sections = model.catalogSections
+        XCTAssertEqual(sections.map(\.id.rawValue), ["Dairy", "Produce", "Accessories", ""])
+        let dairy = try XCTUnwrap(sections.first)
+        let full = StorefrontViewModel(page: .collection(.category(dairy.id)), repository: repo, list: list)
+        XCTAssertEqual(full.products.count, 7)
+        XCTAssertEqual(dairy.preview.map(\.id), Array(full.products.prefix(4)).map(\.id))
+        XCTAssertEqual(Set(sections.last!.preview.map(\.id)), ["unknown", "missing"])
+        let milk = try XCTUnwrap(full.products.last)
+        full.selection.setQuantity(2, for: milk.id)
+        XCTAssertEqual(model.selection.quantity(for: milk.id), 2)
+        full.showProduct(milk)
+        XCTAssertEqual(full.selectedDetail?.product.id, milk.id)
+        XCTAssertFalse(full.relatedProducts.isEmpty)
+        full.dismissProduct()
+        XCTAssertNil(full.selectedDetail)
     }
 
-    func testCatalogLoadsBeyondSearchLimitAndClearsRemovedCategory() async throws {
+    func testCatalogAndOpenCategoryFollowFullSnapshotReplacement() async throws {
         let repository = DefaultCatalogRepository(source: FixedCatalogSource(batch: CatalogFixtures.catalog()))
         var batch = CatalogFixtures.largeCatalog()
-        batch.products[0].category = "Old category"
+        for index in batch.products.indices { batch.products[index].category = "Old category" }
         try await repository.importCatalog(batch)
-        let model = StorefrontViewModel(page: .catalog, repository: repository)
+        let overview = StorefrontViewModel(page: .catalog, repository: repository)
+        let category = StorefrontViewModel(page: .collection(.category(.init(rawValue: "Old category"))), repository: repository)
         _ = await publishedItems(repository.observeAllProducts(), where: { $0.count == 1000 })
-        XCTAssertEqual(model.products.count, 1000)
-        model.selectedFilter = .category(ProductCategory(rawValue: "Old category"))
-        await model.refresh()
+        XCTAssertEqual(overview.catalogSections.first?.preview.count, 4)
+        XCTAssertEqual(category.products.count, 1000)
+        await overview.refresh()
         _ = await publishedItems(repository.observeAllProducts(), where: { $0.count == 1 })
-        XCTAssertEqual(model.selectedFilter, .all)
-        XCTAssertEqual(model.products.map(\.id), ["p1"])
+        XCTAssertEqual(overview.catalogSections.map(\.id), [.uncategorized])
+        XCTAssertEqual(overview.catalogSections.first?.preview.map(\.id), ["p1"])
+        XCTAssertTrue(category.products.isEmpty)
     }
 }

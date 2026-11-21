@@ -40,7 +40,7 @@ enum DestinationFactory {
         }
     }
 
-    static func collection(_ collection: MotiCollection, catalog: any CatalogRepository, authentication: AuthenticationSession,
+    static func collection(_ collection: StorefrontCollection, catalog: any CatalogRepository, authentication: AuthenticationSession,
                            storefrontTransition: Namespace.ID, shoppingList: ShoppingListRepository,
                            location: any DeviceLocating, close: @escaping () -> Void) -> some View {
         NavigationStack {
@@ -51,7 +51,7 @@ enum DestinationFactory {
                     ToolbarItem(placement: .cancellationAction) {
                         Button(role: .close, action: close)
                             .tint(Color.Label.primary)
-                            .accessibilityIdentifier(AccessibilityID.Home.closeMotiCollection)
+                            .accessibilityIdentifier(AccessibilityID.closeCollection(collection))
                     }
                 }
         }

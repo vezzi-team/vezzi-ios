@@ -97,17 +97,28 @@ enum AccessibilityID {
 
     enum Catalog {
         static let banner = "catalog.status"
-        static let scrollToTop = "catalog.scrollToTop"
+        static let categoryScrollToTop = "catalog.category.scrollToTop"
+
+        static func showMore(_ category: ProductCategory) -> String { "catalog.more.\(category.id)" }
+        static func heading(_ category: ProductCategory) -> String { "catalog.heading.\(category.id)" }
 
         enum Filters {
             static let bar = "catalog.filters"
+            static func button(_ category: ProductCategory) -> String { "catalog.filter.category.\(category.id)" }
+        }
+    }
 
-            static func button(_ filter: CatalogFilter) -> String {
-                switch filter {
-                case .all: "catalog.filter.all"
-                case .category(let category): "catalog.filter.category.\(category.id)"
-                }
-            }
+    static func closeCollection(_ collection: StorefrontCollection) -> String {
+        switch collection {
+        case .moti: Home.closeMotiCollection
+        case .category: "catalog.category.close"
+        }
+    }
+
+    static func collectionProducts(_ collection: StorefrontCollection) -> String {
+        switch collection {
+        case .moti: Home.collectionProducts
+        case .category(let category): "catalog.category.products.\(category.id)"
         }
     }
 

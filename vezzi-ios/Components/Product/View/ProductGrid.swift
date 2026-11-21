@@ -27,13 +27,9 @@ struct ProductGrid: View {
     var body: some View {
         LazyVGrid(columns: ProductGridLayout.columns(for: dynamicTypeSize), alignment: .leading, spacing: Const.rowSpacing) {
             ForEach(products) { product in
-                ProductCard(product: product, quantity: quantity(for: product.id)) { open(product) }
+                ProductCard(product: product, quantity: $selection[productID: product.id]) { open(product) }
             }
         }
-    }
-
-    private func quantity(for id: String) -> Binding<Int> {
-        Binding(get: { selection.quantity(for: id) }, set: { selection.setQuantity($0, for: id) })
     }
 
     private enum Const {

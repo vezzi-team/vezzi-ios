@@ -18,6 +18,7 @@ final class Texts {
     // MARK: - Shared Controls
 
     enum Common {
+        static let showMore = NSLocalizedString("CommonShowMore", comment: "Show more")
         static let scrollToTop = NSLocalizedString("ScrollToTop", comment: "Scroll to top")
     }
 
@@ -70,10 +71,12 @@ final class Texts {
     }
 
     enum Catalog {
-        enum Filters {
-            static let all = NSLocalizedString("CatalogFilterAll", comment: "All products")
+        static let emptyCategory = NSLocalizedString("CatalogEmptyCategory", comment: "Empty product category")
+        static func showAll(in category: String) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("CatalogShowAllInCategory", comment: "Open all products in a category"), category)
         }
 
+        static let uncategorized = NSLocalizedString("CatalogUncategorized", comment: "Category for products without a category")
         static let title = NSLocalizedString("CatalogTitle", comment: "Product catalog")
         static let offlineTitle = NSLocalizedString("CatalogOfflineTitle", comment: "Offline catalog")
         static let failedTitle = NSLocalizedString("CatalogFailedTitle", comment: "Refresh failed")
@@ -145,7 +148,6 @@ final class Texts {
         enum Stores {
             static let promotion = NSLocalizedString("ProductPromotionalOffer", comment: "Promotional offer")
             static let selected = NSLocalizedString("ProductSelectedStore", comment: "Selected store")
-            static let showMore = NSLocalizedString("ProductShowMoreStores", comment: "Show more")
             static let showLess = NSLocalizedString("ProductShowLessStores", comment: "Show less")
 
             enum Sort {

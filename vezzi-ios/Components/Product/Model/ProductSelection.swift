@@ -14,6 +14,11 @@ final class ProductSelection: ObservableObject {
 
     func quantity(for productID: String) -> Int { quantities[productID, default: 0] }
 
+    subscript(productID id: String) -> Int {
+        get { quantity(for: id) }
+        set { setQuantity(newValue, for: id) }
+    }
+
     func setQuantity(_ quantity: Int, for productID: String) {
         let value = min(max(quantity, Self.quantityRange.lowerBound), Self.quantityRange.upperBound)
         guard value != self.quantity(for: productID) else { return }
