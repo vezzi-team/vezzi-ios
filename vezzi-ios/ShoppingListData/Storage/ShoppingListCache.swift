@@ -16,10 +16,11 @@ nonisolated struct ShoppingListCacheSnapshot: Codable, Sendable {
     var origin: ShoppingCoordinate
     var originAddress: String?
     var routeOptions: ShoppingRouteOptions
+    var trip: ShoppingTrip?
 
     init(cart: ShoppingCart?, pending: [ShoppingCartEditTarget: [String: Int]], plan: CachedShoppingPlan?,
          hasResolvedCart: Bool = false, origin: ShoppingCoordinate? = nil, routeOptions: ShoppingRouteOptions = .init(),
-         originAddress: String? = nil) {
+         originAddress: String? = nil, trip: ShoppingTrip? = nil) {
         self.cart = cart
         self.pending = pending
         self.plan = plan
@@ -27,9 +28,10 @@ nonisolated struct ShoppingListCacheSnapshot: Codable, Sendable {
         self.origin = origin ?? plan?.origin ?? .defaultOrigin
         self.originAddress = originAddress
         self.routeOptions = routeOptions
+        self.trip = trip
     }
 
-    private enum CodingKeys: String, CodingKey { case cart, pending, plan, hasResolvedCart, origin, routeOptions, originAddress }
+    private enum CodingKeys: String, CodingKey { case cart, pending, plan, hasResolvedCart, origin, routeOptions, originAddress, trip }
 
     init(from decoder: any Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
@@ -41,10 +43,26 @@ nonisolated struct ShoppingListCacheSnapshot: Codable, Sendable {
         origin = try values.decodeIfPresent(ShoppingCoordinate.self, forKey: .origin) ?? plan?.origin ?? .previewOrigin
         originAddress = try values.decodeIfPresent(String.self, forKey: .originAddress)
         routeOptions = try values.decodeIfPresent(ShoppingRouteOptions.self, forKey: .routeOptions) ?? .init()
+        trip = try values.decodeIfPresent(ShoppingTrip.self, forKey: .trip)
     }
 
     func validate() throws {
         guard origin.isValid, routeOptions.isValid else { throw ShoppingListCacheError.invalidSnapshot }
+        if let trip {
+            let items = trip.items
+            let itemIDs = Set(items.compactMap(\.itemID))
+            guard trip.cartID == cart?.id, trip.origin.isValid, trip.contains(trip.page), !trip.plan.stops.isEmpty,
+                  !items.isEmpty, itemIDs.count == items.count,
+                  items.allSatisfy({ ($0.itemID ?? 0) > 0 && $0.status != nil }) else {
+                throw ShoppingListCacheError.invalidSnapshot
+            }
+            if let marks = trip.pendingMarks {
+                guard itemIDs.isSuperset(of: marks.keys), items.allSatisfy({ item in
+                    guard let id = item.itemID, let desired = marks[id] else { return true }
+                    return item.status == desired
+                }) else { throw ShoppingListCacheError.invalidSnapshot }
+            }
+        }
         if let cart {
             guard hasResolvedCart, cart.status == "active", cart.items.count <= 30,
                   Set(cart.items.map { $0.product.id }).count == cart.items.count,

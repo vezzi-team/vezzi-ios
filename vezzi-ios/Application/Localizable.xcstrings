@@ -813,6 +813,24 @@
         }
       }
     },
+    "CatalogDescription" : {
+      "comment" : "Browse products by category and compare store prices.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Browse products by category and compare store prices."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбирайте товары по категориям и сравнивайте цены в магазинах."
+          }
+        }
+      }
+    },
     "CatalogEmptyCategory" : {
       "comment" : "Empty product category",
       "localizations" : {
@@ -898,23 +916,6 @@
         }
       }
     },
-    "CatalogRefreshMessage" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull down or tap to update products and prices."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Потяните вниз или нажмите, чтобы обновить товары и цены."
-          }
-        }
-      }
-    },
     "CatalogShowAllInCategory" : {
       "comment" : "Open all products in a category",
       "localizations" : {
@@ -928,6 +929,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Все товары категории «%@»"
+          }
+        }
+      }
+    },
+    "CatalogSignInRequired" : {
+      "comment" : "Sign in to your account",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to your account"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Войдите в аккаунт"
           }
         }
       }
@@ -979,23 +998,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Каталог содержит демонстрационные цены. Цены в магазинах могут отличаться."
-          }
-        }
-      }
-    },
-    "CatalogSyntheticTitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Demo prices"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Демонстрационные цены"
           }
         }
       }
@@ -1696,57 +1698,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Идеи для ужина"
-          }
-        }
-      }
-    },
-    "HomeDiscoveryAdCaption" : {
-      "comment" : "Nothing to tap",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nothing to tap"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Тыкать некуда"
-          }
-        }
-      }
-    },
-    "HomeDiscoveryAdSubtitle" : {
-      "comment" : "But nobody chipped in :(",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "But nobody chipped in :("
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Но нам не задонатили("
-          }
-        }
-      }
-    },
-    "HomeDiscoveryAdTitle" : {
-      "comment" : "Your ad could be here",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your ad could be here"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Здесь могла быть ваша реклама"
           }
         }
       }
@@ -2527,6 +2478,60 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Яйца С0"
+          }
+        }
+      }
+    },
+    "HomeSurveyStart" : {
+      "comment" : "Start",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начать"
+          }
+        }
+      }
+    },
+    "HomeSurveySubtitle" : {
+      "comment" : "Tell us how you plan your grocery shopping.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tell us how you plan your grocery shopping."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Расскажите, как вы планируете покупки."
+          }
+        }
+      }
+    },
+    "HomeSurveyTitle" : {
+      "comment" : "Take a survey",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take a survey"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пройдите опрос"
           }
         }
       }
@@ -5344,6 +5349,725 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Список"
+          }
+        }
+      }
+    },
+    "TripArrivedHome" : {
+      "comment" : "I’m home",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I’m home"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Я дома"
+          }
+        }
+      }
+    },
+    "TripCartAlreadyDeleted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shopping is complete. The list had already been deleted."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Покупки завершены. Список уже был удалён."
+          }
+        }
+      }
+    },
+    "TripDeleteList" : {
+      "comment" : "Delete list",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete list"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить список"
+          }
+        }
+      }
+    },
+    "TripFinishQuestion" : {
+      "comment" : "Finish shopping?",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finish shopping?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завершить покупки?"
+          }
+        }
+      }
+    },
+    "TripHome" : {
+      "comment" : "Home",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дом"
+          }
+        }
+      }
+    },
+    "TripKeepList" : {
+      "comment" : "Keep list",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep list"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оставить список"
+          }
+        }
+      }
+    },
+    "TripProgressAmount" : {
+      "comment" : "%@ of %@",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ of %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ из %@"
+          }
+        }
+      }
+    },
+    "TripProgressCount" : {
+      "comment" : "Bought %ld of %ld",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bought %ld of %ld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Куплено %ld из %ld"
+          }
+        }
+      }
+    },
+    "TripReturnHome" : {
+      "comment" : "Return to the starting point",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Return to the starting point"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Возвращение к начальной точке"
+          }
+        }
+      }
+    },
+    "TripActive" : {
+      "comment" : "Shopping in progress",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shopping in progress"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Покупки в процессе"
+          }
+        }
+      }
+    },
+    "TripActiveHint" : {
+      "comment" : "Finish your current shopping trip to edit the list.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finish your current shopping trip to edit the list."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завершите текущие покупки, чтобы изменить список."
+          }
+        }
+      }
+    },
+    "TripAddress" : {
+      "comment" : "Store address",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Store address"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адрес магазина"
+          }
+        }
+      }
+    },
+    "TripAmount" : {
+      "comment" : "Amount spent",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amount spent"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На сумму"
+          }
+        }
+      }
+    },
+    "TripArrived" : {
+      "comment" : "I’m at the store",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I’m at the store"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Я в магазине"
+          }
+        }
+      }
+    },
+    "TripBought" : {
+      "comment" : "Bought %ld of %ld products",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bought %ld of %ld products"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Куплено %ld из %ld товаров"
+          }
+        }
+      }
+    },
+    "TripBoughtAtStore" : {
+      "comment" : "Bought in this store",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bought in this store"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Куплено в магазине"
+          }
+        }
+      }
+    },
+    "TripByStore" : {
+      "comment" : "By store",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By store"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "По магазинам"
+          }
+        }
+      }
+    },
+    "TripCount" : {
+      "comment" : "%ld of %ld",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%ld of %ld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%ld из %ld"
+          }
+        }
+      }
+    },
+    "TripEditHint" : {
+      "comment" : "Tap a store to edit your purchases.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap a store to edit your purchases."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите на магазин, чтобы изменить покупки."
+          }
+        }
+      }
+    },
+    "TripExit" : {
+      "comment" : "Exit",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exit"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выйти"
+          }
+        }
+      }
+    },
+    "TripFinish" : {
+      "comment" : "Finish shopping",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finish shopping"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завершить покупки"
+          }
+        }
+      }
+    },
+    "TripFromStart" : {
+      "comment" : "From home",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From home"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Из дома"
+          }
+        }
+      }
+    },
+    "TripFromStore" : {
+      "comment" : "From %@",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Из магазина «%@»"
+          }
+        }
+      }
+    },
+    "TripMarkHint" : {
+      "comment" : "Tap a product to mark it as bought.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap a product to mark it as bought."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите на товар, чтобы отметить покупку."
+          }
+        }
+      }
+    },
+    "TripNextRoute" : {
+      "comment" : "View route",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View route"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Посмотреть маршрут"
+          }
+        }
+      }
+    },
+    "TripNextStore" : {
+      "comment" : "Next store",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next store"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Следующий магазин"
+          }
+        }
+      }
+    },
+    "TripNoneBought" : {
+      "comment" : "Nothing bought yet",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing bought yet"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пока ничего не куплено"
+          }
+        }
+      }
+    },
+    "TripOfflineFinish" : {
+      "comment" : "Shopping will finish when you’re back online.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shopping will finish when you’re back online."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Покупки завершатся, когда появится интернет."
+          }
+        }
+      }
+    },
+    "TripOfflineMarks" : {
+      "comment" : "Checkmarks are saved on this device and will sync when you’re back online.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checkmarks are saved on this device and will sync when you’re back online."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отметки сохранены на устройстве и синхронизируются, когда появится интернет."
+          }
+        }
+      }
+    },
+    "TripProducts" : {
+      "comment" : "Products",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Products"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Товары"
+          }
+        }
+      }
+    },
+    "TripQuantity" : {
+      "comment" : "×%ld",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "×%ld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "×%ld"
+          }
+        }
+      }
+    },
+    "TripResume" : {
+      "comment" : "Continue shopping",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue shopping"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжить покупки"
+          }
+        }
+      }
+    },
+    "TripRoute" : {
+      "comment" : "Route",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Route"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Маршрут"
+          }
+        }
+      }
+    },
+    "TripSaveError" : {
+      "comment" : "Couldn’t save the change. Please try again.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t save the change. Please try again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось сохранить изменение. Попробуйте ещё раз."
+          }
+        }
+      }
+    },
+    "TripShopping" : {
+      "comment" : "Shopping",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shopping"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Покупки"
+          }
+        }
+      }
+    },
+    "TripStartError" : {
+      "comment" : "Couldn’t start shopping. Refresh the routes and try again.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t start shopping. Refresh the routes and try again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось начать покупки. Обновите маршруты и попробуйте ещё раз."
+          }
+        }
+      }
+    },
+    "TripStop" : {
+      "comment" : "Stop %ld of %ld",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop %ld of %ld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Остановка %ld из %ld"
+          }
+        }
+      }
+    },
+    "TripSummary" : {
+      "comment" : "Summary",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summary"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Итог"
+          }
+        }
+      }
+    },
+    "TripTotal" : {
+      "comment" : "Shopping total",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shopping total"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сумма покупок"
+          }
+        }
+      }
+    },
+    "TripViewSummary" : {
+      "comment" : "View summary",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View summary"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Посмотреть итог"
           }
         }
       }

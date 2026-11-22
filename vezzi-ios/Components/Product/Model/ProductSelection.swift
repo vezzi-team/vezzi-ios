@@ -7,6 +7,8 @@ final class ProductSelection: ObservableObject {
     @Published private(set) var feedbackRevision = 0
     @Published private(set) var hasAddedProductThisSession = false
     @Published var showsLimitAlert = false
+    @Published var showsShoppingAlert = false
+    var isShopping = false
 
     static let quantityRange = 0...99
     static let maximumProductCount = 30
@@ -21,6 +23,10 @@ final class ProductSelection: ObservableObject {
     }
 
     func setQuantity(_ quantity: Int, for productID: String) {
+        guard !isShopping else {
+            showsShoppingAlert = true
+            return
+        }
         let value = min(max(quantity, Self.quantityRange.lowerBound), Self.quantityRange.upperBound)
         let previous = self.quantity(for: productID)
         guard value != previous else { return }

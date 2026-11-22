@@ -4,6 +4,7 @@ import Foundation
 nonisolated struct RouteRevealGeometry {
     let canAnimate: Bool
     let stopProgress: [Double]
+    private var stopLocations: [(edgeEnd: Int, coordinate: ShoppingCoordinate)] = []
     private(set) var repeatedSections: [RepeatedSection] = []
 
     struct RepeatedSection {
@@ -53,11 +54,13 @@ nonisolated struct RouteRevealGeometry {
             return
         }
         var previousProgress = 0.0
+        var locations: [(Int, ShoppingCoordinate)] = []
         stopProgress = stops.map { coordinate in
             guard coordinate.isValid else { return 1 }
             let point = Point(coordinate)
             var closestDistance = Double.infinity
             var progress = 1.0
+            var location = (points.count - 1, points[points.count - 1])
             for index in 1..<projected.count {
                 let start = projected[index - 1]
                 let end = projected[index]
@@ -74,15 +77,33 @@ nonisolated struct RouteRevealGeometry {
                 if distance < closestDistance {
                     closestDistance = distance
                     progress = (distances[index - 1] + length * fraction) / total
+                    location = (index, start.interpolated(to: end, fraction: fraction))
                 }
             }
             // A retraced road must not reveal a later stop before the preceding one.
             previousProgress = min(1, max(previousProgress, progress))
+            locations.append(location)
             return previousProgress
         }
+        stopLocations = locations
         if marksRepeatedRoads {
             repeatedSections = Self.repeatedRoadSections(points, projected: projected, distances: distances, total: total)
         }
+    }
+
+    /// Extract one leg from the server polyline, using the same ordered stop projections as its reveal.
+    static func leg(points: [ShoppingCoordinate], stops: [ShoppingCoordinate], index: Int) -> [ShoppingCoordinate] {
+        guard !stops.isEmpty, (0...stops.count).contains(index), stops.allSatisfy(\.isValid),
+              let first = points.first, let last = points.last else { return [] }
+        let locations = Self(points: points, stops: stops, marksRepeatedRoads: false).stopLocations
+        guard locations.count == stops.count else { return [] }
+        // For the trip home, keep the tail through the actual endpoint, even if the route crossed home earlier.
+        let end = index == stops.count ? (edgeEnd: points.count - 1, coordinate: last) : locations[index]
+        let start = index > 0 ? locations[index - 1] : (edgeEnd: 0, coordinate: first)
+        var leg = [start.coordinate]
+        if start.edgeEnd < end.edgeEnd { leg.append(contentsOf: points[start.edgeEnd..<end.edgeEnd]) }
+        leg.append(end.coordinate)
+        return leg.reduce(into: []) { if $0.last != $1 { $0.append($1) } }
     }
 
     private struct RoadEdge: Hashable {

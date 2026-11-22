@@ -109,22 +109,9 @@ struct StorefrontScreen: View {
 
     @ViewBuilder private var header: some View {
         if dynamicTypeSize.isAccessibilitySize { addressHeader }
-        if viewModel.hasProducts || viewModel.emptyState != .offline {
-            Group {
-                if showsStatusBanner {
-                    catalogBanner
-                } else {
-                    HomeAdvertisingBanner()
-                }
-            }
+        catalogBanner
             .padding(.horizontal, Const.contentInset)
             .padding(.bottom, page == .catalog ? Const.sectionSpacing : 0)
-        }
-    }
-
-    private var showsStatusBanner: Bool {
-        page == .catalog || !viewModel.hasProducts || viewModel.catalogStatus.isOffline ||
-            viewModel.catalogStatus.failure != nil || viewModel.isCacheUnavailable
     }
 
     private var addressHeader: some View {
@@ -151,19 +138,35 @@ struct StorefrontScreen: View {
         }
         .sharedBackgroundVisibility(.hidden)
         ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                if authentication.user != nil {
-                    router.push(.profile, in: page.tab)
-                } else {
-                    router.presentAuthentication()
-                }
-            } label: {
-                Label { Text(Texts.Profile.Main.title) } icon: { Image.System.person }
-            }
-            .tint(Color.Label.primary)
-            .disabled(authentication.isRestoring || authentication.isSigningOut)
-            .accessibilityIdentifier(AccessibilityID.Home.profile)
+            // Keep the native item width independent of the symbol or initial inside it.
+            profileButton
+                .frame(width: Const.profileButtonSize, height: Const.profileButtonSize)
         }
+        .sharedBackgroundVisibility(.hidden)
+    }
+
+    private var profileButton: some View {
+        Button {
+            if authentication.user != nil { router.push(.profile, in: page.tab) }
+            else { router.presentAuthentication() }
+        } label: {
+            Group {
+                if let user = authentication.user {
+                    ProfileAvatar(email: user.email, isCompact: true)
+                } else {
+                    Image.System.person
+                        .font(.title3.weight(.medium))
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(.circle)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(Color.Label.primary)
+        .glassEffect(authentication.user == nil ? .regular.interactive() : .identity, in: .circle)
+        .disabled(authentication.isRestoring || authentication.isSigningOut)
+        .accessibilityLabel(Texts.Profile.Main.title)
+        .accessibilityIdentifier(AccessibilityID.Home.profile)
     }
 
     private var addressPicker: some View {
@@ -197,8 +200,12 @@ struct StorefrontScreen: View {
     }
 
     private var catalogBanner: some View {
-        CatalogStatusBanner(status: viewModel.catalogStatus, isCacheUnavailable: viewModel.isCacheUnavailable) {
-            Task { await viewModel.refresh() }
+        let content = CatalogBannerContent(isHome: page == .home, status: viewModel.catalogStatus,
+                                           isCacheUnavailable: viewModel.isCacheUnavailable,
+                                           requiresAuthentication: authentication.requiresSignIn)
+        return CatalogStatusBanner(content: content, status: viewModel.catalogStatus) {
+            if content == .signIn { router.presentAuthentication() }
+            else { Task { await viewModel.refresh() } }
         }
     }
 
@@ -235,8 +242,9 @@ struct StorefrontScreen: View {
         static let headerBottomInset: CGFloat = 8
         static let headerTopInset: CGFloat = 8
         static let addressMinimumScale: CGFloat = 0.7
+        static let profileButtonSize: CGFloat = 44
         // Native side margins, the profile button and the gap between the two controls.
-        static let toolbarReservedWidth: CGFloat = 92
+        static let toolbarReservedWidth = profileButtonSize + 2 * contentInset + 16
         static let chevronSpacing: CGFloat = 14
         static let headingFontSize: CGFloat = 17
         static let headingLineHeight: CGFloat = 22

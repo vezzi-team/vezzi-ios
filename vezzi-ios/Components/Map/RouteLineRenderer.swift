@@ -41,6 +41,9 @@ final class RouteLineRenderer {
         _ = addLine("polka-route-repeated-line", source: repeatedSource, width: 5, color: Color.Map.repeatedRoute)
     }
 
+    // The local route can be ready while the background tiles are still loading.
+    var hasLoadedGeometry: Bool { !source.features(matching: nil).isEmpty }
+
     func setRoute(_ points: [ShoppingCoordinate], repeatedSections: [RouteRevealGeometry.RepeatedSection]) {
         source.shape = points.count >= 2 ? Self.polyline(points.map(\.clCoordinate)) : nil
         sections = repeatedSections

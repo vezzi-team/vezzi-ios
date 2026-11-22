@@ -79,6 +79,122 @@ final class RouteMapViewTests: XCTestCase {
         try await checkZoom(.zoomIn, afterGestureEnds: false, requestedBeforeGesture: true)
     }
 
+    func testFirstLegWaitsForVisibleFrameAndContinuesAfterStyleReload() async throws {
+        try await withMap { container in
+            let map = container.map
+            let styleReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in map.style != nil }, object: nil)
+            await fulfillment(of: [styleReady], timeout: 5)
+            let route = plan()
+            let coordinator = RouteMapView.Coordinator(RouteMapView(origin: .defaultOrigin, plan: route,
+                                                                   homeDestination: route.points.last, isRouteVisible: false))
+            coordinator.scenePhase = .active
+            coordinator.mapView = map
+            defer { coordinator.cancelReveal() }
+            coordinator.mapView(map, didFinishLoading: try XCTUnwrap(map.style))
+            coordinator.mapViewDidFinishRenderingFrame(map, fullyRendered: true)
+            try await Task.sleep(for: .milliseconds(120))
+            XCTAssertEqual(coordinator.revealFraction, 0)
+            XCTAssertEqual(map.annotations?.count, 1)
+
+            coordinator.parent.isRouteVisible = true
+            coordinator.update(map)
+            // Simulate a slow first frame. The animation clock must not consume time during the wait.
+            try await Task.sleep(for: .milliseconds(1800))
+            XCTAssertEqual(coordinator.revealFraction, 0)
+            coordinator.mapViewDidFinishRenderingFrame(map, fullyRendered: true)
+            let deadline = ContinuousClock.now + .seconds(2)
+            while coordinator.revealFraction == 0, ContinuousClock.now < deadline {
+                try await Task.sleep(for: .milliseconds(16))
+            }
+            coordinator.prepareForStyleReload()
+            let partial = coordinator.revealFraction
+            XCTAssertGreaterThan(partial, 0)
+            XCTAssertLessThan(partial, 1)
+            map.reloadStyle(nil)
+            let newStyleReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                guard let style = map.style else { return false }
+                return style.source(withIdentifier: RouteLineRenderer.sourceID) == nil
+            }, object: nil)
+            await fulfillment(of: [newStyleReady], timeout: 5)
+            coordinator.mapView(map, didFinishLoading: try XCTUnwrap(map.style))
+            XCTAssertEqual(coordinator.revealFraction, partial)
+            XCTAssertEqual(map.annotations?.count, 1)
+            coordinator.mapViewDidFinishRenderingFrame(map, fullyRendered: true)
+            let arrived = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in map.annotations?.count == 2 }, object: nil)
+            await fulfillment(of: [arrived], timeout: 5)
+            XCTAssertEqual(coordinator.revealFraction, 1)
+            coordinator.update(map)
+            XCTAssertEqual(coordinator.revealFraction, 1)
+        }
+    }
+
+    func testCoveringMapPausesDrawingAndDefersNewRouteUntilUncovered() async throws {
+        try await withMap { container in
+            let map = container.map
+            let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in map.style != nil }, object: nil)
+            await fulfillment(of: [ready], timeout: 5)
+            let visibleInset: CGFloat = 180
+            let coordinator = RouteMapView.Coordinator(RouteMapView(origin: .defaultOrigin, plan: plan(), bottomInset: visibleInset))
+            coordinator.mapView = map
+            coordinator.scenePhase = .active
+            coordinator.mapView(map, didFinishLoading: try XCTUnwrap(map.style))
+            map.delegate = coordinator
+            defer { map.delegate = nil; coordinator.cancelReveal() }
+
+            func waitForDrawing(after previous: Double) async {
+                let deadline = ContinuousClock.now + .seconds(3)
+                while coordinator.revealFraction <= previous, ContinuousClock.now < deadline {
+                    try? await Task.sleep(for: .milliseconds(16))
+                }
+                XCTAssertGreaterThan(coordinator.revealFraction, previous)
+                XCTAssertLessThan(coordinator.revealFraction, 1)
+            }
+
+            map.triggerRepaint()
+            await waitForDrawing(after: 0)
+            coordinator.parent.bottomInset = map.bounds.height
+            coordinator.update(map)
+            let paused = coordinator.revealFraction
+            try await Task.sleep(for: .milliseconds(250))
+            XCTAssertEqual(coordinator.revealFraction, paused)
+            coordinator.parent.bottomInset = visibleInset
+            coordinator.update(map)
+            await waitForDrawing(after: paused)
+
+            coordinator.parent.bottomInset = map.bounds.height
+            let nextRoute = plan()
+            coordinator.parent.plan = nextRoute
+            coordinator.parent.homeDestination = nextRoute.points.last
+            coordinator.update(map)
+            map.triggerRepaint()
+            try await Task.sleep(for: .seconds(2))
+            XCTAssertEqual(coordinator.revealFraction, 0)
+            XCTAssertEqual(map.annotations?.count, 1)
+            coordinator.parent.bottomInset = visibleInset
+            coordinator.update(map)
+            await waitForDrawing(after: 0)
+            let arrived = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in map.annotations?.count == 2 }, object: nil)
+            await fulfillment(of: [arrived], timeout: 5)
+            XCTAssertEqual(coordinator.revealFraction, 1)
+        }
+    }
+
+    func testReduceMotionShowsWholeLegWithoutWaitingForAFrame() async throws {
+        try await withMap { container in
+            let map = container.map
+            let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in map.style != nil }, object: nil)
+            await fulfillment(of: [ready], timeout: 5)
+            let route = plan()
+            let coordinator = RouteMapView.Coordinator(RouteMapView(origin: .defaultOrigin, plan: route,
+                                                                   homeDestination: route.points.last))
+            coordinator.reduceMotion = true
+            coordinator.mapView = map
+            coordinator.mapView(map, didFinishLoading: try XCTUnwrap(map.style))
+            XCTAssertEqual(coordinator.revealFraction, 1)
+            XCTAssertEqual(map.annotations?.count, 2)
+        }
+    }
+
     func testRouteGestureCancelsFitsIncludingLateCollapseAndInitiallyCoveredMap() async throws {
         for (initialHeight, collapseAfterGesture) in [(560.0, false), (560.0, true), (1_000.0, true)] {
             try await withMap { container in

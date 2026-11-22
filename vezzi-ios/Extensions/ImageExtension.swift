@@ -71,6 +71,10 @@ extension Image {
         static let storeAvatar = Image("HomeStoreAvatar")
         static let storeIcon = Image("HomeStoreIcon")
     }
+
+    enum Route {
+        static let legStops = Image("ShoppingLegStops")
+    }
     
     // MARK: - Placeholder Images
     

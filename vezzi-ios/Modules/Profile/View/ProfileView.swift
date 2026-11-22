@@ -55,13 +55,7 @@ struct ProfileView: View {
     }
 
     private var avatar: some View {
-        Text(String((session.user?.email ?? "").prefix(1)).uppercased())
-            .font(.title3.weight(.semibold))
-            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-            .foregroundStyle(Color.Mascot.ink)
-            .frame(width: Const.avatarSize, height: Const.avatarSize)
-            .background(Color.accentColor, in: Circle())
-            .accessibilityHidden(true)
+        ProfileAvatar(email: session.user?.email ?? "")
     }
 
     private var accountSummary: some View {
@@ -169,7 +163,6 @@ struct ProfileView: View {
         static let accountSpacing: CGFloat = 14
         static let accountHeight: CGFloat = 92
         static let minimumAccountTitleScale: CGFloat = 0.75
-        static let avatarSize: CGFloat = 52
         static let tileHeight: CGFloat = 116
         static let tileInset: CGFloat = 14
         static let tileIconSize: CGFloat = 22

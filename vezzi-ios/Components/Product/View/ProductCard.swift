@@ -3,10 +3,13 @@ import SwiftUI
 struct ProductCard: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ScaledMetric(relativeTo: .title) private var purchaseMarkSize: CGFloat = 56
     let product: Product
     var promotion: ProductPromotion? = nil
     var showsStoreBadges = true
     var showsPricePrefix = true
+    /// A non-nil value turns the whole card into a purchase toggle.
+    var isPurchased: Bool?
     @Binding var quantity: Int
     let open: () -> Void
 
@@ -14,18 +17,28 @@ struct ProductCard: View {
         VStack(alignment: .leading, spacing: Const.contentSpacing) {
             productButton
                 .overlay(alignment: .top) {
-                    if !dynamicTypeSize.isAccessibilitySize { artworkControls }
+                    if isPurchased == nil && !dynamicTypeSize.isAccessibilitySize { artworkControls }
                 }
-            if dynamicTypeSize.isAccessibilitySize { accessibleControls }
+            if isPurchased == nil && dynamicTypeSize.isAccessibilitySize { accessibleControls }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background {
             RoundedRectangle(cornerRadius: Const.cornerRadius)
-                .fill(Color.Background.elevated)
+                .fill(isPurchased == true ? Color.Background.primary : Color.Background.elevated)
                 .shadow(color: Color.Shadow.primary.opacity(Const.shadowOpacity), radius: Const.shadowRadius, y: Const.shadowOffset)
         }
-        .overlay(RoundedRectangle(cornerRadius: Const.cornerRadius)
-            .strokeBorder(Color.Border.primary, lineWidth: Const.borderWidth))
+        .overlay {
+            RoundedRectangle(cornerRadius: Const.cornerRadius)
+                .strokeBorder(Color.Border.primary, lineWidth: Const.borderWidth)
+                .allowsHitTesting(false)
+            if let isPurchased {
+                RoundedRectangle(cornerRadius: Const.cornerRadius)
+                    .strokeBorder(Color.accentColor, lineWidth: 2)
+                    .opacity(isPurchased ? 1 : 0)
+                    .allowsHitTesting(false)
+            }
+        }
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: isPurchased)
         .pressScaleEffect()
     }
 
@@ -36,11 +49,13 @@ struct ProductCard: View {
             VStack(alignment: .leading, spacing: Const.imageSpacing) {
                 artwork
                 productInfo
+                    .opacity(isPurchased == true ? 0.48 : 1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(.rect)
         }
         .accessibilityIdentifier(AccessibilityID.Product.card(product.id))
+        .accessibilityAddTraits(isPurchased == true ? .isSelected : [])
     }
 
     private var artwork: some View {
@@ -48,7 +63,17 @@ struct ProductCard: View {
                                bottomTrailingRadius: Const.artworkCornerRadius, topTrailingRadius: Const.cornerRadius)
             .fill(Color.Background.placeholder)
             .aspectRatio(Const.artworkAspectRatio, contentMode: .fit)
-            .shimmer()
+            .shimmer(isActive: isPurchased != true)
+            .overlay {
+                if let isPurchased {
+                    Image.System.checkmark
+                        .font(.system(size: purchaseMarkSize, weight: .bold))
+                        .foregroundStyle(Color.accentColor)
+                        .symbolEffect(.drawOff.reversed, options: .speed(2.5), isActive: !reduceMotion && !isPurchased)
+                        .opacity(reduceMotion && !isPurchased ? 0 : 1)
+                        .allowsHitTesting(false)
+                }
+            }
             .overlay(alignment: .topLeading) {
                 if let promotion { discountBadge(promotion) }
             }
@@ -147,7 +172,7 @@ struct ProductCard: View {
                 .foregroundStyle(Color.Label.secondary)
                 .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
                 .fixedSize(horizontal: false, vertical: true)
-            textSlot(product.package)
+            textSlot(isPurchased == nil ? product.package : [product.package, Texts.Trip.quantity(quantity)].filter { !$0.isEmpty }.joined(separator: " · "))
                 .appTextStyle(size: Const.packageFontSize, lineHeight: Const.packageLineHeight,
                                relativeTo: .caption2)
                 .foregroundStyle(Color.Label.secondary)

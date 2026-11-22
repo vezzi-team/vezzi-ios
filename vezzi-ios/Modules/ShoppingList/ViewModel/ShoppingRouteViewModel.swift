@@ -9,7 +9,7 @@ final class ShoppingRouteViewModel: ObservableObject {
     @Published private(set) var isLocating = false
     @Published private(set) var deviceCoordinate: ShoppingCoordinate?
     @Published private(set) var locationError: DeviceLocationError?
-    private let list: ShoppingListRepository
+    let list: ShoppingListRepository
     private let location: any DeviceLocating
     private var subscriptions = Set<AnyCancellable>()
 
@@ -26,8 +26,8 @@ final class ShoppingRouteViewModel: ObservableObject {
 
     nonisolated deinit {}
 
-    var availablePlans: [ShoppingPlan] { isRecalculating ? [] : snapshot.plans }
-    var selectedPlan: ShoppingPlan? { availablePlans.first { $0.id == selectedID } }
+    var availablePlans: [ShoppingPlan] { list.trip.map { [$0.plan] } ?? (isRecalculating ? [] : snapshot.plans) }
+    var selectedPlan: ShoppingPlan? { list.trip?.plan ?? availablePlans.first { $0.id == selectedID } }
     var origin: ShoppingCoordinate { isRecalculating ? list.origin : snapshot.origin }
     var originAddress: String? {
         let savedAddress = origin == snapshot.origin ? snapshot.originAddress : nil
@@ -73,6 +73,16 @@ final class ShoppingRouteViewModel: ObservableObject {
     }
 
     func retry() async { await list.refresh() }
+    var canStart: Bool { selectedPlan.map { list.canStartTrip($0.id) } ?? false }
+    var startFailed: Bool { list.tripFailure != nil }
+    func clearStartFailure() { list.clearTripFailure() }
+    func start(_ id: UUID) async {
+        if await !list.startTrip(id), list.trip == nil {
+            isRecalculating = true
+            await list.refresh()
+            acceptRecalculation(list.planResult)
+        }
+    }
 
     /// Locate the device for the camera only. Route origin changes require the address picker.
     func locate() async -> ShoppingCoordinate? {

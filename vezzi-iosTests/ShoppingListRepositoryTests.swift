@@ -2103,7 +2103,7 @@ private actor ControlledShoppingService: ShoppingListService {
     }
 }
 
-private actor MemoryShoppingListCache: ShoppingListCache {
+actor MemoryShoppingListCache: ShoppingListCache {
     private var values: [ShoppingListAccount: ShoppingListCacheSnapshot] = [:]
     private var failing = false
     private var removalFailing = false
@@ -2152,5 +2152,109 @@ nonisolated enum ShoppingListTestAccount {
     static let sessionID = UUID(uuidString: "2B0E1C64-ABFD-4B91-9C42-4133AC0B149E")!
     static func make(_ id: String, sessionID: UUID = sessionID) -> ShoppingListAccount {
         ShoppingListAccount(id: id, sessionID: sessionID)
+    }
+}
+
+extension ShoppingListRepositoryTests {
+    func testActiveTripRestoresItsNavigationAndConfirmedPurchasesOffline() async throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let cache = FileShoppingListCache(directory: folder)
+        let account = ShoppingListPreview.account
+        let list = ShoppingListPreview.repository(cache: cache)
+        list.setAccount(account)
+        list.setPresented(true)
+        await list.refresh()
+        let planID = try XCTUnwrap(list.planResult?.plans.first?.id)
+        let started = await list.startTrip(planID)
+        XCTAssertTrue(started)
+        let stop = try XCTUnwrap(list.trip?.plan.stops.first)
+        let lineID = try XCTUnwrap(stop.items.first?.itemID)
+        let marked = list.togglePurchase(itemID: lineID, planID: planID)
+        XCTAssertTrue(marked)
+        list.moveTrip(to: .editStore(stop.id))
+        await list.refresh()
+
+        let service = ControlledShoppingService()
+        await service.setOffline(true)
+        let restarted = ShoppingListRepository(service: service, cache: cache)
+        restarted.setAccount(account)
+        await restarted.refresh()
+        let trip = try XCTUnwrap(restarted.trip)
+        XCTAssertEqual(trip.plan.id, planID)
+        XCTAssertEqual(trip.boughtCount, 1)
+        XCTAssertEqual(trip.navigationPath.first, .route(stop.id))
+        XCTAssertEqual(trip.navigationPath.suffix(2), [.summary, .editStore(stop.id)])
+        XCTAssertTrue(restarted.selection.isShopping)
+        let otherSession = ShoppingListAccount(id: account.id, sessionID: UUID())
+        let unrelated = try await cache.load(account: otherSession)
+        XCTAssertNil(unrelated)
+    }
+
+    func testRoundTripReturnsHomeBeforeSummaryAndCanKeepItsCart() async throws {
+        let list = ShoppingListPreview.repository()
+        list.setAccount(ShoppingListPreview.account)
+        list.setRoute(origin: .defaultOrigin, options: .init(returnToStart: true))
+        list.setPresented(true)
+        await list.refresh()
+        let cart = try XCTUnwrap(list.cart)
+        let id = try XCTUnwrap(list.planResult?.plans.first?.id)
+        _ = await list.startTrip(id)
+        XCTAssertEqual(list.trip?.pages.suffix(2), [.returnHome, .summary])
+        list.moveTrip(to: .returnHome)
+        XCTAssertEqual(list.trip?.navigationPath.last, .returnHome)
+        let finished = await list.finishShopping(.keep)
+        XCTAssertTrue(finished)
+        await list.refresh()
+        XCTAssertNil(list.trip)
+        XCTAssertEqual(list.cart?.id, cart.id)
+        XCTAssertEqual(list.selection.quantities, cart.quantities)
+    }
+
+    func testShoppingTripCanResumeUndoAndCompleteWithoutRecalculating() async throws {
+        let list = ShoppingListPreview.repository()
+        list.setAccount(ShoppingListPreview.account)
+        list.setPresented(true)
+        await list.refresh()
+        let option = try XCTUnwrap(list.planResult?.plans.first)
+        let started = await list.startTrip(option.id)
+        XCTAssertTrue(started)
+        let trip = try XCTUnwrap(list.trip)
+        let stop = try XCTUnwrap(trip.plan.stops.first)
+        let line = try XCTUnwrap(stop.items.first)
+        let lineID = try XCTUnwrap(line.itemID)
+        XCTAssertNil(list.planResult)
+        XCTAssertFalse(trip.contains(.returnHome))
+        list.moveTrip(to: .store(stop.id))
+        let bought = list.togglePurchase(itemID: lineID, planID: option.id)
+        XCTAssertTrue(bought)
+        XCTAssertEqual(list.trip?.spent, line.unitPrice * Decimal(line.quantity))
+        XCTAssertEqual(list.trip?.boughtCount, 1)
+        list.setPresented(false)
+        await list.refresh()
+        XCTAssertEqual(list.trip?.plan.id, option.id)
+        XCTAssertEqual(list.trip?.page, .store(stop.id))
+        let screen = ShoppingListViewModel(catalog: PreviewCatalogRepository(), list: list)
+        screen.showRoutes()
+        XCTAssertFalse(try XCTUnwrap(screen.routes).startsAtSummary)
+        screen.showRoutes(startsAtSummary: true)
+        XCTAssertTrue(try XCTUnwrap(screen.routes).startsAtSummary)
+        XCTAssertEqual(screen.routes?.selectedID, option.id)
+        screen.routes = nil
+        screen.showRoutes()
+        XCTAssertFalse(try XCTUnwrap(screen.routes).startsAtSummary)
+        XCTAssertEqual(list.trip?.page, .store(stop.id))
+        XCTAssertEqual(list.trip?.boughtCount, 1)
+        list.moveTrip(to: .editStore(stop.id))
+        XCTAssertEqual(list.trip?.navigationPath.suffix(2), [.summary, .editStore(stop.id)])
+        let undone = list.togglePurchase(itemID: lineID, planID: option.id)
+        XCTAssertTrue(undone)
+        XCTAssertEqual(list.trip?.spent, 0)
+        let complete = await list.finishShopping(.delete)
+        XCTAssertTrue(complete)
+        await list.refresh()
+        XCTAssertNil(list.trip)
+        XCTAssertNil(list.cart)
+        XCTAssertTrue(list.selection.quantities.isEmpty)
     }
 }

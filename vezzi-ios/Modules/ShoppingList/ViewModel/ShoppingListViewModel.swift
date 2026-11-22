@@ -61,10 +61,7 @@ final class ShoppingListViewModel: ObservableObject {
     private var plannedOffers: [String: ProductOffer] {
         Dictionary((plan?.stops ?? []).flatMap { stop in
             stop.items.map { item in
-                (item.product.id, ProductOffer(id: "plan.\(stop.store.id).\(item.product.id)",
-                                               storeID: stop.store.id, name: stop.store.name, price: item.unitPrice,
-                                               cardPrice: item.cardPrice, priceConditions: item.priceConditions,
-                                               address: stop.store.address, chainName: stop.store.chainName))
+                (item.product.id, item.assignedOffer(in: stop.store))
             }
         }, uniquingKeysWith: { first, _ in first })
     }
@@ -72,7 +69,7 @@ final class ShoppingListViewModel: ObservableObject {
     var cheapest: ShoppingPlan? { list.planResult?.plans.first }
     var fastest: ShoppingPlan? { list.planResult?.fastestPlans?.first }
 
-    var plan: ShoppingPlan? { mode == .cheaper ? cheapest : fastest }
+    var plan: ShoppingPlan? { list.trip?.plan ?? (mode == .cheaper ? cheapest : fastest) }
     var comparisonPrice: Decimal? { mode == .cheaper ? fastest?.total : cheapest?.total }
 
     var priceSavings: Decimal? {
@@ -124,8 +121,14 @@ final class ShoppingListViewModel: ObservableObject {
         await refreshList
     }
 
-    func showRoutes() {
-        guard let result = list.planResult else { return }
+    func showRoutes(startsAtSummary: Bool = false) {
+        if let trip = list.trip {
+            routes = ShoppingRoutesSnapshot(plans: [trip.plan], mode: mode, origin: trip.origin, isSaved: false,
+                                           routeOptions: .init(returnToStart: trip.returnsHome),
+                                           originAddress: trip.originAddress, startsAtSummary: startsAtSummary)
+            return
+        }
+        guard !startsAtSummary, let result = list.planResult else { return }
         routes = ShoppingRoutesSnapshot(plans: mode.plans(in: result), mode: mode, origin: list.origin, isSaved: list.isPlanCached,
                                         routeOptions: list.routeOptions, originAddress: list.originAddress)
     }
