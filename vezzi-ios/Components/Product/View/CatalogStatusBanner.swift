@@ -1,73 +1,103 @@
 import SwiftUI
 
-/// Catalog status and retry action shared by Home and Catalog.
+enum CatalogBannerContent: Equatable {
+    case survey, catalog, offline, signIn, failed, cacheUnavailable
+
+    init(isHome: Bool, status: CatalogStatus, isCacheUnavailable: Bool, requiresAuthentication: Bool) {
+        if status.isOffline || status.failure == .offline { self = .offline }
+        else if requiresAuthentication { self = .signIn }
+        else if status.failure != nil { self = .failed }
+        else if isCacheUnavailable { self = .cacheUnavailable }
+        else { self = isHome ? .survey : .catalog }
+    }
+
+    var offersRefresh: Bool {
+        self == .offline || self == .failed || self == .cacheUnavailable
+    }
+
+    var title: String {
+        switch self {
+        case .survey: Texts.Home.Discovery.surveyTitle
+        case .catalog: Texts.Catalog.title
+        case .offline: Texts.Catalog.offlineTitle
+        case .signIn: Texts.Catalog.signInRequired
+        case .failed: Texts.Catalog.failedTitle
+        case .cacheUnavailable: Texts.Catalog.cacheTitle
+        }
+    }
+
+    func message(hasSnapshot: Bool) -> String {
+        switch self {
+        case .survey: Texts.Home.Discovery.surveySubtitle
+        case .catalog: Texts.Catalog.description
+        case .offline, .failed: hasSnapshot ? Texts.Catalog.staleMessage : Texts.Catalog.noCacheMessage
+        case .signIn: Texts.ShoppingList.signInDescription
+        case .cacheUnavailable: Texts.Storage.cacheUnavailable
+        }
+    }
+}
+
 struct CatalogStatusBanner: View {
+    let content: CatalogBannerContent
     let status: CatalogStatus
-    var isCacheUnavailable = false
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            VStack(alignment: .leading, spacing: Const.spacing) {
-                Text(title)
-                    .appTextStyle(size: Const.titleSize, lineHeight: Const.titleLineHeight,
-                                  weight: .semibold, relativeTo: .headline)
-                    .foregroundStyle(Color.Label.primary)
-                Text(message)
-                    .appTextStyle(size: Const.textSize, lineHeight: Const.textLineHeight, relativeTo: .footnote)
-                    .foregroundStyle(Color.Label.secondary)
-                if status.isSynthetic && title != Texts.Catalog.syntheticTitle {
-                    Text(Texts.Catalog.syntheticMessage)
-                        .font(.caption).foregroundStyle(Color.Label.secondary)
-                }
-                HStack(spacing: Const.actionSpacing) {
-                    if status.isRefreshing { ProgressView().controlSize(.small) }
-                    Text(status.isRefreshing ? Texts.Catalog.updating : Texts.Catalog.refresh)
-                    if !status.isRefreshing { Image.System.arrowRight }
-                }
-                .appTextStyle(size: Const.textSize, lineHeight: Const.textLineHeight, weight: .semibold, relativeTo: .footnote)
-                .foregroundStyle(Color.accentColor)
+        Group {
+            switch content {
+            case .survey, .catalog:
+                card.accessibilityElement(children: .combine)
+            case .offline, .failed, .cacheUnavailable, .signIn:
+                Button(action: action) { card }
+                    .pressScaleEffect()
+                    .disabled(isUpdating)
             }
-            .multilineTextAlignment(.leading)
-            .padding(Const.inset)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.Background.elevated, in: .rect(cornerRadius: Const.cornerRadius))
-            .overlay(RoundedRectangle(cornerRadius: Const.cornerRadius).strokeBorder(Color.Border.primary, lineWidth: Const.borderWidth))
         }
-        .pressScaleEffect()
-        .disabled(status.isRefreshing)
         .accessibilityIdentifier(AccessibilityID.Catalog.banner)
     }
 
-    private var title: String {
-        if status.isOffline || status.failure == .offline { return Texts.Catalog.offlineTitle }
-        if status.failure != nil { return Texts.Catalog.failedTitle }
-        if isCacheUnavailable { return Texts.Catalog.cacheTitle }
-        return status.isSynthetic ? Texts.Catalog.syntheticTitle : Texts.Catalog.title
-    }
+    private var isUpdating: Bool { status.isRefreshing && content.offersRefresh }
 
-    private var message: String {
-        if status.isOffline || status.failure == .offline || status.failure == .unavailable {
-            return status.hasSnapshot ? Texts.Catalog.staleMessage : Texts.Catalog.noCacheMessage
+    private var card: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(content.title)
+                .appTextStyle(size: 17, lineHeight: 22, weight: .semibold, relativeTo: .headline)
+                .foregroundStyle(Color.Label.primary)
+            Text(content.message(hasSnapshot: status.hasSnapshot))
+                .appTextStyle(size: 13, lineHeight: 18, relativeTo: .footnote)
+                .foregroundStyle(Color.Label.secondary)
+            if status.isSynthetic && content.offersRefresh {
+                Text(Texts.Catalog.syntheticMessage)
+                    .font(.caption).foregroundStyle(Color.Label.secondary)
+            }
+            if let caption {
+                HStack(spacing: 8) {
+                    if isUpdating { ProgressView().controlSize(.small) }
+                    Text(caption)
+                    if !isUpdating { Image.System.arrowRight.accessibilityHidden(true) }
+                }
+                .appTextStyle(size: 13, lineHeight: 18, weight: .semibold, relativeTo: .footnote)
+                .foregroundStyle(Color.accentColor)
+            }
         }
-        if isCacheUnavailable { return Texts.Storage.cacheUnavailable }
-        return status.isSynthetic ? Texts.Catalog.syntheticMessage : Texts.Catalog.refreshMessage
+        .multilineTextAlignment(.leading)
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.Background.elevated, in: .rect(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Color.Border.primary))
     }
 
-    private enum Const {
-        static let spacing: CGFloat = 4
-        static let actionSpacing: CGFloat = 8
-        static let inset: CGFloat = 16
-        static let cornerRadius: CGFloat = 16
-        static let borderWidth: CGFloat = 1
-        static let titleSize: CGFloat = 17
-        static let titleLineHeight: CGFloat = 22
-        static let textSize: CGFloat = 13
-        static let textLineHeight: CGFloat = 18
+    private var caption: String? {
+        switch content {
+        case .catalog: nil
+        case .survey: Texts.Home.Discovery.surveyStart
+        case .signIn: Texts.Authentication.signIn
+        case .offline, .failed, .cacheUnavailable: isUpdating ? Texts.Catalog.updating : Texts.Catalog.refresh
+        }
     }
 }
 
 #Preview("Offline catalog") {
-    CatalogStatusBanner(status: CatalogStatus(hasSnapshot: true, isOffline: true), action: {})
+    CatalogStatusBanner(content: .offline, status: CatalogStatus(hasSnapshot: true, isOffline: true), action: {})
         .padding().background(Color.Background.primary)
 }

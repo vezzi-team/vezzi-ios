@@ -52,26 +52,6 @@ struct HomeView<Header: View>: View {
     }
 }
 
-struct HomeAdvertisingBanner: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(Texts.Home.Discovery.adTitle).font(.headline)
-            Text(Texts.Home.Discovery.adSubtitle).font(.footnote).foregroundStyle(Color.Label.secondary)
-            HStack {
-                Text(Texts.Home.Discovery.adCaption)
-                Image.System.arrowRight.accessibilityHidden(true)
-            }
-            .font(.footnote.weight(.semibold))
-            .foregroundStyle(Color.accentColor)
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.Background.elevated, in: .rect(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Color.Border.primary))
-        .accessibilityElement(children: .combine)
-    }
-}
-
 #Preview("Home") {
     AppRootView(catalog: MockSearchRepository(), authentication: .preview())
 }

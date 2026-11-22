@@ -163,6 +163,7 @@ struct ShoppingRouteView: View {
 
     private func map(in geometry: GeometryProxy) -> some View {
         RouteMapView(origin: viewModel.origin, plan: viewModel.selectedPlan,
+                     isRouteVisible: progressPath.isEmpty && pendingProgressPath == nil && !showsOrigin,
                      bottomInset: mapBottomInset(in: geometry),
                      cameraRequest: cameraRequest, deviceCoordinate: viewModel.deviceCoordinate,
                      reloadRevision: reloadRevision, onInteractionBegan: beginMapInteraction,

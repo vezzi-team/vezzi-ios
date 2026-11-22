@@ -28,7 +28,7 @@ struct ShoppingLegView: View {
     var body: some View {
         GeometryReader { bounds in
             RouteMapView(origin: previous?.coordinate ?? trip.origin, plan: leg, previousStop: previous,
-                         homeDestination: stop == nil ? trip.origin : nil,
+                         homeDestination: stop == nil ? trip.origin : nil, isRouteVisible: isCurrent,
                          bottomInset: min(bounds.size.height, panelHeight) + bounds.safeAreaInsets.bottom,
                          reloadRevision: reloadRevision, onInteractionBegan: { setCollapsed(true) },
                          onLoadFailure: { mapFailed = $0 },

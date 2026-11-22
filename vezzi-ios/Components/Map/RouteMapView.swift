@@ -10,6 +10,7 @@ struct RouteMapView: UIViewRepresentable {
     var plan: ShoppingPlan?
     var previousStop: ShoppingPlanStop?
     var homeDestination: ShoppingCoordinate?
+    var isRouteVisible = true
     var bottomInset: CGFloat = .zero
     var cameraRequest: MapCameraRequest?
     var deviceCoordinate: ShoppingCoordinate?
@@ -55,15 +56,17 @@ struct RouteMapView: UIViewRepresentable {
         let map = container.map
         let coordinator = context.coordinator
         coordinator.parent = self
+        coordinator.scenePhase = scenePhase
+        coordinator.reduceMotion = reduceMotion
         coordinator.attributionBottom?.constant = -max(Const.ornamentInset,
                                                        bottomInset - container.safeAreaInsets.bottom + Const.ornamentInset)
         if map.styleURL != styleURL {
-            coordinator.finishReveal()
+            coordinator.prepareForStyleReload()
             map.styleURL = styleURL
         }
         if coordinator.reloadRevision != reloadRevision {
             coordinator.reloadRevision = reloadRevision
-            coordinator.finishReveal()
+            coordinator.prepareForStyleReload()
             map.reloadStyle(nil)
         }
         coordinator.update(map)
@@ -99,6 +102,11 @@ struct RouteMapView: UIViewRepresentable {
 
         required init?(coder: NSCoder) { fatalError("Use init(styleURL:)") }
 
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            if window != nil { setNeedsLayout() }
+        }
+
         override func layoutSubviews() {
             super.layoutSubviews()
             onLayout?()
@@ -127,7 +135,10 @@ struct RouteMapView: UIViewRepresentable {
         private var requestedZoom: Double?
         private var deviceAnnotation: DeviceLocationAnnotation?
         private var displayLink: CADisplayLink?
-        private var revealStartedAt: CFTimeInterval = .zero
+        var scenePhase: ScenePhase = .inactive
+        var reduceMotion = false
+        private var revealStartedAt: CFTimeInterval?
+        private(set) var revealFraction = 1.0
         private var routeRenderer: RouteLineRenderer?
         private var pendingStops: [(annotation: RouteAnnotation, progress: Double)] = []
         private var captionsNeedLayout = false
@@ -253,6 +264,11 @@ struct RouteMapView: UIViewRepresentable {
         }
 
         func mapViewDidFinishRenderingFrame(_ mapView: MLNMapView, fullyRendered: Bool) {
+            if isWaitingForVisibleFrame(in: mapView),
+               (hasFittedCamera || preservesUserCamera), let routeRenderer,
+               fullyRendered || routeRenderer.hasLoadedGeometry {
+                startReveal()
+            }
             guard captionsNeedLayout else { return }
             captionsNeedLayout = false
             let markers = (mapView.annotations ?? []).compactMap { mapView.view(for: $0) as? RouteMarkerView }
@@ -295,7 +311,7 @@ struct RouteMapView: UIViewRepresentable {
             guard let routeRenderer, map.style?.source(withIdentifier: RouteLineRenderer.sourceID) != nil else { return }
             let changed = renderedOrigin != parent.origin || renderedPlanID != parent.plan?.id
             if changed || styleReloaded {
-                cancelReveal()
+                pauseReveal()
                 if let annotations = map.annotations { map.removeAnnotations(annotations) }
                 if let deviceAnnotation { map.addAnnotation(deviceAnnotation) }
                 let start = RouteAnnotation(coordinate: parent.origin.clCoordinate, number: parent.previousStop?.position,
@@ -319,23 +335,17 @@ struct RouteMapView: UIViewRepresentable {
                 }, marksRepeatedRoads: parent.plan?.usesRoadNetwork == true)
                 routeRenderer.setRoute(geometry.canAnimate ? points : [], repeatedSections: geometry.repeatedSections)
                 pendingStops = zip(stops, geometry.stopProgress).map { (annotation: $0.0, progress: $0.1) }
-                if changed && geometry.canAnimate && canAnimate {
-                    applyReveal(progress: .zero, animated: false)
-                    revealStartedAt = CACurrentMediaTime()
-                    let target = RevealTarget(owner: self)
-                    let link = CADisplayLink(target: target, selector: #selector(RevealTarget.tick(_:)))
-                    link.preferredFrameRateRange = CAFrameRateRange(minimum: Const.minimumFrameRate,
-                                                                  maximum: Const.maximumFrameRate,
-                                                                  preferred: Const.maximumFrameRate)
-                    displayLink = link
-                    link.add(to: .main, forMode: .common)
-                } else {
-                    finishReveal()
-                }
+                if changed { revealFraction = 0 }
+                if !geometry.canAnimate || reduceMotion { revealFraction = 1 }
+                applyReveal(progress: easedRevealProgress, animated: false)
                 renderedPlanID = parent.plan?.id
                 renderedOrigin = parent.origin
             }
-            if !canAnimate && displayLink != nil { finishReveal() }
+            if reduceMotion || (scenePhase != .active && displayLink != nil) {
+                if revealFraction < 1 { finishReveal() }
+            } else if displayLink != nil && !hasVisibleRouteViewport(in: map) {
+                pauseReveal()
+            }
             if changed || lastSize != map.bounds.size || lastInsets != insets || lastBottomInset != parent.bottomInset {
                 lastSize = map.bounds.size
                 lastInsets = insets
@@ -343,9 +353,22 @@ struct RouteMapView: UIViewRepresentable {
                 needsCameraFit = !preservesUserCamera
             }
             fitIfNeeded(map)
+            if isWaitingForVisibleFrame(in: map) { map.triggerRepaint() }
         }
 
-        private var canAnimate: Bool { !parent.reduceMotion && parent.scenePhase == .active }
+        private var canAnimate: Bool { !reduceMotion && scenePhase == .active }
+        private func isWaitingForVisibleFrame(in map: MLNMapView) -> Bool {
+            displayLink == nil && revealFraction < 1 && canAnimate && hasVisibleRouteViewport(in: map)
+        }
+
+        private func hasVisibleRouteViewport(in map: MLNMapView) -> Bool {
+            let height = map.bounds.height - map.contentInset.top - map.contentInset.bottom - parent.bottomInset
+            return parent.isRouteVisible && map.window != nil && map.bounds.width > 0 &&
+                height >= Const.minimumVisibleHeight + 2 * Const.routePadding
+        }
+        private var easedRevealProgress: Double {
+            revealFraction * revealFraction * (3 - 2 * revealFraction)
+        }
 
         private func updateDeviceLocation(_ map: MLNMapView) {
             guard let coordinate = parent.deviceCoordinate, coordinate.isValid else { return }
@@ -424,13 +447,29 @@ struct RouteMapView: UIViewRepresentable {
             (map.gestureRecognizers ?? []).contains { $0.state == .began || $0.state == .changed }
         }
 
+        func prepareForStyleReload() {
+            pauseReveal()
+            routeRenderer = nil
+        }
+
+        // Start on a rendered frame in the visible viewport, independent of basemap tile downloads.
+        private func startReveal() {
+            let link = CADisplayLink(target: RevealTarget(owner: self), selector: #selector(RevealTarget.tick(_:)))
+            link.preferredFrameRateRange = CAFrameRateRange(minimum: Const.minimumFrameRate,
+                                                            maximum: Const.maximumFrameRate,
+                                                            preferred: Const.maximumFrameRate)
+            displayLink = link
+            link.add(to: .main, forMode: .common)
+        }
+
         fileprivate func advanceReveal(_ link: CADisplayLink) {
-            guard canAnimate, mapView?.window != nil else { finishReveal(); return }
-            let elapsed = max(0, link.targetTimestamp - revealStartedAt)
-            let fraction = min(1, elapsed / Const.revealDuration)
-            let progress = fraction * fraction * (3 - 2 * fraction)
-            applyReveal(progress: progress, animated: true)
-            if fraction >= 1 { cancelReveal() }
+            guard canAnimate else { finishReveal(); return }
+            guard let mapView, hasVisibleRouteViewport(in: mapView) else { pauseReveal(); return }
+            let start = revealStartedAt ?? (link.timestamp - revealFraction * Const.revealDuration)
+            revealStartedAt = start
+            revealFraction = min(1, max(0, link.targetTimestamp - start) / Const.revealDuration)
+            applyReveal(progress: easedRevealProgress, animated: true)
+            if revealFraction >= 1 { pauseReveal() }
         }
 
         func applyReveal(progress: Double, animated: Bool) {
@@ -452,18 +491,20 @@ struct RouteMapView: UIViewRepresentable {
         }
 
         func cancelReveal() {
-            displayLink?.invalidate()
-            displayLink = nil
+            pauseReveal()
+            revealFraction = 1
             pendingStops.removeAll()
         }
 
+        private func pauseReveal() {
+            displayLink?.invalidate()
+            displayLink = nil
+            revealStartedAt = nil
+        }
+
         private func fitIfNeeded(_ map: MLNMapView) {
-            guard needsCameraFit, !preservesUserCamera, !isInteracting, !hasActiveGesture(map), map.window != nil,
-                  map.bounds.width > .zero, map.bounds.height > .zero else { return }
-            let availableHeight = map.bounds.height - map.contentInset.top - map.contentInset.bottom
-            let bottomPadding = parent.bottomInset + Const.routePadding
-            // A large sheet can cover the entire usable map. Fit once it becomes visible again.
-            guard availableHeight - bottomPadding - Const.routePadding >= Const.minimumVisibleHeight else { return }
+            guard needsCameraFit, !preservesUserCamera, !isInteracting, !hasActiveGesture(map),
+                  hasVisibleRouteViewport(in: map) else { return }
             let animated = hasFittedCamera && canAnimate
             needsCameraFit = false
             requestedZoom = nil
@@ -479,7 +520,7 @@ struct RouteMapView: UIViewRepresentable {
             if coordinates.count > 1 {
                 map.setVisibleCoordinates(coordinates, count: UInt(coordinates.count),
                                           edgePadding: .init(top: Const.routePadding, left: Const.routePadding,
-                                                             bottom: bottomPadding, right: Const.routePadding),
+                                                             bottom: parent.bottomInset + Const.routePadding, right: Const.routePadding),
                                           direction: .zero, duration: animated ? Const.cameraDuration : .zero,
                                           animationTimingFunction: CAMediaTimingFunction(name: .easeInEaseOut),
                                           completionHandler: nil)

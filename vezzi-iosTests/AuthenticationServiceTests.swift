@@ -813,6 +813,78 @@ final class AuthenticationServiceTests: XCTestCase {
         XCTAssertGreaterThan(try XCTUnwrap(write.metadata?.validatedAt), CatalogFixtures.cachedAt)
     }
 
+    func testExpiredCartRequiresSignInUntilSuccessfulLogin() async throws {
+        let (client, server) = makeClient { request, history in
+            switch request.url!.lastPathComponent {
+            case "me": return .json(AuthFixtures.userJSON)
+            case "carts":
+                let count = history.filter { $0.url?.lastPathComponent == "carts" }.count
+                return count == 2 ? .json("{}", status: 401) : .json("[]")
+            case "refresh": return .json("{}", status: 401)
+            case "login":
+                let count = history.filter { $0.url?.lastPathComponent == "login" }.count
+                return count == 1 ? .json("{}", status: 401) : .json(AuthFixtures.authentication)
+            case "logout": return .empty
+            default: return .json("{}", status: 404)
+            }
+        }
+        let suite = "authentication-expiration-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let store = MemoryAuthenticationStore(AuthFixtures.saved())
+        func launch() -> AppDependencies {
+            let service = DefaultAuthenticationService(client: client, store: store)
+            return AppDependencies(cache: nil, authenticationService: service, authenticationDefaults: defaults,
+                                   shoppingListService: APIShoppingListService(client: service))
+        }
+        let app = launch()
+        await app.load()
+        await waitUntil { app.shoppingList.hasResolvedCart && !app.shoppingList.isBusy }
+        let oldIdentity = try XCTUnwrap(app.authentication.identity)
+        XCTAssertFalse(app.authentication.requiresSignIn)
+
+        await app.shoppingList.refresh()
+        await waitUntil { app.authentication.requiresSignIn }
+        XCTAssertNil(app.shoppingList.account)
+        XCTAssertEqual(server.count("auth/refresh"), 1)
+        await app.becameActive()
+        XCTAssertTrue(app.authentication.requiresSignIn)
+        let relaunched = launch()
+        await relaunched.load()
+        let session = relaunched.authentication
+        XCTAssertTrue(session.requiresSignIn)
+        do {
+            try await session.signIn(email: AuthFixtures.user.email, password: "wrong", intent: .signIn, requestID: UUID())
+            XCTFail("The stub rejected these credentials")
+        } catch { XCTAssertEqual(AuthenticationFailure.from(error, intent: .signIn), .invalidCredentials) }
+        for isHome in [true, false] {
+            XCTAssertEqual(CatalogBannerContent(isHome: isHome, status: .init(), isCacheUnavailable: false,
+                                                requiresAuthentication: session.requiresSignIn), .signIn)
+        }
+
+        try await session.signIn(email: AuthFixtures.user.email, password: "password", intent: .signIn, requestID: UUID())
+        await session.restore(afterRejectionOf: oldIdentity.sessionID)
+        XCTAssertNotNil(session.user)
+        XCTAssertFalse(session.requiresSignIn)
+        XCTAssertFalse(launch().authentication.requiresSignIn)
+        try await session.signOut()
+        await session.restore(force: true)
+        XCTAssertNil(session.user)
+        XCTAssertFalse(session.requiresSignIn)
+    }
+
+    func testCartRejectionDuringProfileVerificationStillPublishesExpiration() async {
+        let (service, _) = makeService { request, _ in
+            if request.url?.lastPathComponent == "me" { return .json(AuthFixtures.userJSON, delay: 0.2) }
+            return .json("{}", status: 401)
+        }
+        let app = AppDependencies(cache: nil, authenticationService: service, shoppingListService: APIShoppingListService(client: service))
+        await app.load()
+        await waitUntil { app.authentication.requiresSignIn && !app.authentication.isVerifying }
+        XCTAssertNil(app.authentication.user)
+        XCTAssertNil(app.shoppingList.account)
+    }
+
     func testPublicCatalogFailureDoesNotRefreshOrInvalidateSignedInSession() async throws {
         let (client, server) = makeClient { request, _ in
             request.url?.path == "/api/v1/users/me" ? .json(AuthFixtures.userJSON) : HTTPStubReply(status: 401)
@@ -827,6 +899,7 @@ final class AuthenticationServiceTests: XCTestCase {
         await app.load()
         XCTAssertEqual(status.failure, .unavailable)
         XCTAssertEqual(app.authentication.identity?.sessionID, saved.id)
+        XCTAssertFalse(app.authentication.requiresSignIn)
         XCTAssertEqual(store.snapshot?.tokens, saved.tokens)
         XCTAssertEqual(server.count("auth/refresh"), 0)
         XCTAssertEqual(server.count("users/me"), 1)

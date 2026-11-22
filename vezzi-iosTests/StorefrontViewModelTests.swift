@@ -3,6 +3,25 @@ import XCTest
 
 @MainActor
 final class StorefrontViewModelTests: XCTestCase {
+    func testStorefrontBannersUsePageCopyUnlessAStatusRequiresAttention() {
+        for isHome in [true, false] {
+            func banner(_ status: CatalogStatus, expired: Bool = false,
+                        cacheUnavailable: Bool = false) -> CatalogBannerContent {
+                CatalogBannerContent(isHome: isHome, status: status, isCacheUnavailable: cacheUnavailable,
+                                     requiresAuthentication: expired)
+            }
+            XCTAssertEqual(banner(.init(isRefreshing: true, isSynthetic: true)), isHome ? .survey : .catalog)
+            XCTAssertEqual(banner(.init(), expired: true), .signIn)
+            XCTAssertEqual(banner(.init(isOffline: true), expired: true), .offline)
+            let unauthorized = CatalogRefreshFailure.from(APIError.http(status: 401, code: nil, requestID: nil, retryAfter: nil))
+            // The public catalog sends no credentials. Its HTTP 401 does not expire an account.
+            XCTAssertEqual(banner(.init(failure: unauthorized)), .failed)
+            XCTAssertEqual(banner(.init(failure: .offline)), .offline)
+            XCTAssertEqual(banner(.init(failure: .unavailable)), .failed)
+            XCTAssertEqual(banner(.init(), cacheUnavailable: true), .cacheUnavailable)
+        }
+    }
+
     func testMotiCollectionsKeepAvailableThemedProductsAndStableIDsWhenPricesChange() throws {
         let types = ["Макаронные изделия", "Снеки и чипсы", "Овощи"]
         var batch = CatalogFixtures.catalog()

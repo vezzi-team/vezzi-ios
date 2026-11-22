@@ -813,6 +813,24 @@
         }
       }
     },
+    "CatalogDescription" : {
+      "comment" : "Browse products by category and compare store prices.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Browse products by category and compare store prices."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбирайте товары по категориям и сравнивайте цены в магазинах."
+          }
+        }
+      }
+    },
     "CatalogEmptyCategory" : {
       "comment" : "Empty product category",
       "localizations" : {
@@ -898,23 +916,6 @@
         }
       }
     },
-    "CatalogRefreshMessage" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull down or tap to update products and prices."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Потяните вниз или нажмите, чтобы обновить товары и цены."
-          }
-        }
-      }
-    },
     "CatalogShowAllInCategory" : {
       "comment" : "Open all products in a category",
       "localizations" : {
@@ -928,6 +929,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Все товары категории «%@»"
+          }
+        }
+      }
+    },
+    "CatalogSignInRequired" : {
+      "comment" : "Sign in to your account",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to your account"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Войдите в аккаунт"
           }
         }
       }
@@ -979,23 +998,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Каталог содержит демонстрационные цены. Цены в магазинах могут отличаться."
-          }
-        }
-      }
-    },
-    "CatalogSyntheticTitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Demo prices"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Демонстрационные цены"
           }
         }
       }
@@ -1696,57 +1698,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Идеи для ужина"
-          }
-        }
-      }
-    },
-    "HomeDiscoveryAdCaption" : {
-      "comment" : "Nothing to tap",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nothing to tap"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Тыкать некуда"
-          }
-        }
-      }
-    },
-    "HomeDiscoveryAdSubtitle" : {
-      "comment" : "But nobody chipped in :(",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "But nobody chipped in :("
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Но нам не задонатили("
-          }
-        }
-      }
-    },
-    "HomeDiscoveryAdTitle" : {
-      "comment" : "Your ad could be here",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your ad could be here"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Здесь могла быть ваша реклама"
           }
         }
       }
@@ -2527,6 +2478,60 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Яйца С0"
+          }
+        }
+      }
+    },
+    "HomeSurveyStart" : {
+      "comment" : "Start",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начать"
+          }
+        }
+      }
+    },
+    "HomeSurveySubtitle" : {
+      "comment" : "Tell us how you plan your grocery shopping.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tell us how you plan your grocery shopping."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Расскажите, как вы планируете покупки."
+          }
+        }
+      }
+    },
+    "HomeSurveyTitle" : {
+      "comment" : "Take a survey",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take a survey"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пройдите опрос"
           }
         }
       }
