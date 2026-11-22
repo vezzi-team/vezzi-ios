@@ -134,3 +134,19 @@ final class RouteRevealGeometryTests: XCTestCase {
         ShoppingCoordinate(latitude: 0, longitude: longitude)
     }
 }
+
+extension RouteRevealGeometryTests {
+    func testShoppingLegCutsInsideEdgesAndOmitsReturnToOrigin() throws {
+        let points = [point(0), point(1), point(2), point(3), point(2), point(1), point(0)]
+        let stops = [point(0.5), point(2.5)]
+        let first = RouteRevealGeometry.leg(points: points, stops: stops, index: 0)
+        let second = RouteRevealGeometry.leg(points: points, stops: stops, index: 1)
+        XCTAssertEqual(try XCTUnwrap(first.last).longitude, 0.5, accuracy: 1e-9)
+        XCTAssertEqual(try XCTUnwrap(second.first).longitude, 0.5, accuracy: 1e-9)
+        XCTAssertEqual(try XCTUnwrap(second.last).longitude, 2.5, accuracy: 1e-9)
+        XCTAssertEqual(Array(second.dropFirst().dropLast()), [point(1), point(2)])
+        let home = RouteRevealGeometry.leg(points: points, stops: stops, index: stops.count)
+        XCTAssertEqual(home.first, second.last)
+        XCTAssertEqual(Array(home.dropFirst()), [point(3), point(2), point(1), point(0)])
+    }
+}

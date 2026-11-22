@@ -7,6 +7,10 @@ final class ShoppingListRepository: ObservableObject {
     @Published private(set) var cart: ShoppingCart?
     @Published private(set) var hasResolvedCart = false
     @Published private(set) var planResult: ShoppingPlanResult?
+    @Published private(set) var trip: ShoppingTrip?
+    @Published var showsDeletedCartNotice = false
+    @Published private var isStartingTrip = false
+    @Published private(set) var tripFailure: ShoppingListFailure?
     @Published private(set) var isBusy = false
     @Published private(set) var failure: ShoppingListFailure?
     @Published private(set) var account: ShoppingListAccount?
@@ -24,6 +28,7 @@ final class ShoppingListRepository: ObservableObject {
     private var addressTask: Task<Void, Never>?
     private var addressRevision = UUID()
     private var cachedPlan: CachedShoppingPlan?
+    private var hasMovedBeforeCacheLoad = false
     private var needsCacheLoad = true
     private var locallyEditedBeforeCacheLoad: [ShoppingCartEditTarget: Set<String>] = [:]
     private var cacheAccessFailed = false {
@@ -75,6 +80,11 @@ final class ShoppingListRepository: ObservableObject {
         worker?.cancel()
         worker = nil
         self.account = account
+        showsDeletedCartNotice = false
+        trip = nil
+        isStartingTrip = false
+        tripFailure = nil
+        selection.isShopping = false
         cart = nil
         hasResolvedCart = false
         planResult = nil
@@ -93,6 +103,7 @@ final class ShoppingListRepository: ObservableObject {
         needsActiveCartResolution = true
         needsPlan = true
         needsCacheLoad = true
+        hasMovedBeforeCacheLoad = false
         cacheRevision = UUID()
         if cache != nil, let previousAccount { pendingCacheRemovals.insert(previousAccount) }
         retryCacheRemovals()
@@ -200,20 +211,21 @@ final class ShoppingListRepository: ObservableObject {
         needsPlan = true
     }
 
-    private func startWorker(debounce: Bool = false) {
-        guard worker == nil, accountID != nil, service != nil || cache != nil,
-              needsCacheLoad || needsReload || !pending.isEmpty || (isPresented && needsPlan && !selection.quantities.isEmpty) else { return }
+    private func startWorker(debounce: Bool = false, newlyConfirmedPlan: UUID? = nil) {
+        guard worker == nil, !isStartingTrip, accountID != nil, service != nil || cache != nil,
+              needsCacheLoad || needsReload || !pending.isEmpty || trip?.needsSync == true ||
+                (trip == nil && isPresented && needsPlan && !selection.quantities.isEmpty) else { return }
         isBusy = true
         failure = nil
         let generation = generation
         worker = Task { [weak self] in
             if debounce { try? await Task.sleep(for: .milliseconds(300)) }
             guard let self, !Task.isCancelled else { return }
-            await self.synchronize(generation: generation)
+            await self.synchronize(generation: generation, newlyConfirmedPlan: newlyConfirmedPlan)
         }
     }
 
-    private func synchronize(generation: UUID) async {
+    private func synchronize(generation: UUID, newlyConfirmedPlan: UUID?) async {
         let connectionRevision = connectionRevision
         defer {
             if self.generation == generation {
@@ -228,29 +240,33 @@ final class ShoppingListRepository: ObservableObject {
         do {
             try await restoreCache(generation: generation)
             guard let service else { return }
+            if cacheAccessFailed { saveCache() }
             var mutationCart: ShoppingCart?
             var unavailableCarts: Set<UUID> = []
             while true {
                 try check(generation)
+                if trip?.needsSync == true, let progress = service as? any ShoppingProgressService {
+                    try await synchronizeTrip(service: progress, generation: generation, newlyConfirmedPlan: newlyConfirmedPlan)
+                    continue
+                }
                 if needsReload {
-                    let loaded: ShoppingCart?
-                    if !needsActiveCartResolution, let cart {
-                        do {
-                            let existing = try await service.cart(id: cart.id)
-                            if existing.status == "active" { loaded = existing }
-                            else { loaded = try await service.activeCart() }
-                        }
-                        catch where (error as? APIError)?.status == 404 { loaded = try await service.activeCart() }
-                    } else {
-                        loaded = try await service.activeCart()
-                    }
+                    let progress = service as? any ShoppingProgressService
+                    let preferredID = needsActiveCartResolution ? trip?.cartID : cart?.id
+                    let (loaded, restoredPlan) = try await loadCartAndPlan(preferredID: preferredID, service: service, generation: generation)
                     try check(generation)
-                    cart = loaded?.status == "active" ? loaded : nil
+                    // Taps on the cached trip take priority over in-flight reads.
+                    if trip?.needsSync == true, progress != nil { continue }
+                    cart = loaded
+                    if let loaded, let restoredPlan {
+                        acceptActivePlan(restoredPlan, cartID: loaded.id)
+                    } else if progress != nil || trip?.cartID != loaded?.id {
+                        trip = nil
+                        selection.isShopping = false
+                    }
                     hasResolvedCart = true
                     needsActiveCartResolution = false
                     if let cart {
                         bindGuestEdits(to: cart.id)
-                        // A cart skipped earlier must be synchronized if it is now current.
                         if unavailableCarts.remove(cart.id) != nil, unavailableCarts.isEmpty { failure = nil }
                     }
                     mutationCart = nil
@@ -295,7 +311,7 @@ final class ShoppingListRepository: ObservableObject {
                     }
                     continue
                 }
-                guard isPresented, needsPlan, !hasCurrentPendingEdits, let cart, !cart.items.isEmpty else { return }
+                guard trip == nil, isPresented, needsPlan, !hasCurrentPendingEdits, let cart, !cart.items.isEmpty else { return }
                 let plannedRevision = revision
                 let plannedOrigin = origin
                 let plannedOptions = routeOptions
@@ -329,7 +345,45 @@ final class ShoppingListRepository: ObservableObject {
             // POST /items adds quantities. Always reload before retrying an ambiguous response.
             needsReload = true
             failure = ShoppingListFailure.from(error)
+            if trip?.pendingFinish != nil, failure != .offline { tripFailure = failure }
             isPlanCached = planResult != nil
+        }
+    }
+
+    private func loadCartAndPlan(preferredID: UUID?, service: any ShoppingListService,
+                                 generation: UUID) async throws -> (ShoppingCart?, ShoppingPlan?) {
+        let progress = service as? any ShoppingProgressService
+        var checkedCartID: UUID?
+        if let preferredID {
+            let preferred: ShoppingCart?
+            do { preferred = try await service.cart(id: preferredID) }
+            catch let error as APIError where error.status == 404 { preferred = nil }
+            try check(generation)
+            if let preferred {
+                guard preferred.id == preferredID else { throw APIError.invalidResponse }
+                if preferred.status == "active" {
+                    let plan = try await progress?.activePlan(cartID: preferredID)
+                    try check(generation)
+                    if !needsActiveCartResolution || plan != nil || progress == nil { return (preferred, plan) }
+                    // The saved cart exists but its trip ended. Resolve the account's current cart.
+                    checkedCartID = preferredID
+                }
+            }
+        }
+        guard let latest = try await service.activeCart(), latest.status == "active" else { return (nil, nil) }
+        try check(generation)
+        guard checkedCartID != latest.id, let progress else { return (latest, nil) }
+        do { return (latest, try await progress.activePlan(cartID: latest.id)) }
+        catch {
+            try check(generation)
+            if cart == nil, trip == nil {
+                // The cart remains usable offline even when the subsequent progress request fails.
+                cart = latest
+                hasResolvedCart = true
+                reconcileSelection()
+                saveCache()
+            }
+            throw error
         }
     }
 
@@ -342,61 +396,96 @@ final class ShoppingListRepository: ObservableObject {
         try check(generation)
         // Never restore discarded edits while a logout cleanup is still failing.
         guard !pendingCacheRemovals.contains(account) else { return }
+        let snapshot: ShoppingListCacheSnapshot?
         do {
-            let snapshot = try await cache?.load(account: account)
+            snapshot = try await cache?.load(account: account)
             try check(generation)
-            if let snapshot {
-                try snapshot.validate()
-                if !hasEditedRoute, origin != snapshot.origin || routeOptions != snapshot.routeOptions {
-                    if origin != snapshot.origin { replaceOriginAddress(snapshot.originAddress) }
-                    origin = snapshot.origin
-                    routeOptions = snapshot.routeOptions
-                    revision += 1
-                    // Cache recovery may follow a server calculation made from the fallback origin.
-                    invalidatePlan()
-                }
-                if !hasEditedRoute, originAddress == nil, let address = snapshot.originAddress {
-                    replaceOriginAddress(address)
-                }
-                // A late disk read must not roll back an already restored server cart.
-                if needsActiveCartResolution {
-                    cart = snapshot.cart
-                    hasResolvedCart = snapshot.hasResolvedCart
-                }
-                // New edits and acknowledged intent only mask older edits for the same cart.
-                for (target, edits) in snapshot.pending {
-                    var editedIDs = locallyEditedBeforeCacheLoad[target, default: []]
-                    if target == .active, !needsActiveCartResolution, let cart {
-                        // Older unbound edits will join this cart; confirmed edits on it still win.
-                        editedIDs.formUnion(locallyEditedBeforeCacheLoad[.cart(cart.id), default: []])
-                    }
-                    let restored = edits.filter { !editedIDs.contains($0.key) }
-                    let merged = restored.merging(pending[target, default: [:]]) { _, latest in latest }
-                    if !merged.isEmpty { pending[target] = merged }
-                }
-                if !needsActiveCartResolution, let cart { bindGuestEdits(to: cart.id) }
-                if hasCurrentPendingEdits { invalidatePlan() }
-                if !pending.isEmpty { needsReload = true }
-                reconcileSelection()
-                if !hasCurrentPendingEdits, planResult == nil, let saved = snapshot.plan,
-                   saved.origin == origin, saved.routeOptions == routeOptions, cart.map({ saved.matches($0) }) == true {
-                    cachedPlan = saved
-                    isPlanCached = true
-                    planResult = saved.result
-                }
-            }
-        } catch is CancellationError {
-            throw CancellationError()
+            try snapshot?.validate()
         } catch {
             try check(generation)
             cacheAccessFailed = true
             return
+        }
+        if let snapshot {
+            if !hasEditedRoute, origin != snapshot.origin || routeOptions != snapshot.routeOptions {
+                if origin != snapshot.origin { replaceOriginAddress(snapshot.originAddress) }
+                origin = snapshot.origin
+                routeOptions = snapshot.routeOptions
+                revision += 1
+                // Cache recovery may follow a server calculation made from the fallback origin.
+                invalidatePlan()
+            }
+            if !hasEditedRoute, originAddress == nil, let address = snapshot.originAddress {
+                replaceOriginAddress(address)
+            }
+            try await restoreTripAndCart(from: snapshot, generation: generation)
+            try check(generation)
+            // New edits and acknowledged intent only mask older edits for the same cart.
+            for (target, edits) in snapshot.pending {
+                var editedIDs = locallyEditedBeforeCacheLoad[target, default: []]
+                if target == .active, !needsActiveCartResolution, let cart {
+                    // Older unbound edits will join this cart; confirmed edits on it still win.
+                    editedIDs.formUnion(locallyEditedBeforeCacheLoad[.cart(cart.id), default: []])
+                }
+                let restored = edits.filter { !editedIDs.contains($0.key) }
+                let merged = restored.merging(pending[target, default: [:]]) { _, latest in latest }
+                if !merged.isEmpty { pending[target] = merged }
+            }
+            if let cart, trip != nil || !needsActiveCartResolution { bindGuestEdits(to: cart.id) }
+            if hasCurrentPendingEdits { invalidatePlan() }
+            if !pending.isEmpty { needsReload = true }
+            reconcileSelection()
+            if trip == nil, !hasCurrentPendingEdits, planResult == nil, let saved = snapshot.plan,
+               saved.origin == origin, saved.routeOptions == routeOptions, cart.map({ saved.matches($0) }) == true {
+                cachedPlan = saved
+                isPlanCached = true
+                planResult = saved.result
+            }
         }
         needsCacheLoad = false
         locallyEditedBeforeCacheLoad = [:]
         cacheAccessFailed = false
         startAddressLookup()
         saveCache()
+    }
+
+    /// Preserve a newer server cart unless the recovered snapshot owns an active or unfinished trip.
+    private func restoreTripAndCart(from snapshot: ShoppingListCacheSnapshot, generation: UUID) async throws {
+        if needsActiveCartResolution {
+            cart = snapshot.cart
+            hasResolvedCart = snapshot.hasResolvedCart
+            trip = snapshot.trip
+            selection.isShopping = trip != nil
+        } else if let saved = snapshot.trip, saved.cartID == cart?.id {
+            // Keep the freshly loaded plan and overlay the durable navigation and user intent.
+            if var current = trip, current.plan.id == saved.plan.id {
+                if !hasMovedBeforeCacheLoad, current.contains(saved.page) { current.page = saved.page }
+                current.pendingMarks = (saved.pendingMarks ?? [:]).merging(current.pendingMarks ?? [:]) { _, local in local }
+                current.pendingFinish = saved.pendingFinish ?? current.pendingFinish
+                try current.applyPendingMarks()
+                trip = current
+            } else if trip == nil, saved.needsSync {
+                trip = saved
+                selection.isShopping = true
+            }
+        } else if let saved = snapshot.trip, trip == nil, let progress = service as? any ShoppingProgressService {
+            // A temporary disk failure may have let the ordinary cart load first.
+            // Verify the old trip before replacing that cart. Pending completion verifies itself.
+            let resume: Bool
+            if saved.pendingFinish != nil { resume = true }
+            else {
+                do { resume = try await progress.activePlan(cartID: saved.cartID)?.id == saved.plan.id }
+                catch let error as APIError where error.status == 404 { resume = false }
+                try check(generation)
+            }
+            if resume {
+                cart = snapshot.cart
+                trip = saved
+                selection.isShopping = true
+                invalidatePlan()
+                needsReload = true
+            }
+        }
     }
 
     private func saveCache() {
@@ -411,7 +500,7 @@ final class ShoppingListRepository: ObservableObject {
             // Coalesce queued writes and read the newest values when the writer is ready.
             let snapshot = ShoppingListCacheSnapshot(cart: self.cart, pending: self.pending, plan: self.cachedPlan,
                                                      hasResolvedCart: self.hasResolvedCart, origin: self.origin,
-                                                     routeOptions: self.routeOptions, originAddress: self.originAddress)
+                                                     routeOptions: self.routeOptions, originAddress: self.originAddress, trip: self.trip)
             do {
                 try await cache.save(snapshot, account: account)
                 if self.generation == generation { self.cacheAccessFailed = false }
@@ -498,7 +587,7 @@ final class ShoppingListRepository: ObservableObject {
 
     private func nextPendingCart(excluding unavailable: Set<UUID>) -> UUID? {
         pending.keys.compactMap { target -> UUID? in
-            guard case let .cart(id) = target, !unavailable.contains(id) else { return nil }
+            guard case let .cart(id) = target, id != trip?.cartID, !unavailable.contains(id) else { return nil }
             return id
         }.min { $0.uuidString < $1.uuidString }
     }
@@ -518,6 +607,10 @@ final class ShoppingListRepository: ObservableObject {
     }
 
     private func reconcileSelection() {
+        if let trip {
+            applyQuantities(Dictionary(trip.items.map { ($0.product.id, $0.quantity) }, uniquingKeysWith: +))
+            return
+        }
         var values = cart?.quantities ?? [:]
         let bound = cart.map { pending[.cart($0.id), default: [:]] } ?? [:]
         for (id, quantity) in bound.merging(pending[.active, default: [:]], uniquingKeysWith: { _, guest in guest }) {
@@ -536,5 +629,156 @@ final class ShoppingListRepository: ObservableObject {
     private func check(_ generation: UUID) throws {
         try Task.checkCancellation()
         guard self.generation == generation else { throw CancellationError() }
+    }
+}
+
+extension ShoppingListRepository {
+    func canStartTrip(_ id: UUID) -> Bool {
+        account != nil && trip == nil && !isBusy && !isStartingTrip && !hasCurrentPendingEdits &&
+            planResult?.rankedPlans.contains { $0.id == id } == true
+    }
+
+    func moveTrip(to page: ShoppingTrip.Page) {
+        guard trip?.contains(page) == true, trip?.page != page else { return }
+        if needsCacheLoad { hasMovedBeforeCacheLoad = true }
+        trip?.page = page
+        saveCache()
+    }
+
+    func clearTripFailure() { tripFailure = nil }
+
+    @discardableResult
+    func togglePurchase(itemID: Int64, planID: UUID) -> Bool {
+        guard var current = trip, current.plan.id == planID, current.togglePurchase(itemID: itemID) else { return false }
+        trip = current
+        saveCache()
+        startWorker()
+        return true
+    }
+
+    /// The cart worker must never recalculate (and replace) the plan being activated.
+    @discardableResult
+    func startTrip(_ id: UUID) async -> Bool {
+        guard canStartTrip(id), let progress = service as? any ShoppingProgressService, let cart else { return false }
+        let generation = generation
+        isStartingTrip = true
+        selection.isShopping = true
+        tripFailure = nil
+        defer {
+            if self.generation == generation {
+                isStartingTrip = false
+                selection.isShopping = trip != nil
+                startWorker()
+            }
+        }
+        do {
+            let plan = try await progress.startPlan(id: id, cartID: cart.id)
+            try check(generation)
+            acceptActivePlan(plan, cartID: cart.id, startedHere: true)
+            saveCache()
+            return true
+        } catch {
+            guard self.generation == generation else { return false }
+            tripFailure = ShoppingListFailure.from(error)
+            needsReload = true
+            if let status = (error as? APIError)?.status, [404, 409].contains(status) { needsPlan = true }
+            return false
+        }
+    }
+
+    @discardableResult
+    func finishShopping(_ choice: ShoppingTrip.ListDisposition) async -> Bool {
+        guard let current = trip, current.cartID == cart?.id, service is any ShoppingProgressService,
+              current.pendingFinish == nil || current.pendingFinish == choice else { return false }
+        let generation = generation
+        tripFailure = nil
+        trip?.pendingFinish = choice
+        saveCache()
+        startWorker(newlyConfirmedPlan: current.pendingFinish == nil ? current.plan.id : nil)
+        await worker?.value
+        return self.generation == generation && trip == nil && tripFailure == nil && (choice == .delete || cart?.id == current.cartID)
+    }
+
+    private func synchronizeTrip(service: any ShoppingProgressService, generation: UUID, newlyConfirmedPlan: UUID?) async throws {
+        // An edit or completion must survive termination, including a lost server reply.
+        // A newer cache write may have coalesced the one we initially waited for.
+        var writing: UUID
+        repeat {
+            writing = cacheRevision
+            await cacheTask?.value
+            try check(generation)
+        } while writing != cacheRevision
+        guard !needsCacheLoad, !cacheAccessFailed else { throw ShoppingListFailure.unavailable }
+        guard let current = trip else { return }
+        if let (id, status) = current.pendingMarks?.min(by: { $0.key < $1.key }) {
+            let updated: ShoppingPlan
+            do {
+                updated = try await service.updatePlanItem(planID: current.plan.id, cartID: current.cartID, itemID: id, status: status)
+            } catch let error as APIError where error.status == 404 || error.status == 409 {
+                // Another device can finish this trip. Never replay its edits against the replacement.
+                try check(generation)
+                let active = try await service.activePlan(cartID: current.cartID)
+                try check(generation)
+                guard active?.id != current.plan.id else { throw error }
+                if let active { acceptActivePlan(active, cartID: current.cartID) }
+                else {
+                    trip = nil
+                    selection.isShopping = false
+                }
+                tripFailure = .cartUnavailable
+                reconcileSelection()
+                saveCache()
+                throw ShoppingListFailure.cartUnavailable
+            }
+            try check(generation)
+            guard var latest = trip, latest.plan.id == updated.id, current.plan.id == updated.id,
+                  updated.stops.contains(where: { $0.items.contains { $0.itemID == id && $0.status == status } }) else {
+                throw APIError.invalidResponse
+            }
+            if latest.pendingMarks?[id] == status { latest.pendingMarks?[id] = nil }
+            if latest.pendingMarks?.isEmpty == true { latest.pendingMarks = nil }
+            latest.plan = updated
+            try latest.applyPendingMarks()
+            trip = latest
+            saveCache()
+        } else if let choice = current.pendingFinish {
+            try await finish(current, choice: choice, resuming: newlyConfirmedPlan != current.plan.id,
+                             service: service, generation: generation)
+        }
+    }
+
+    private func finish(_ trip: ShoppingTrip, choice: ShoppingTrip.ListDisposition, resuming: Bool,
+                        service: any ShoppingProgressService, generation: UUID) async throws {
+        let kept = try await service.finishPlan(id: trip.plan.id, cartID: trip.cartID, list: choice, resuming: resuming)
+        try check(generation)
+        self.trip = nil
+        tripFailure = nil
+        if kept == nil {
+            // Discard only edits bound to the removed cart, never transfer them to its successor.
+            pending[.cart(trip.cartID)] = nil
+            if choice == .keep { showsDeletedCartNotice = true }
+        }
+        cart = kept
+        selection.isShopping = false
+        invalidatePlan()
+        reconcileSelection()
+        needsActiveCartResolution = kept == nil
+        needsReload = true
+        saveCache()
+    }
+
+    private func acceptActivePlan(_ plan: ShoppingPlan, cartID: UUID, startedHere: Bool = false) {
+        guard let first = plan.stops.first else { return }
+        if var current = trip, current.plan.id == plan.id, current.cartID == cartID {
+            current.plan = plan
+            if !current.contains(current.page) { current.page = .route(first.id) }
+            trip = current
+        } else {
+            let start = startedHere ? origin : plan.points.first ?? origin
+            trip = ShoppingTrip(cartID: cartID, plan: plan, origin: start,
+                                originAddress: start == origin ? originAddress : nil, page: .route(first.id))
+        }
+        selection.isShopping = true
+        if cachedPlan != nil || planResult != nil { invalidatePlan() }
     }
 }

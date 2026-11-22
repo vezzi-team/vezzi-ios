@@ -77,7 +77,7 @@ nonisolated struct ShoppingPlan: Codable, Identifiable, Sendable {
     let savings: Decimal?
     let totalSeconds: Int
     let walkingMeters: Int
-    let stops: [ShoppingPlanStop]
+    var stops: [ShoppingPlanStop]
     let points: [ShoppingCoordinate]
     let usesRoadNetwork: Bool
     let isSynthetic: Bool
@@ -89,7 +89,7 @@ nonisolated struct ShoppingPlanStop: Codable, Identifiable, Sendable {
     var id: String { store.id }
     let position: Int
     let store: CatalogStore
-    let items: [ShoppingPlanItem]
+    var items: [ShoppingPlanItem]
     let subtotal: Decimal
     // Optional for previously cached calculations which did not retain leg metrics.
     var walkingSeconds: Int? = nil
@@ -102,6 +102,9 @@ nonisolated struct ShoppingPlanItem: Codable, Sendable {
     let unitPrice: Decimal
     let cardPrice: Decimal?
     let priceConditions: String?
+    // Absent from calculations cached before purchase tracking was introduced.
+    var itemID: Int64? = nil
+    var status: ShoppingItemStatus? = nil
 }
 
 nonisolated enum ShoppingListFailure: Error, Equatable {

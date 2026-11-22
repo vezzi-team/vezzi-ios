@@ -97,6 +97,8 @@ nonisolated struct APIShoppingListService: ShoppingListService {
     }
     private struct PlanDTO: Decodable, Sendable {
         let id: UUID
+        let cartId: UUID?
+        let status: String?
         let totalKopecks: Int64
         let savingsKopecks: Int64?
         let totalSeconds: Int
@@ -145,6 +147,8 @@ nonisolated struct APIShoppingListService: ShoppingListService {
         }
     }
     private struct PlanItemDTO: Decodable, Sendable {
+        let id: Int64?
+        let status: ShoppingItemStatus?
         let product: CatalogProductDTO
         let quantity: Int
         let unitPriceKopecks: Int64
@@ -153,7 +157,74 @@ nonisolated struct APIShoppingListService: ShoppingListService {
 
         var record: ShoppingPlanItem {
             ShoppingPlanItem(product: product.record, quantity: quantity, unitPrice: Decimal(unitPriceKopecks) / 100,
-                             cardPrice: cardPriceKopecks.map { Decimal($0) / 100 }, priceConditions: priceConditions)
+                             cardPrice: cardPriceKopecks.map { Decimal($0) / 100 }, priceConditions: priceConditions,
+                             itemID: id, status: status)
         }
+    }
+}
+
+extension APIShoppingListService: ShoppingProgressService {
+    private struct Summary: Decodable { let id: UUID; let cartId: UUID? }
+    private struct ItemStatusUpdate: Encodable { let status: ShoppingItemStatus }
+
+    @concurrent func activePlan(cartID: UUID) async throws -> ShoppingPlan? {
+        let response = try await client.authorizedResponse(for: APIRequest(path: "plans", queryItems: [.init(name: "status", value: "active")]))
+        let summaries: [Summary] = try response.decode()
+        guard let match = summaries.first(where: { $0.cartId == cartID }) else { return nil }
+        return try await readPlan(APIRequest(path: "plans/\(match.id.uuidString)"), id: match.id, cartID: cartID)
+    }
+
+    @concurrent func startPlan(id: UUID, cartID: UUID) async throws -> ShoppingPlan {
+        try await readPlan(APIRequest(path: "plans/\(id.uuidString)/start", method: "POST"), id: id, cartID: cartID)
+    }
+
+    @concurrent func updatePlanItem(planID: UUID, cartID: UUID, itemID: Int64, status: ShoppingItemStatus) async throws -> ShoppingPlan {
+        let request = APIRequest(path: "plans/\(planID.uuidString)/items/\(itemID)", method: "PATCH",
+                                 body: try APIClient.encode(ItemStatusUpdate(status: status)))
+        return try await readPlan(request, id: planID, cartID: cartID)
+    }
+
+    private struct CompletionState: Decodable { let id: UUID; let cartId: UUID?; let status: String }
+    private struct CartStatus: Encodable { let status: String }
+
+    @concurrent func finishPlan(id: UUID, cartID: UUID, list: ShoppingTrip.ListDisposition, resuming: Bool) async throws -> ShoppingCart? {
+        let path = "plans/\(id.uuidString)"
+        var completed = false
+        if resuming {
+            let response = try await client.authorizedResponse(for: APIRequest(path: path))
+            let state: CompletionState = try response.decode()
+            guard state.id == id, ["completed", "active"].contains(state.status) else { throw APIError.invalidResponse }
+            completed = state.status == "completed"
+            if completed && state.cartId == nil { return nil }
+            guard state.cartId == cartID else { throw APIError.invalidResponse }
+        }
+        if !completed {
+            _ = try await readPlan(APIRequest(path: path + "/complete", method: "POST"), id: id, cartID: cartID, expectedStatus: "completed")
+        }
+        let cartPath = "carts/\(cartID.uuidString)"
+        switch list {
+        case .delete:
+            do { _ = try await client.authorizedResponse(for: APIRequest(path: cartPath, method: "DELETE")) }
+            catch where (error as? APIError)?.status == 404 { }
+            return nil
+        case .keep:
+            let request = APIRequest(path: cartPath, method: "PATCH", body: try APIClient.encode(CartStatus(status: "active")))
+            let response: APIResponse
+            do { response = try await client.authorizedResponse(for: request) }
+            catch let error as APIError where error.status == 404 { return nil }
+            let restored = try response.decode(CartDTO.self).record()
+            guard restored.id == cartID, restored.status == "active" else { throw APIError.invalidResponse }
+            return restored
+        }
+    }
+
+    private func readPlan(_ request: APIRequest, id: UUID, cartID: UUID, expectedStatus: String = "active") async throws -> ShoppingPlan {
+        let response = try await client.authorizedResponse(for: request)
+        let dto: PlanDTO = try response.decode()
+        let items = dto.stops.flatMap(\.items)
+        guard dto.id == id, dto.cartId == cartID, dto.status == expectedStatus,
+              !items.isEmpty, items.allSatisfy({ ($0.id ?? 0) > 0 && $0.status != nil }),
+              Set(items.compactMap(\.id)).count == items.count else { throw APIError.invalidResponse }
+        return try dto.record()
     }
 }

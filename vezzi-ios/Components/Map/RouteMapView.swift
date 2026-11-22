@@ -8,6 +8,8 @@ struct RouteMapView: UIViewRepresentable {
     @Environment(\.scenePhase) private var scenePhase
     let origin: ShoppingCoordinate
     var plan: ShoppingPlan?
+    var previousStop: ShoppingPlanStop?
+    var homeDestination: ShoppingCoordinate?
     var bottomInset: CGFloat = .zero
     var cameraRequest: MapCameraRequest?
     var deviceCoordinate: ShoppingCoordinate?
@@ -296,8 +298,9 @@ struct RouteMapView: UIViewRepresentable {
                 cancelReveal()
                 if let annotations = map.annotations { map.removeAnnotations(annotations) }
                 if let deviceAnnotation { map.addAnnotation(deviceAnnotation) }
-                let start = RouteAnnotation(coordinate: parent.origin.clCoordinate, number: nil,
-                                            title: Texts.Routes.yourStart)
+                let start = RouteAnnotation(coordinate: parent.origin.clCoordinate, number: parent.previousStop?.position,
+                                            title: parent.previousStop.map { $0.store.chainName ?? $0.store.name } ?? Texts.Routes.yourStart)
+                start.isStart = true
                 map.addAnnotation(start)
                 var stops = [RouteAnnotation]()
                 for stop in (parent.plan?.stops ?? []).sorted(by: { $0.position < $1.position }) {
@@ -308,6 +311,9 @@ struct RouteMapView: UIViewRepresentable {
                     stops.append(point)
                 }
                 let points = parent.plan?.points ?? []
+                if parent.plan != nil, let home = parent.homeDestination {
+                    stops.append(RouteAnnotation(coordinate: home.clCoordinate, number: nil, title: Texts.Trip.home))
+                }
                 let geometry = RouteRevealGeometry(points: points, stops: stops.map {
                     ShoppingCoordinate(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude)
                 }, marksRepeatedRoads: parent.plan?.usesRoadNetwork == true)
@@ -464,6 +470,7 @@ struct RouteMapView: UIViewRepresentable {
             hasFittedCamera = true
             var coordinates = parent.plan?.points.map(\.clCoordinate) ?? []
             coordinates.append(parent.origin.clCoordinate)
+            if let home = parent.homeDestination { coordinates.append(home.clCoordinate) }
             for stop in parent.plan?.stops ?? [] {
                 if let latitude = stop.store.latitude, let longitude = stop.store.longitude {
                     coordinates.append(CLLocationCoordinate2D(latitude: latitude, longitude: longitude))
@@ -550,6 +557,7 @@ struct RouteMapView: UIViewRepresentable {
 private final class DeviceLocationAnnotation: MLNPointAnnotation {}
 
 private final class RouteAnnotation: MLNPointAnnotation {
+    var isStart = false
     let number: Int?
     var revealedAt: CFTimeInterval?
     init(coordinate: CLLocationCoordinate2D, number: Int?, title: String) {
@@ -595,9 +603,9 @@ private final class RouteMarkerView: MLNAnnotationView {
         finishAppearance()
         routeOrder = annotation.number ?? 0
         label.text = annotation.number.map(String.init) ?? "A"
-        label.textColor = UIColor(annotation.number == nil ? Color.Label.white : Color.Label.black)
+        label.textColor = UIColor(annotation.isStart ? Color.Label.white : Color.Label.black)
         badge.layer.borderColor = UIColor(Color.Label.white).cgColor
-        badge.backgroundColor = UIColor(annotation.number == nil ? Color.Label.black : Color.Map.route)
+        badge.backgroundColor = UIColor(annotation.isStart ? Color.Label.black : Color.Map.route)
         caption.text = annotation.title
         caption.textColor = UIColor(Color.Label.primary)
         captionBackground.backgroundColor = UIColor(Color.Background.secondary)

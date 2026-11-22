@@ -100,6 +100,15 @@ enum AccessibilityID {
         }
     }
 
+    enum Trip {
+        static let exit = "trip.exit"
+        static let next = "trip.next"
+        static let resume = "trip.resume"
+        static let review = "trip.review"
+        static let legHeader = "trip.legHeader"
+        static func store(_ id: String) -> String { "trip.store." + id }
+    }
+
     enum Catalog {
         static let banner = "catalog.status"
         static let categoryScrollToTop = "catalog.category.scrollToTop"

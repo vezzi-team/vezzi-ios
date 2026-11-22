@@ -10,9 +10,10 @@ nonisolated struct ShoppingRoutesSnapshot: Identifiable {
     let originAddress: String?
     let isSaved: Bool
     let routeOptions: ShoppingRouteOptions
+    let startsAtSummary: Bool
 
     init?(plans: [ShoppingPlan], mode: ShoppingMode = .cheaper, selectedID: UUID? = nil, origin: ShoppingCoordinate, isSaved: Bool,
-          routeOptions: ShoppingRouteOptions = .init(), originAddress: String? = nil) {
+          routeOptions: ShoppingRouteOptions = .init(), originAddress: String? = nil, startsAtSummary: Bool = false) {
         guard let first = plans.first else { return nil }
         self.plans = Array(plans.prefix(3))
         self.mode = mode
@@ -21,6 +22,7 @@ nonisolated struct ShoppingRoutesSnapshot: Identifiable {
         self.originAddress = originAddress
         self.isSaved = isSaved
         self.routeOptions = routeOptions
+        self.startsAtSummary = startsAtSummary
     }
 }
 

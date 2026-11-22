@@ -266,3 +266,16 @@ nonisolated enum StoreDisplayText {
         return (shortened.isEmpty ? address : shortened).addressCapitalized
     }
 }
+
+extension ShoppingPlanItem {
+    func assignedOffer(in store: CatalogStore) -> ProductOffer {
+        ProductOffer(id: "plan.\(store.id).\(product.id)", storeID: store.id, name: store.name, price: unitPrice,
+                     cardPrice: cardPrice, priceConditions: priceConditions, address: store.address, chainName: store.chainName)
+    }
+
+    func cardProduct(in store: CatalogStore) -> Product {
+        Product(id: product.id, name: product.name, brand: product.brand ?? "", packageQuantity: product.packageQuantity,
+                packageUnit: product.packageUnit, category: product.category.map(ProductCategory.init(rawValue:)),
+                offers: [assignedOffer(in: store)])
+    }
+}

@@ -80,6 +80,16 @@ struct ShoppingListView: View {
             addressButton
                 .padding(.horizontal, viewModel.contentState == .products ? Const.contentInset : TabBarActionLayout.horizontalInset)
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { addressHeight = $0 }
+            if viewModel.list.showsDeletedCartNotice {
+                HStack {
+                    Text(Texts.Trip.cartAlreadyDeleted)
+                        .font(.footnote).foregroundStyle(Color.Label.secondary)
+                    Spacer(minLength: 8)
+                    Button(Texts.ShoppingList.understood) { viewModel.list.showsDeletedCartNotice = false }
+                        .font(.footnote.weight(.semibold))
+                }
+                .padding(.horizontal, Const.contentInset)
+            }
             listBody.screenStateFade(for: viewModel.contentState)
         }
         .padding(.vertical, Const.contentInset)
@@ -89,7 +99,15 @@ struct ShoppingListView: View {
     }
 
     @ViewBuilder private var listBody: some View {
-        if viewModel.contentState == .products {
+        if let trip = viewModel.list.trip {
+            VStack(alignment: .leading, spacing: Const.sectionSpacing) {
+                shoppingProgress(trip)
+                ProductSectionButton(title: Texts.Trip.finish) { viewModel.showRoutes(startsAtSummary: true) }
+                    .accessibilityIdentifier(AccessibilityID.Trip.review)
+                productSection
+            }
+            .padding(.horizontal, Const.contentInset)
+        } else if viewModel.contentState == .products {
             VStack(spacing: Const.sectionSpacing) {
                 modePicker.padding(.horizontal, Const.contentInset)
                 summarySection
@@ -102,6 +120,47 @@ struct ShoppingListView: View {
             .frame(maxWidth: .infinity,
                    minHeight: max(.zero, viewportHeight - addressHeight - Const.sectionSpacing - Const.contentInset * 2))
         }
+    }
+
+    private func shoppingProgress(_ trip: ShoppingTrip) -> some View {
+        let bought = trip.boughtCount
+        let total = trip.items.count
+        let money = Decimal.FormatStyle.Currency(code: "RUB").precision(.fractionLength(0...2))
+        let spent = trip.spent
+        let count = Texts.Trip.progressCount(bought, total)
+        let amount = Texts.Trip.progressAmount(spent.formatted(money), trip.plan.total.formatted(money))
+        let countLabel = Text(count).font(.headline)
+            .contentTransition(reduceMotion ? .identity : .numericText(value: Double(bought)))
+        let priceLabel = Text(amount).font(.subheadline).foregroundStyle(.secondary)
+            .contentTransition(reduceMotion ? .identity : .numericText(value: NSDecimalNumber(decimal: spent).doubleValue))
+        return VStack(alignment: .leading, spacing: 12) {
+            ViewThatFits(in: .horizontal) {
+                HStack {
+                    countLabel.fixedSize(horizontal: true, vertical: false)
+                    Spacer(minLength: 8)
+                    priceLabel.fixedSize(horizontal: true, vertical: false)
+                }
+                VStack(alignment: .leading, spacing: 4) { countLabel; priceLabel }
+            }
+            GeometryReader { bounds in
+                Capsule().fill(Color.Label.primary.opacity(0.08))
+                    .overlay(alignment: .leading) {
+                        Capsule().fill(Color.accentColor)
+                            .frame(width: bounds.size.width * CGFloat(bought) / CGFloat(max(1, total)))
+                    }
+            }
+            .frame(height: 6)
+            .padding(.bottom, 8)
+        }
+        .monospacedDigit()
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.Background.elevated, in: .rect(cornerRadius: 24))
+        .shadow(color: Color.Shadow.primary.opacity(0.08), radius: 12, y: 6)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: bought)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(count)
+        .accessibilityValue(amount)
     }
 
     @ViewBuilder private var emptyContent: some View {
@@ -315,26 +374,22 @@ struct ShoppingListView: View {
     }
 
     private var bottomAction: some View {
-        Button {
-            if viewModel.contentState == .empty {
+        ShoppingRouteButton(placement: .bottomBar) {
+            if viewModel.contentState == .empty && viewModel.list.trip == nil {
                 router.popToRoot(in: .catalog)
                 router.selectTab(.catalog)
             } else {
                 viewModel.showRoutes()
             }
         } label: {
-            Text(viewModel.contentState == .empty ? Texts.ShoppingList.findProducts : Texts.ShoppingList.showRoute)
+            Text(viewModel.list.trip != nil ? Texts.Trip.resume :
+                    (viewModel.contentState == .empty ? Texts.ShoppingList.findProducts : Texts.ShoppingList.showRoute))
                 .contentTransition(reduceMotion ? .identity : .opacity)
                 .animation(reduceMotion ? nil : .screenStateFade, value: viewModel.contentState == .empty)
-                .font(.headline).frame(maxWidth: .infinity)
         }
-        .buttonStyle(.glassProminent)
-        .controlSize(.large)
-        .disabled(viewModel.contentState == .products && viewModel.plan == nil)
-        .tabBarActionWidth()
-        .padding(.vertical, Const.routeInset)
-        .accessibilityIdentifier(viewModel.contentState == .empty
-                                 ? AccessibilityID.ShoppingList.addProducts : AccessibilityID.ShoppingList.route)
+        .disabled(viewModel.list.trip == nil && viewModel.contentState == .products && viewModel.plan == nil)
+        .accessibilityIdentifier(viewModel.list.trip != nil ? AccessibilityID.Trip.resume :
+                                    (viewModel.contentState == .empty ? AccessibilityID.ShoppingList.addProducts : AccessibilityID.ShoppingList.route))
     }
 
     // MARK: - Products
@@ -398,7 +453,6 @@ struct ShoppingListView: View {
         static let loadingIndicatorWidth: CGFloat = 20
         static let loadingSpacing: CGFloat = 8
         static let secondsPerMinute = 60.0
-        static let routeInset: CGFloat = 8
         static let gridSpacing: CGFloat = 16
         static let transitionDuration: TimeInterval = 0.25
     }

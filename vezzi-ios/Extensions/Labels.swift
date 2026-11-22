@@ -427,6 +427,63 @@ final class Texts {
         }
     }
 
+    enum Trip {
+        static let cartAlreadyDeleted = NSLocalizedString("TripCartAlreadyDeleted", comment: "The completed trip's list was already deleted")
+        static let home = NSLocalizedString("TripHome", comment: "Home")
+        static let returnHome = NSLocalizedString("TripReturnHome", comment: "Return to the starting point")
+        static let arrivedHome = NSLocalizedString("TripArrivedHome", comment: "I’m home")
+        static let finishQuestion = NSLocalizedString("TripFinishQuestion", comment: "Finish shopping?")
+        static let keepList = NSLocalizedString("TripKeepList", comment: "Keep list")
+        static let deleteList = NSLocalizedString("TripDeleteList", comment: "Delete list")
+        static func progressCount(_ count: Int, _ total: Int) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("TripProgressCount", comment: "Bought %ld of %ld"), count, total)
+        }
+        static func progressAmount(_ spent: String, _ total: String) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("TripProgressAmount", comment: "%@ of %@"), spent, total)
+        }
+        static let route = NSLocalizedString("TripRoute", comment: "Route")
+        static let shopping = NSLocalizedString("TripShopping", comment: "Shopping")
+        static let summary = NSLocalizedString("TripSummary", comment: "Summary")
+        static let exit = NSLocalizedString("TripExit", comment: "Exit")
+        static let resume = NSLocalizedString("TripResume", comment: "Continue shopping")
+        static let arrived = NSLocalizedString("TripArrived", comment: "I’m at the store")
+        static let nextRoute = NSLocalizedString("TripNextRoute", comment: "View route")
+        static let viewSummary = NSLocalizedString("TripViewSummary", comment: "View summary")
+        static let finish = NSLocalizedString("TripFinish", comment: "Finish shopping")
+        static let active = NSLocalizedString("TripActive", comment: "Shopping in progress")
+        static let activeHint = NSLocalizedString("TripActiveHint", comment: "Finish your current shopping trip to edit the list.")
+        static let startError = NSLocalizedString("TripStartError", comment: "Couldn’t start shopping. Refresh the routes and try again.")
+        static let saveError = NSLocalizedString("TripSaveError", comment: "Couldn’t save the change. Please try again.")
+        static let products = NSLocalizedString("TripProducts", comment: "Products")
+        static let boughtAtStore = NSLocalizedString("TripBoughtAtStore", comment: "Bought in this store")
+        static let amount = NSLocalizedString("TripAmount", comment: "Amount spent")
+        static let total = NSLocalizedString("TripTotal", comment: "Shopping total")
+        static let byStore = NSLocalizedString("TripByStore", comment: "By store")
+        static let noneBought = NSLocalizedString("TripNoneBought", comment: "Nothing bought yet")
+        static let offlineMarks = NSLocalizedString("TripOfflineMarks", comment: "Offline purchase marks")
+        static let offlineFinish = NSLocalizedString("TripOfflineFinish", comment: "Pending completion while offline")
+        static let markHint = NSLocalizedString("TripMarkHint", comment: "Tap a product to mark it as bought.")
+        static let editHint = NSLocalizedString("TripEditHint", comment: "Tap a store to edit your purchases.")
+        static let nextStore = NSLocalizedString("TripNextStore", comment: "Next store")
+        static let address = NSLocalizedString("TripAddress", comment: "Store address")
+        static let fromStart = NSLocalizedString("TripFromStart", comment: "From home")
+        static func fromStore(_ name: String) -> String {
+            String(format: NSLocalizedString("TripFromStore", comment: "From %@"), name)
+        }
+        static func stop(_ position: Int, _ count: Int) -> String {
+            String(format: NSLocalizedString("TripStop", comment: "Stop %ld of %ld"), position, count)
+        }
+        static func count(_ bought: Int, _ total: Int) -> String {
+            String(format: NSLocalizedString("TripCount", comment: "%ld of %ld"), bought, total)
+        }
+        static func bought(_ count: Int, _ total: Int) -> String {
+            String(format: NSLocalizedString("TripBought", comment: "Bought %ld of %ld products"), count, total)
+        }
+        static func quantity(_ count: Int) -> String {
+            String(format: NSLocalizedString("TripQuantity", comment: "×%ld"), count)
+        }
+    }
+
     enum Routes {
         enum AddressSearch {
             static let hintTitle = NSLocalizedString("AddressSearchHintTitle", comment: "Choose an address")
