@@ -9,6 +9,7 @@ import SwiftUI
 
 @main
 struct VezziApp: App {
+    @AppStorage(AppAppearance.storageKey) private var appearance: AppAppearance = .system
     @StateObject private var dependencies = AppDependencies()
     @Environment(\.scenePhase) private var scenePhase
 
@@ -16,7 +17,7 @@ struct VezziApp: App {
         WindowGroup {
             AppLaunchView(catalog: dependencies.catalog, authentication: dependencies.authentication,
                           shoppingList: dependencies.shoppingList, location: dependencies.location)
-                .background { AppWindowAppearance().frame(width: 0, height: 0) }
+                .background { AppSceneAppearance(appearance: appearance).frame(width: 0, height: 0) }
                 .task { await dependencies.load() }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active {

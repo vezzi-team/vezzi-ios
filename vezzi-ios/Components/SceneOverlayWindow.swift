@@ -73,9 +73,6 @@ private final class OverlayWindow: UIWindow {
     override var canBecomeKey: Bool { false }
 
     func updateTopInset(from source: UIWindow) {
-        if overrideUserInterfaceStyle != source.overrideUserInterfaceStyle {
-            overrideUserInterfaceStyle = source.overrideUserInterfaceStyle
-        }
         // UIKit briefly detaches both bars during a tab switch. Keep the last measured inset then.
         guard let host = rootViewController, let root = source.rootViewController,
               let nav = navigationController(in: root, window: source),

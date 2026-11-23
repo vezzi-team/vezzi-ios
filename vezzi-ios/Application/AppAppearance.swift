@@ -4,37 +4,41 @@ enum AppAppearance: String, CaseIterable {
     case system, light, dark
     static let storageKey = "appearance.theme"
 
-    var interfaceStyle: UIUserInterfaceStyle {
+    func apply(to scene: UIWindowScene) {
         switch self {
-        case .system: .unspecified
-        case .light: .light
-        case .dark: .dark
+        case .system: scene.traitOverrides.remove(UITraitUserInterfaceStyle.self)
+        case .light: scene.traitOverrides.userInterfaceStyle = .light
+        case .dark: scene.traitOverrides.userInterfaceStyle = .dark
         }
     }
 }
 
-/// Apply the preference to the scene window, including native sheets and full-screen covers.
-struct AppWindowAppearance: UIViewRepresentable {
-    @AppStorage(AppAppearance.storageKey) private var appearance: AppAppearance = .system
+/// Native search and the keyboard may use a different window in the same scene.
+struct AppSceneAppearance: UIViewRepresentable {
+    let appearance: AppAppearance
 
-    func makeUIView(context: Context) -> Anchor { Anchor() }
+    func makeUIView(context: Context) -> Anchor {
+        let anchor = Anchor()
+        anchor.appearance = appearance
+        return anchor
+    }
 
     func updateUIView(_ anchor: Anchor, context: Context) {
-        anchor.style = appearance.interfaceStyle
-        anchor.apply()
+        if anchor.appearance != appearance { anchor.appearance = appearance }
     }
 
     final class Anchor: UIView {
-        var style: UIUserInterfaceStyle = .unspecified
+        var appearance: AppAppearance = .system {
+            didSet { applyAppearance() }
+        }
 
         override func didMoveToWindow() {
             super.didMoveToWindow()
-            apply()
+            applyAppearance()
         }
 
-        func apply() {
-            guard let window, window.overrideUserInterfaceStyle != style else { return }
-            window.overrideUserInterfaceStyle = style
+        private func applyAppearance() {
+            if let scene = window?.windowScene { appearance.apply(to: scene) }
         }
     }
 }
