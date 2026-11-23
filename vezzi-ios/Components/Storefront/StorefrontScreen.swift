@@ -28,6 +28,7 @@ struct StorefrontScreen: View {
                 collectionFeed(collection, viewportHeight: geometry.size.height)
             } else {
                 feed(viewportHeight: geometry.size.height)
+                    .scrollIndicators(page == .home ? .hidden : .automatic, axes: .vertical)
                     .screenStateFade(for: viewModel.hasProducts)
                     .toolbar { navigationToolbar(availableWidth: geometry.size.width) }
                     .navigationTitle("")

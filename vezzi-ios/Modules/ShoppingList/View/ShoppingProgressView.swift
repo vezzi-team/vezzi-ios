@@ -8,6 +8,7 @@ struct ShoppingProgressView: View {
     @ObservedObject var list: ShoppingListRepository
     let next: (ShoppingTrip.Page) -> Void
     @State private var confirmsFinish = false
+    @State private var purchaseFeedback = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var textSize
 
@@ -76,8 +77,9 @@ struct ShoppingProgressView: View {
                     ForEach(stop.items, id: \.product.id) { item in
                         ProductCard(product: item.cardProduct(in: stop.store), showsPricePrefix: false,
                                     isPurchased: item.isBought, quantity: .constant(item.quantity)) {
-                            guard let id = item.itemID else { return }
-                            list.togglePurchase(itemID: id, planID: trip.plan.id)
+                            if let id = item.itemID, list.togglePurchase(itemID: id, planID: trip.plan.id) {
+                                purchaseFeedback.toggle()
+                            }
                         }
                         .disabled(item.itemID == nil || trip.pendingFinish != nil)
                     }
@@ -89,6 +91,7 @@ struct ShoppingProgressView: View {
             .padding(16)
         }
         .scrollIndicators(.hidden)
+        .sensoryFeedback(.impact(weight: .light), trigger: purchaseFeedback)
     }
 
     private func purchaseMetrics(_ stop: ShoppingPlanStop) -> some View {
@@ -96,9 +99,7 @@ struct ShoppingProgressView: View {
         let spent = stop.spent
         return VStack(spacing: 12) {
             LabeledContent(Texts.Trip.boughtAtStore) {
-                Text(Texts.Trip.count(bought, stop.items.count))
-                    .contentTransition(reduceMotion ? .identity : .numericText(value: Double(bought)))
-                    .animation(reduceMotion ? nil : .smooth(duration: 0.25), value: bought)
+                animatedNumber(Texts.Trip.count(bought, stop.items.count), value: Double(bought))
             }
             .font(.headline)
             LabeledContent(Texts.Trip.amount) {
@@ -106,7 +107,6 @@ struct ShoppingProgressView: View {
                     .fontWeight(.semibold)
             }
         }
-        .monospacedDigit()
         .tripCard()
     }
 
@@ -198,22 +198,28 @@ struct ShoppingProgressView: View {
 
     private func totals(compact: Bool) -> some View {
         let amount = animatedAmount(trip.spent).font(compact ? .title3.bold() : .largeTitle.bold())
+        let bought = trip.boughtCount
         return VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(Texts.Trip.total).font(.headline)
                 if compact { Spacer(); amount }
             }
             if !compact { amount }
-            Text(Texts.Trip.bought(trip.boughtCount, trip.items.count)).font(.subheadline).foregroundStyle(.secondary)
+            animatedNumber(Texts.Trip.bought(bought, trip.items.count), value: Double(bought))
+                .font(.subheadline).foregroundStyle(.secondary)
         }
         .tripCard()
     }
 
     private func animatedAmount(_ amount: Decimal) -> some View {
-        Text(TripFormat.price(amount))
+        animatedNumber(TripFormat.price(amount), value: NSDecimalNumber(decimal: amount).doubleValue)
+    }
+
+    private func animatedNumber(_ text: String, value: Double) -> some View {
+        Text(text)
             .monospacedDigit()
-            .contentTransition(reduceMotion ? .identity : .numericText(value: NSDecimalNumber(decimal: amount).doubleValue))
-            .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: amount)
+            .contentTransition(reduceMotion ? .identity : .numericText(value: value))
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: value)
     }
 }
 

@@ -38,8 +38,8 @@ struct ProductCard: View {
                     .allowsHitTesting(false)
             }
         }
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: isPurchased)
-        .pressScaleEffect()
+        .animation(reduceMotion ? nil : .easeInOut(duration: Const.purchaseTransitionDuration), value: isPurchased)
+        .pressScaleEffect(acceptsRapidTaps: isPurchased != nil)
     }
 
     // MARK: - Product
@@ -69,7 +69,7 @@ struct ProductCard: View {
                     Image.System.checkmark
                         .font(.system(size: purchaseMarkSize, weight: .bold))
                         .foregroundStyle(Color.accentColor)
-                        .symbolEffect(.drawOff.reversed, options: .speed(2.5), isActive: !reduceMotion && !isPurchased)
+                        .symbolEffect(.drawOff.reversed, options: .speed(Const.purchaseMarkSpeed), isActive: !reduceMotion && !isPurchased)
                         .opacity(reduceMotion && !isPurchased ? 0 : 1)
                         .allowsHitTesting(false)
                 }
@@ -305,6 +305,8 @@ struct ProductCard: View {
         static let shadowRadius: CGFloat = 4
         static let shadowOffset: CGFloat = 2
         static let offerTransitionDuration: TimeInterval = 0.2
+        static let purchaseTransitionDuration: TimeInterval = 0.1
+        static let purchaseMarkSpeed: Double = 5
     }
 }
 
