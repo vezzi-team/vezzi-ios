@@ -165,12 +165,14 @@ enum AccessibilityID {
 
     enum Search {
         static let scrollToTop = "search.scrollToTop"
+        static let closeSection = "search.section.close"
         static let mode = "search.mode"
         static let cancel = "search.cancel"
         static let results = "search.results"
         static let empty = "search.empty"
         static let offline = "search.offline"
 
+        static func showMore(_ id: String) -> String { "search.more.\(id)" }
         static func section(_ id: String) -> String { "search.section.\(id)" }
     }
 

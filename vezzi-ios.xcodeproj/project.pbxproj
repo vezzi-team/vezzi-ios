@@ -124,6 +124,7 @@
 		C0DE00000000000000000014 /* ShoppingListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000000004 /* ShoppingListView.swift */; };
 		C0DE00000000000000000015 /* CatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000000005 /* CatalogView.swift */; };
 		C0DE00000000000000000016 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000000006 /* SearchView.swift */; };
+		F470C7501A0540779B5B3230 /* SearchSectionScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F834E182D0FB4BF0A8E78488 /* SearchSectionScreen.swift */; };
 		C0DE00000000000000000017 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000000007 /* HomeView.swift */; };
 		C243084F0CDE42B682A382F8 /* MapSelectionAreaOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = F07040FC273044B1A4796E90 /* MapSelectionAreaOverlay.swift */; };
 		C79DD45D94C743F2A571268D /* ShoppingPlanStoresView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC534E3838804D18A1E29BA9 /* ShoppingPlanStoresView.swift */; };
@@ -290,6 +291,7 @@
 		C0DE00000000000000000004 /* ShoppingListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingListView.swift; sourceTree = "<group>"; };
 		C0DE00000000000000000005 /* CatalogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogView.swift; sourceTree = "<group>"; };
 		C0DE00000000000000000006 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
+		F834E182D0FB4BF0A8E78488 /* SearchSectionScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSectionScreen.swift; sourceTree = "<group>"; };
 		C0DE00000000000000000007 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		C663CEAD054D42DBA93889DE /* ShoppingRouteControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingRouteControls.swift; sourceTree = "<group>"; };
 		C6E64C991CB840B589EAA095 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
@@ -833,6 +835,7 @@
 			isa = PBXGroup;
 			children = (
 				C0DE00000000000000000006 /* SearchView.swift */,
+				F834E182D0FB4BF0A8E78488 /* SearchSectionScreen.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -1326,6 +1329,7 @@
 				C0DE00000000000000000015 /* CatalogView.swift in Sources */,
 				7F00CA7A1000000000000001 /* CatalogSection.swift in Sources */,
 				C0DE00000000000000000016 /* SearchView.swift in Sources */,
+				F470C7501A0540779B5B3230 /* SearchSectionScreen.swift in Sources */,
 				D4AD4CD130974FF8002BDC87 /* DemoView.swift in Sources */,
 				721DCED0B81044FAB8EBACFB /* FontExtension.swift in Sources */,
 				60CAE369193A497780B48642 /* StringExtension.swift in Sources */,

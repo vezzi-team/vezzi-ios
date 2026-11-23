@@ -303,9 +303,9 @@ final class StorefrontViewModelTests: XCTestCase {
     }
 
     func testCatalogSectionsAndFullCategoryUseTheSameOrderAndSharedSelection() throws {
-        var products = (0..<7).map { CatalogProduct(id: "milk-\($0)", name: "Milk \($0)", category: " Dairy ", productType: "milk") }
+        var products = (0..<5).map { CatalogProduct(id: "milk-\($0)", name: "Milk \($0)", category: " Dairy ", productType: "milk") }
+        products += (0..<4).map { CatalogProduct(id: "fruit-\($0)", name: "Apple \($0)", category: "Produce") }
         products.append(contentsOf: [
-            CatalogProduct(id: "fruit", name: "Apple", category: "Produce"),
             CatalogProduct(id: "extra", name: "Extra", category: "Accessories"),
             CatalogProduct(id: "unknown", name: "Unknown", category: "  "),
             CatalogProduct(id: "missing", name: "Missing")
@@ -317,7 +317,8 @@ final class StorefrontViewModelTests: XCTestCase {
         XCTAssertEqual(sections.map(\.id.rawValue), ["Dairy", "Produce", "Accessories", ""])
         let dairy = try XCTUnwrap(sections.first)
         let full = StorefrontViewModel(page: .collection(.category(dairy.id)), repository: repo, list: list)
-        XCTAssertEqual(full.products.count, 7)
+        XCTAssertEqual(full.products.count, 5)
+        XCTAssertEqual(sections.filter(\.hasMoreProducts).map(\.id), [dairy.id])
         XCTAssertEqual(dairy.preview.map(\.id), Array(full.products.prefix(4)).map(\.id))
         XCTAssertEqual(Set(sections.last!.preview.map(\.id)), ["unknown", "missing"])
         let milk = try XCTUnwrap(full.products.last)

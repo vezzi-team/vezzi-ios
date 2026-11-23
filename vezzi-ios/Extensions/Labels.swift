@@ -354,6 +354,10 @@ final class Texts {
         static let cheaper = NSLocalizedString("SearchCheaper", comment: "Best price")
         static let faster = NSLocalizedString("SearchFaster", comment: "Fastest")
 
+        static func showMore(in section: String, address: String?) -> String {
+            [Common.showMore, section, address].compactMap { $0 }.joined(separator: ", ")
+        }
+
         static func walkingTime(_ minutes: Int) -> String {
             String.localizedStringWithFormat(NSLocalizedString("SearchWalkingTime", comment: "Walking time to the store"), minutes)
         }

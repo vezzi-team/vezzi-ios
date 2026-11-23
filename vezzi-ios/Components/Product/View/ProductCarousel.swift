@@ -8,12 +8,11 @@ struct ProductCarousel: View {
     @ObservedObject var selection: ProductSelection
     var showsStoreBadges = true
     var showsPricePrefix = true
-    var revealsNextCard = false
     let open: (Product) -> Void
 
     var body: some View {
         ScrollView(.horizontal) {
-            LazyHStack(alignment: .top, spacing: revealsNextCard ? Const.previewSpacing : ProductGridLayout.columnSpacing) {
+            LazyHStack(alignment: .top, spacing: Const.cardSpacing) {
                 ForEach(products) { product in
                     ProductCard(product: product, promotion: product.promotion, showsStoreBadges: showsStoreBadges,
                                 showsPricePrefix: showsPricePrefix, quantity: $selection[productID: product.id]) {
@@ -36,7 +35,7 @@ struct ProductCarousel: View {
 
     private enum Const {
         // Tighter gaps reveal the following card while retaining the grid's card width.
-        static let previewSpacing: CGFloat = 6
+        static let cardSpacing: CGFloat = 6
         static let shadowInset: CGFloat = 6
     }
 }

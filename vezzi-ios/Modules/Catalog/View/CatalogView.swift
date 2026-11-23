@@ -117,17 +117,19 @@ private struct CatalogShelf: View {
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier(AccessibilityID.Catalog.heading(section.id))
                 .padding(.horizontal, ProductGridLayout.contentInset)
-            ProductCarousel(products: section.preview, selection: viewModel.selection, revealsNextCard: true) {
+            ProductCarousel(products: section.preview, selection: viewModel.selection) {
                 viewModel.showProduct($0)
             }
             .pauseShimmerWhileScrolling()
-            ProductSectionButton(title: Texts.Common.showMore) {
-                openCategory(section.id)
+            if section.hasMoreProducts {
+                ProductSectionButton(title: Texts.Common.showMore) {
+                    openCategory(section.id)
+                }
+                .accessibilityLabel(Texts.Catalog.showAll(in: section.id.title))
+                .accessibilityIdentifier(AccessibilityID.Catalog.showMore(section.id))
+                .matchedTransitionSource(id: StorefrontCollection.category(section.id), in: transition)
+                .padding(.horizontal, ProductGridLayout.contentInset)
             }
-            .accessibilityLabel(Texts.Catalog.showAll(in: section.id.title))
-            .accessibilityIdentifier(AccessibilityID.Catalog.showMore(section.id))
-            .matchedTransitionSource(id: StorefrontCollection.category(section.id), in: transition)
-            .padding(.horizontal, ProductGridLayout.contentInset)
         }
         .padding(.bottom, 24)
     }

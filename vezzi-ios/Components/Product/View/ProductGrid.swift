@@ -1,6 +1,7 @@
 import SwiftUI
 
 enum ProductGridLayout {
+    static let shelfPreviewLimit = 4
     static let contentInset: CGFloat = 16
     static let columnSpacing: CGFloat = 16
     private static let minimumCardWidth: CGFloat = 150
@@ -21,18 +22,46 @@ enum ProductGridLayout {
 struct ProductGrid: View {
     let products: [Product]
     @ObservedObject var selection: ProductSelection
+    var showsStoreBadges = true
+    var showsPricePrefix = true
     let open: (Product) -> Void
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         LazyVGrid(columns: ProductGridLayout.columns(for: dynamicTypeSize), alignment: .leading, spacing: Const.rowSpacing) {
             ForEach(products) { product in
-                ProductCard(product: product, quantity: $selection[productID: product.id]) { open(product) }
+                ProductCard(product: product, showsStoreBadges: showsStoreBadges, showsPricePrefix: showsPricePrefix,
+                            quantity: $selection[productID: product.id]) { open(product) }
             }
         }
     }
 
     private enum Const {
         static let rowSpacing: CGFloat = 10
+    }
+}
+
+struct ProductGridScrollControls: ViewModifier {
+    let hasProducts: Bool
+    let identifier: String
+    @State private var position = ScrollPosition(edge: .top)
+    @State private var isPastTop = false
+
+    func body(content: Content) -> some View {
+        content
+            .scrollPosition($position)
+            .scrollIndicators(.visible, axes: .vertical)
+            .scrollIndicatorsFlash(onAppear: true)
+            .pauseShimmerWhileScrolling()
+            .onScrollGeometryChange(for: Bool.self) { geometry in
+                geometry.contentOffset.y + geometry.contentInsets.top > 200
+            } action: { _, isPastTop in self.isPastTop = isPastTop }
+            .overlay(alignment: .bottomTrailing) {
+                ScrollToTopButton(isVisible: hasProducts && isPastTop,
+                                  accessibilityIdentifier: identifier) {
+                    position.scrollTo(edge: .top)
+                }
+                .padding(ProductGridLayout.contentInset)
+            }
     }
 }

@@ -2,17 +2,24 @@ import Foundation
 
 struct CatalogSection: Identifiable {
     let id: ProductCategory
-    let preview: [Product]
+    private(set) var preview: [Product] = []
+    private(set) var hasMoreProducts = false
 
     static func sections(from items: [CatalogItem]) -> [Self] {
-        var previews: [ProductCategory: [Product]] = [:]
+        var sections: [ProductCategory: Self] = [:]
         for item in items {
             let category = ProductCategory(catalogValue: item.product.category)
-            if (previews[category]?.count ?? 0) < 4 {
-                previews[category, default: []].append(Product(catalog: item))
-            }
+            sections[category, default: Self(id: category)].include(item)
         }
-        return previews.keys.sorted { comesFirst($0, $1) }.map { Self(id: $0, preview: previews[$0, default: []]) }
+        return sections.values.sorted { comesFirst($0.id, $1.id) }
+    }
+
+    private mutating func include(_ item: CatalogItem) {
+        if preview.count < ProductGridLayout.shelfPreviewLimit {
+            preview.append(Product(catalog: item))
+        } else {
+            hasMoreProducts = true
+        }
     }
 
     private static func comesFirst(_ lhs: ProductCategory, _ rhs: ProductCategory) -> Bool {
