@@ -62,8 +62,11 @@ final class Texts {
             static let deals = NSLocalizedString("HomeDiscoveryDeals", comment: "Deals shelf")
             static let essentials = NSLocalizedString("HomeDiscoveryEssentials", comment: "Today’s essentials")
             static let pasta = NSLocalizedString("HomeDiscoveryPasta", comment: "Pasta")
-            static let movies = NSLocalizedString("HomeDiscoveryMovies", comment: "Movie night")
+            static let movies = NSLocalizedString("HomeDiscoveryMovies", comment: "Movies")
             static let salad = NSLocalizedString("HomeDiscoverySalad", comment: "Salad")
+            static let pastaSubtitle = NSLocalizedString("HomeDiscoveryPastaSubtitle", comment: "in 15 minutes")
+            static let moviesSubtitle = NSLocalizedString("HomeDiscoveryMoviesSubtitle", comment: "and popcorn")
+            static let saladSubtitle = NSLocalizedString("HomeDiscoverySaladSubtitle", comment: "for lunch")
         }
 
         enum Main {

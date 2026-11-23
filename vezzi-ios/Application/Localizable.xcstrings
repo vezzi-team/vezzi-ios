@@ -1771,18 +1771,35 @@
       }
     },
     "HomeDiscoveryMovies" : {
-      "comment" : "Movie night",
+      "comment" : "Movies",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Movie night"
+            "value" : "Movies"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Кино"
+          }
+        }
+      }
+    },
+    "HomeDiscoveryMoviesSubtitle" : {
+      "comment" : "and popcorn",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "and popcorn"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "и попкорн"
           }
         }
       }
@@ -1804,6 +1821,23 @@
         }
       }
     },
+    "HomeDiscoveryPastaSubtitle" : {
+      "comment" : "in 15 minutes",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in 15 minutes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "за 15 минут"
+          }
+        }
+      }
+    },
     "HomeDiscoverySalad" : {
       "comment" : "Salad",
       "localizations" : {
@@ -1817,6 +1851,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Салат"
+          }
+        }
+      }
+    },
+    "HomeDiscoverySaladSubtitle" : {
+      "comment" : "for lunch",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "for lunch"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "на обед"
           }
         }
       }

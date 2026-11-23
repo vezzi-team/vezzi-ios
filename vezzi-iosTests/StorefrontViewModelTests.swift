@@ -44,8 +44,30 @@ final class StorefrontViewModelTests: XCTestCase {
             XCTAssertTrue(products.allSatisfy { $0.lowestPrice == 30 })
         }
         let oneItem = items.filter { $0.id == "1" }
-        XCTAssertEqual(MotiCollection.salad.products(from: oneItem).map(\.id), ["1"])
+        XCTAssertEqual(MotiCollection.movies.products(from: oneItem).map(\.id), ["1"])
+        XCTAssertTrue(MotiCollection.salad.products(from: oneItem).isEmpty)
         XCTAssertTrue(MotiCollection.movies.products(from: []).isEmpty)
+    }
+
+    func testMotiCollectionsPreferFeaturedIngredientsAndVariety() throws {
+        let entries = [
+            ("popcorn", "Попкорн карамельный", "Снеки и чипсы"), ("chips", "Чипсы", "Снеки и чипсы"),
+            ("soda", "Лимонад", "Сладкая газировка"), ("pasta", "Спагетти", "Макаронные изделия"),
+            ("sauce", "Соус для пасты", "Кетчупы и соусы"), ("ketchup", "Кетчуп", "Кетчупы и соусы"),
+            ("lasagna", "Лазанья", "Макаронные изделия"), ("leaves", "Микс салатный", "Зелень и салаты"),
+            ("veg", "Авокадо", "Овощи"), ("feta", "Фета", "Сыры мягкие и рассольные"),
+            ("oil", "Масло оливковое", "Масла растительные"), ("dill", "Укроп", "Зелень и салаты"),
+            ("other", "Шампунь с ароматом попкорна", "Гигиена")
+        ]
+        var batch = CatalogFixtures.catalog()
+        batch.products = entries.map { CatalogProduct(id: $0.0, name: $0.1, productType: $0.2) }
+        batch.offers = batch.products.map {
+            CatalogOffer(id: $0.id, productID: $0.id, storeID: "s1", price: 20, currency: "RUB", inStock: true)
+        }
+        let items = try CatalogFixtures.snapshot(batch).allItems()
+        XCTAssertEqual(MotiCollection.movies.products(from: items).map(\.id), ["popcorn", "chips", "soda"])
+        XCTAssertEqual(MotiCollection.pasta.products(from: items).map(\.id), ["pasta", "sauce", "oil"])
+        XCTAssertEqual(MotiCollection.salad.products(from: items).map(\.id), ["leaves", "veg", "feta", "oil"])
     }
 
     func testHomeSharesSelectedOriginAndQuantitiesWithList() {

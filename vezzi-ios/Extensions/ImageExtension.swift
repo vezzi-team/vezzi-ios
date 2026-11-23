@@ -23,6 +23,16 @@ extension Image {
         static let routes = Image("OnboardingRoutes")
     }
 
+    enum CollectionCover {
+        static func image(for collection: MotiCollection) -> Image {
+            switch collection {
+            case .pasta: Image(.motiCollectionPasta)
+            case .movies: Image(.motiCollectionMovies)
+            case .salad: Image(.motiCollectionSalad)
+            }
+        }
+    }
+
     // MARK: - SF Symbols
 
     enum System {

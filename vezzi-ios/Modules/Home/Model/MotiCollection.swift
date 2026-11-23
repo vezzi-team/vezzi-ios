@@ -5,13 +5,23 @@ enum MotiCollection: String, CaseIterable, Identifiable {
 
     var id: Self { self }
 
-    var title: String {
+    var headline: String {
         switch self {
         case .pasta: Texts.Home.Discovery.pasta
         case .movies: Texts.Home.Discovery.movies
         case .salad: Texts.Home.Discovery.salad
         }
     }
+
+    var subtitle: String {
+        switch self {
+        case .pasta: Texts.Home.Discovery.pastaSubtitle
+        case .movies: Texts.Home.Discovery.moviesSubtitle
+        case .salad: Texts.Home.Discovery.saladSubtitle
+        }
+    }
+
+    var title: String { "\(headline) \(subtitle)" }
 
     private var productCount: Int {
         switch self {
@@ -21,30 +31,65 @@ enum MotiCollection: String, CaseIterable, Identifiable {
         }
     }
 
-    private var preferredTypes: Set<String> {
+    /// Each group contributes one item before another item of the same kind is chosen.
+    private var ingredients: [Ingredient] {
         switch self {
-        case .pasta: ["Макаронные изделия", "Сыры твёрдые и полутвёрдые", "Сливки и коктейли", "Масла растительные"]
-        case .movies: ["Снеки и чипсы", "Мороженое", "Шоколад плиточный", "Соки и нектары", "Сладкая газировка"]
-        case .salad: ["Овощи", "Зелень и салаты", "Сыры мягкие и рассольные", "Масла растительные"]
+        case .pasta:
+            [.init(["Макаронные изделия"], excluding: ["лазань", "каннеллони"]),
+             .init(["Кетчупы и соусы", "Соусы (доп.)"], named: ["для пасты", "песто", "болоньезе"]),
+             .init(["Сыры твёрдые и полутвёрдые"]), .init(["Сливки и коктейли"], named: ["сливки"]),
+             .init(["Масла растительные"], named: ["оливков"])]
+        case .movies:
+            [.init(["Снеки и чипсы", "Попкорн"], named: ["попкорн"]), .init(["Снеки и чипсы"]),
+             .init(["Сладкая газировка"]), .init(["Шоколад плиточный"]), .init(["Соки и нектары"]), .init(["Мороженое"])]
+        case .salad:
+            [.init(["Зелень и салаты", "Овощи", "Овощи (доп.)"], named: ["салат", "руккол", "шпинат"]),
+             .init(["Овощи", "Овощи (доп.)"]), .init(["Сыры мягкие и рассольные"]),
+             .init(["Масла растительные"], named: ["оливков"]), .init(["Зелень и салаты"])]
         }
     }
 
-    /// The process-local hash gives each collection a random order that survives reopening and price updates.
     func products(from items: [CatalogItem]) -> [Product] {
-        let types = preferredTypes
-        let candidates = items.compactMap { item -> (item: CatalogItem, preferred: Bool, rank: Int)? in
-            guard item.offers.contains(where: { $0.offer.inStock != false }) else { return nil }
+        let recipe = ingredients
+        var groups = Array(repeating: [(item: CatalogItem, rank: Int)](), count: recipe.count)
+        for item in items {
+            guard let group = recipe.firstIndex(where: { $0.matches(item.product) }),
+                  item.offers.contains(where: { $0.offer.inStock != false }) else { continue }
+            // Vary the picks between sessions, but keep them stable when prices or catalog order change.
             var hasher = Hasher()
             hasher.combine(self)
             hasher.combine(item.id)
-            return (item, types.contains(item.product.productType ?? ""), hasher.finalize())
+            groups[group].append((item, hasher.finalize()))
         }
-        return candidates.sorted { lhs, rhs in
-            if lhs.preferred != rhs.preferred { return lhs.preferred }
-            if lhs.rank != rhs.rank { return lhs.rank < rhs.rank }
-            return lhs.item.id < rhs.item.id
+        for index in groups.indices {
+            groups[index].sort { ($0.rank, $0.item.id) < ($1.rank, $1.item.id) }
         }
-        .prefix(productCount)
-        .map { Product(catalog: $0.item) }
+
+        var result: [Product] = []
+        for offset in 0..<productCount {
+            for group in groups where group.indices.contains(offset) {
+                result.append(Product(catalog: group[offset].item))
+                if result.count == productCount { return result }
+            }
+        }
+        return result
+    }
+
+    private struct Ingredient {
+        let types: [String]
+        let names: [String]
+        let exclusions: [String]
+
+        init(_ types: [String], named names: [String] = [], excluding exclusions: [String] = []) {
+            self.types = types
+            self.names = names
+            self.exclusions = exclusions
+        }
+
+        func matches(_ product: CatalogProduct) -> Bool {
+            guard let type = product.productType, types.contains(type),
+                  !exclusions.contains(where: { product.name.localizedCaseInsensitiveContains($0) }) else { return false }
+            return names.isEmpty || names.contains { product.name.localizedCaseInsensitiveContains($0) }
+        }
     }
 }
