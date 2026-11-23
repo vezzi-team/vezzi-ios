@@ -15,6 +15,25 @@ final class Texts {
         static let title = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Polka"
     }
     
+    enum Onboarding {
+        static let catalogTitle = NSLocalizedString("OnboardingCatalogTitle", comment: "Build your shopping list")
+        static let catalogDescription = NSLocalizedString("OnboardingCatalogDescription", comment: "Tap + on a product in the catalog to add it to your list.")
+        static let comparisonTitle = NSLocalizedString("OnboardingComparisonTitle", comment: "Spend less or walk less")
+        static let comparisonDescription = NSLocalizedString("OnboardingComparisonDescription", comment: "Compare prices and walking times in My list, then pick your route.")
+        static let shoppingTitle = NSLocalizedString("OnboardingShoppingTitle", comment: "Check off your purchases")
+        static let shoppingDescription = NSLocalizedString("OnboardingShoppingDescription", comment: "Tap the products you’ve picked up to see your total and what’s left.")
+        static let routesTitle = NSLocalizedString("OnboardingRoutesTitle", comment: "Choose your route")
+        static let routesDescription = NSLocalizedString("OnboardingRoutesDescription", comment: "See the stops on the map and compare walking times before you head out.")
+        static let skip = NSLocalizedString("OnboardingSkip", comment: "Skip")
+        static let next = NSLocalizedString("OnboardingNext", comment: "Continue")
+        static let guest = NSLocalizedString("OnboardingGuest", comment: "Continue as a guest")
+        static let start = NSLocalizedString("OnboardingStart", comment: "Start shopping")
+
+        static func progress(_ current: Int, _ total: Int) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("OnboardingProgress", comment: "Current page and total number of onboarding pages"), current, total)
+        }
+    }
+
     // MARK: - Shared Controls
 
     enum Common {
@@ -43,8 +62,11 @@ final class Texts {
             static let deals = NSLocalizedString("HomeDiscoveryDeals", comment: "Deals shelf")
             static let essentials = NSLocalizedString("HomeDiscoveryEssentials", comment: "Today’s essentials")
             static let pasta = NSLocalizedString("HomeDiscoveryPasta", comment: "Pasta")
-            static let movies = NSLocalizedString("HomeDiscoveryMovies", comment: "Movie night")
+            static let movies = NSLocalizedString("HomeDiscoveryMovies", comment: "Movies")
             static let salad = NSLocalizedString("HomeDiscoverySalad", comment: "Salad")
+            static let pastaSubtitle = NSLocalizedString("HomeDiscoveryPastaSubtitle", comment: "in 15 minutes")
+            static let moviesSubtitle = NSLocalizedString("HomeDiscoveryMoviesSubtitle", comment: "and popcorn")
+            static let saladSubtitle = NSLocalizedString("HomeDiscoverySaladSubtitle", comment: "for lunch")
         }
 
         enum Main {
@@ -334,6 +356,10 @@ final class Texts {
         static let mode = NSLocalizedString("SearchMode", comment: "Search priority")
         static let cheaper = NSLocalizedString("SearchCheaper", comment: "Best price")
         static let faster = NSLocalizedString("SearchFaster", comment: "Fastest")
+
+        static func showMore(in section: String, address: String?) -> String {
+            [Common.showMore, section, address].compactMap { $0 }.joined(separator: ", ")
+        }
 
         static func walkingTime(_ minutes: Int) -> String {
             String.localizedStringWithFormat(NSLocalizedString("SearchWalkingTime", comment: "Walking time to the store"), minutes)

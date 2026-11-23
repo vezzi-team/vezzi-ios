@@ -129,6 +129,7 @@ struct ProductSectionButton: View {
                 Text(title).contentTransition(.opacity)
             }
             .font(.subheadline.weight(.semibold))
+            .foregroundStyle(Color.accentColor)
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.glass)

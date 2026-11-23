@@ -113,8 +113,10 @@ struct ShoppingLegView: View {
                 TripStoreLabel(stop: stop, caption: Texts.Trip.stop(index + 1, trip.plan.stops.count), large: true)
             } else {
                 HStack(spacing: 12) {
-                    Image.System.house.font(.title3.bold()).frame(width: 46, height: 46)
+                    Image.Glyph.home
+                        .frame(width: 46, height: 46)
                         .background(Color.Background.placeholder, in: .rect(cornerRadius: 15))
+                        .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(Texts.Trip.returnHome).font(.caption).foregroundStyle(.secondary)
                         Text(Texts.Trip.home).font(.title.bold())

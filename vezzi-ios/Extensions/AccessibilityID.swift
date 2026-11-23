@@ -2,6 +2,15 @@ import Foundation
 
 /// Stable, nonlocalized identifiers used to find interface elements in UI tests.
 enum AccessibilityID {
+    enum Onboarding {
+        static let title = "onboarding.title"
+        static let back = "onboarding.back"
+        static let skip = "onboarding.skip"
+        static let next = "onboarding.next"
+        static let finish = "onboarding.finish"
+        static let signIn = "onboarding.signIn"
+    }
+
     enum Routes {
         enum AddressSearch {
             static let cancel = "routes.addressSearch.cancel"
@@ -156,12 +165,14 @@ enum AccessibilityID {
 
     enum Search {
         static let scrollToTop = "search.scrollToTop"
+        static let closeSection = "search.section.close"
         static let mode = "search.mode"
         static let cancel = "search.cancel"
         static let results = "search.results"
         static let empty = "search.empty"
         static let offline = "search.offline"
 
+        static func showMore(_ id: String) -> String { "search.more.\(id)" }
         static func section(_ id: String) -> String { "search.section.\(id)" }
     }
 

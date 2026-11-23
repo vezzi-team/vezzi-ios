@@ -28,6 +28,7 @@ struct StorefrontScreen: View {
                 collectionFeed(collection, viewportHeight: geometry.size.height)
             } else {
                 feed(viewportHeight: geometry.size.height)
+                    .scrollIndicators(page == .home ? .hidden : .automatic, axes: .vertical)
                     .screenStateFade(for: viewModel.hasProducts)
                     .toolbar { navigationToolbar(availableWidth: geometry.size.width) }
                     .navigationTitle("")
@@ -90,7 +91,8 @@ struct StorefrontScreen: View {
 
         switch collection {
         case .category:
-            feed.modifier(CategoryScrollControls(hasProducts: !viewModel.products.isEmpty))
+            feed.modifier(ProductGridScrollControls(hasProducts: !viewModel.products.isEmpty,
+                                                    identifier: AccessibilityID.Catalog.categoryScrollToTop))
         case .moti:
             feed.scrollIndicators(.hidden, axes: .vertical)
         }
@@ -154,8 +156,7 @@ struct StorefrontScreen: View {
                 if let user = authentication.user {
                     ProfileAvatar(email: user.email, isCompact: true)
                 } else {
-                    Image.System.person
-                        .font(.title3.weight(.medium))
+                    Image.Glyph.profile
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -250,29 +251,5 @@ struct StorefrontScreen: View {
         static let headingLineHeight: CGFloat = 22
         static let captionFontSize: CGFloat = 13
         static let captionLineHeight: CGFloat = 18
-    }
-}
-
-private struct CategoryScrollControls: ViewModifier {
-    let hasProducts: Bool
-    @State private var position = ScrollPosition(edge: .top)
-    @State private var isPastTop = false
-
-    func body(content: Content) -> some View {
-        content
-            .scrollPosition($position)
-            .scrollIndicators(.visible, axes: .vertical)
-            .scrollIndicatorsFlash(onAppear: true)
-            .pauseShimmerWhileScrolling()
-            .onScrollGeometryChange(for: Bool.self) { geometry in
-                geometry.contentOffset.y + geometry.contentInsets.top > 200
-            } action: { _, isPastTop in self.isPastTop = isPastTop }
-            .overlay(alignment: .bottomTrailing) {
-                ScrollToTopButton(isVisible: hasProducts && isPastTop,
-                                  accessibilityIdentifier: AccessibilityID.Catalog.categoryScrollToTop) {
-                    position.scrollTo(edge: .top)
-                }
-                .padding(ProductGridLayout.contentInset)
-            }
     }
 }

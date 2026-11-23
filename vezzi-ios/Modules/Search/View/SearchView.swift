@@ -6,6 +6,8 @@ struct SearchView: View {
     @StateObject private var viewModel: SearchViewModel
     @ObservedObject private var selection: ProductSelection
     @State private var isSearching = false
+    @State private var expandedSection: SearchSection?
+    @Namespace private var sectionTransition
     @State private var scrollPosition = ScrollPosition(edge: .top)
     @State private var isPastScrollTopThreshold = false
     @State private var viewportHeight: CGFloat = .zero
@@ -20,46 +22,44 @@ struct SearchView: View {
     }
 
     var body: some View {
-        Group {
-            if viewModel.canRefresh {
-                results.refreshable { await viewModel.refresh() }
-            } else {
-                results
+        results
+            .searchRefreshable(using: viewModel)
+            .animation(reduceMotion ? nil : .screenStateFade) { content in
+                content.background(viewModel.showsModePicker ? Color.Background.primary : Color.Background.iOSPrimary)
             }
-        }
-        .animation(reduceMotion ? nil : .screenStateFade) { content in
-            content.background(viewModel.showsModePicker ? Color.Background.primary : Color.Background.iOSPrimary)
-        }
-        .toolbar(horizontalSizeClass == .compact ? .hidden : .automatic, for: .navigationBar)
-        .toolbar { searchToolbar }
-        .safeAreaBar(edge: .top, spacing: .zero) {
-            if viewModel.showsModePicker { modePicker }
-        }
-        .contentShape(.rect)
-        .simultaneousGesture(TapGesture().onEnded { isSearchFocused = false })
-        .searchable(text: $viewModel.query, isPresented: $isSearching, prompt: Texts.Search.prompt)
-        .searchPresentationToolbarBehavior(horizontalSizeClass == .regular ? .avoidHidingContent : .automatic)
-        .searchFocused($isSearchFocused)
-        .onChange(of: router.selectedTab == .search ? preferredMode : nil, initial: true) { _, mode in
-            if let mode, viewModel.mode != mode { viewModel.mode = mode }
-        }
-        .onSubmit(of: .search) { isSearchFocused = false }
-        .onReceive(router.willOpenShoppingList) {
-            if viewModel.selectedProduct != nil { viewModel.dismissProduct() }
-            isSearchFocused = false
-            isSearching = false
-        }
-        .sheet(item: selectedProduct) { product in
-            ProductDetailView(product: product, relatedProducts: viewModel.relatedProducts, selection: selection,
-                              showsPricePrefix: viewModel.selectedProductStoreID == nil)
-        }
+            .toolbar(horizontalSizeClass == .compact ? .hidden : .automatic, for: .navigationBar)
+            .toolbar { searchToolbar }
+            .safeAreaBar(edge: .top, spacing: .zero) {
+                if viewModel.showsModePicker { modePicker }
+            }
+            .contentShape(.rect)
+            .simultaneousGesture(TapGesture().onEnded { isSearchFocused = false })
+            .searchable(text: $viewModel.query, isPresented: $isSearching, prompt: Texts.Search.prompt)
+            .searchPresentationToolbarBehavior(horizontalSizeClass == .regular ? .avoidHidingContent : .automatic)
+            .searchFocused($isSearchFocused)
+            .onChange(of: router.selectedTab == .search ? preferredMode : nil, initial: true) { _, mode in
+                if let mode, viewModel.mode != mode { viewModel.mode = mode }
+            }
+            .onSubmit(of: .search) { isSearchFocused = false }
+            .onReceive(router.willOpenShoppingList) {
+                if viewModel.selectedProduct != nil { viewModel.dismissProduct() }
+                expandedSection = nil
+                isSearchFocused = false
+                isSearching = false
+            }
+            .accessibilityHidden(expandedSection != nil)
+            .modifier(SearchProductSheet(viewModel: viewModel, selection: selection, isPresenter: expandedSection == nil))
+            .fullScreenCover(item: $expandedSection) { section in
+                let cover = SearchSectionScreen(section: section, viewModel: viewModel, selection: selection)
+                if reduceMotion {
+                    cover
+                } else {
+                    cover.navigationTransition(.zoom(sourceID: section.id, in: sectionTransition))
+                }
+            }
     }
 
     // MARK: - Search Presentation
-
-    private var selectedProduct: Binding<Product?> {
-        Binding(get: { viewModel.selectedProduct }, set: { _ in viewModel.dismissProduct() })
-    }
 
     @ToolbarContentBuilder
     private var searchToolbar: some ToolbarContent {
@@ -126,7 +126,7 @@ struct SearchView: View {
         .overlay(alignment: .bottomTrailing) { scrollToTopButton }
         .animation(reduceMotion ? nil : .easeOut(duration: Const.resultsTransitionDuration),
                    value: viewModel.items.map(\.id))
-        .environment(\.isShimmerEnabled, viewModel.selectedProduct == nil)
+        .environment(\.isShimmerEnabled, viewModel.selectedProduct == nil && expandedSection == nil)
     }
 
     @ViewBuilder private var visibleResults: some View {
@@ -171,15 +171,25 @@ struct SearchView: View {
     }
 
     private func productSection(_ section: SearchSection) -> some View {
-        VStack(alignment: .leading, spacing: Const.headingSpacing) {
+        VStack(alignment: .leading, spacing: 8) {
             sectionHeading(section)
                 .padding(.horizontal, Const.contentInset)
-            ProductCarousel(products: section.products, selection: selection,
+            ProductCarousel(products: Array(section.products.prefix(ProductGridLayout.shelfPreviewLimit)), selection: selection,
                             showsStoreBadges: section.storeID == nil, showsPricePrefix: section.storeID == nil) { product in
                 isSearchFocused = false
                 viewModel.showProduct(product, storeID: section.storeID)
             }
             .onScrollPhaseChange(dismissSearchFocusOnScroll)
+            if section.products.count > ProductGridLayout.shelfPreviewLimit {
+                ProductSectionButton(title: Texts.Common.showMore) {
+                    isSearchFocused = false
+                    expandedSection = section
+                }
+                .accessibilityLabel(Text(verbatim: Texts.Search.showMore(in: section.title, address: section.address)))
+                .accessibilityIdentifier(AccessibilityID.Search.showMore(section.id))
+                .matchedTransitionSource(id: section.id, in: sectionTransition)
+                .padding(.horizontal, Const.contentInset)
+            }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Search.section(section.id))
@@ -269,6 +279,17 @@ struct SearchView: View {
         static let addressLineHeight: CGFloat = 18
         static let modeDuration: TimeInterval = 0.2
         static let resultsTransitionDuration: TimeInterval = 0.18
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func searchRefreshable(using viewModel: SearchViewModel) -> some View {
+        if viewModel.canRefresh {
+            refreshable { [weak viewModel] in await viewModel?.refresh() }
+        } else {
+            self
+        }
     }
 }
 

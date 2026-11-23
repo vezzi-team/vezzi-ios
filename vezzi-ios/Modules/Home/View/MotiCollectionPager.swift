@@ -89,13 +89,17 @@ struct MotiCollectionPager: View {
         // Separate the passing edges at mid-swipe, before the two cards exchange depth.
         let turn = pow(sin(.pi * visualPage), 2)
         let size = width / Const.width
-        return RoundedRectangle(cornerRadius: Const.cornerRadius)
-            .fill(Color.Background.placeholder)
-            .shimmer()
-            .overlay(RoundedRectangle(cornerRadius: Const.cornerRadius).strokeBorder(Color.Border.primary))
-            .shadow(color: Color.Shadow.primary.opacity(Const.shadowOpacity), radius: Const.shadowRadius, y: Const.shadowOffset)
+        let collection = Self.collections[index]
+        let shape = RoundedRectangle(cornerRadius: Const.cornerRadius)
+        return Image.CollectionCover.image(for: collection)
+            .resizable()
+            .scaledToFill()
             .frame(width: Const.cardWidth * size, height: Const.cardHeight * size)
-            .matchedTransitionSource(id: StorefrontCollection.moti(Self.collections[index]), in: transition) { source in
+            .overlay(alignment: .topLeading) { caption(for: collection).opacity(emphasis(for: index)) }
+            .clipShape(shape)
+            .overlay { shape.strokeBorder(Color.Border.primary, lineWidth: Const.borderWidth) }
+            .shadow(color: Color.Shadow.primary.opacity(Const.shadowOpacity), radius: Const.shadowRadius, y: Const.shadowOffset)
+            .matchedTransitionSource(id: StorefrontCollection.moti(collection), in: transition) { source in
                 source.clipShape(.rect(cornerRadius: Const.cornerRadius))
             }
             .scaleEffect(1 - Const.depthScale * (1 - depth))
@@ -105,11 +109,30 @@ struct MotiCollectionPager: View {
             .zIndex(depth)
     }
 
+    private func caption(for collection: MotiCollection) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(collection.headline)
+                .appTextStyle(size: 32, lineHeight: 38, weight: .black, relativeTo: .title)
+            Text(collection.subtitle)
+                .appTextStyle(size: 15, lineHeight: 18, weight: .semibold, relativeTo: .subheadline)
+        }
+        .foregroundStyle(Color.Mascot.highlight)
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
+        .padding(.horizontal, Const.captionLeading)
+        .padding(.vertical, Const.captionTop)
+    }
+
+    private func emphasis(for index: Int) -> CGFloat {
+        let count = CGFloat(Self.collections.count)
+        let distance = abs(CGFloat(index) - visualPage)
+        return max(0, 1 - min(distance, count - distance))
+    }
+
     private var indicators: some View {
         HStack(spacing: Const.dotSize) {
             ForEach(Self.collections.indices, id: \.self) { index in
-                let distance = abs(CGFloat(index) - visualPage)
-                let emphasis = max(0, 1 - min(distance, CGFloat(Self.collections.count) - distance))
+                let emphasis = emphasis(for: index)
                 Capsule()
                     .fill(Color.Label.tertiary)
                     .overlay { Capsule().fill(Color.Label.secondary).opacity(emphasis) }
@@ -176,6 +199,9 @@ struct MotiCollectionPager: View {
         static let turnAngle = 25.0
         static let selectionDuration = 0.32
         static let cornerRadius: CGFloat = 14
+        static let borderWidth: CGFloat = 0.8
+        static let captionLeading: CGFloat = 13
+        static let captionTop: CGFloat = 10
         static let shadowOpacity = 0.08
         static let shadowRadius: CGFloat = 3
         static let shadowOffset: CGFloat = 2

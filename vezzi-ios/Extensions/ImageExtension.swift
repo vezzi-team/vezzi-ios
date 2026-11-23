@@ -9,13 +9,36 @@ import SwiftUI
 import UIKit
 
 extension Image {
+    enum Glyph {
+        static let home = Image(.glyphHome)
+        static let list = Image(.glyphList)
+        static let catalog = Image(.glyphCatalog)
+        static let profile = Image(.glyphProfile)
+    }
+
+    enum Onboarding {
+        static let catalog = Image("OnboardingCatalog")
+        static let comparison = Image("OnboardingComparison")
+        static let shopping = Image("OnboardingShopping")
+        static let routes = Image("OnboardingRoutes")
+    }
+
+    enum CollectionCover {
+        static func image(for collection: MotiCollection) -> Image {
+            switch collection {
+            case .pasta: Image(.motiCollectionPasta)
+            case .movies: Image(.motiCollectionMovies)
+            case .salad: Image(.motiCollectionSalad)
+            }
+        }
+    }
+
     // MARK: - SF Symbols
 
     enum System {
         static let location = Image(systemName: "location")
         static let locationFill = Image(systemName: "location.fill")
         static let profileDebug = Image(systemName: "ladybug")
-        static let person = Image(systemName: "person.crop.circle")
         static let walk = Image(systemName: "figure.walk")
         static let chevronRight = Image(systemName: "chevron.right")
         static let chevronLeft = Image(systemName: "chevron.left")
@@ -32,9 +55,6 @@ extension Image {
         static let checkmarkCircle = Image(systemName: "checkmark.circle.fill")
         static let plus = Image(systemName: "plus")
         static let minus = Image(systemName: "minus")
-        static let house = Image(systemName: "house")
-        static let checklist = Image(systemName: "checklist")
-        static let catalog = Image(systemName: "square.grid.2x2")
         static let magnifyingGlass = Image(systemName: "magnifyingglass")
 
         private static func rotatedSymbol(_ name: String) -> Image {

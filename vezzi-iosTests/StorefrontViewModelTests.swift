@@ -44,8 +44,30 @@ final class StorefrontViewModelTests: XCTestCase {
             XCTAssertTrue(products.allSatisfy { $0.lowestPrice == 30 })
         }
         let oneItem = items.filter { $0.id == "1" }
-        XCTAssertEqual(MotiCollection.salad.products(from: oneItem).map(\.id), ["1"])
+        XCTAssertEqual(MotiCollection.movies.products(from: oneItem).map(\.id), ["1"])
+        XCTAssertTrue(MotiCollection.salad.products(from: oneItem).isEmpty)
         XCTAssertTrue(MotiCollection.movies.products(from: []).isEmpty)
+    }
+
+    func testMotiCollectionsPreferFeaturedIngredientsAndVariety() throws {
+        let entries = [
+            ("popcorn", "Попкорн карамельный", "Снеки и чипсы"), ("chips", "Чипсы", "Снеки и чипсы"),
+            ("soda", "Лимонад", "Сладкая газировка"), ("pasta", "Спагетти", "Макаронные изделия"),
+            ("sauce", "Соус для пасты", "Кетчупы и соусы"), ("ketchup", "Кетчуп", "Кетчупы и соусы"),
+            ("lasagna", "Лазанья", "Макаронные изделия"), ("leaves", "Микс салатный", "Зелень и салаты"),
+            ("veg", "Авокадо", "Овощи"), ("feta", "Фета", "Сыры мягкие и рассольные"),
+            ("oil", "Масло оливковое", "Масла растительные"), ("dill", "Укроп", "Зелень и салаты"),
+            ("other", "Шампунь с ароматом попкорна", "Гигиена")
+        ]
+        var batch = CatalogFixtures.catalog()
+        batch.products = entries.map { CatalogProduct(id: $0.0, name: $0.1, productType: $0.2) }
+        batch.offers = batch.products.map {
+            CatalogOffer(id: $0.id, productID: $0.id, storeID: "s1", price: 20, currency: "RUB", inStock: true)
+        }
+        let items = try CatalogFixtures.snapshot(batch).allItems()
+        XCTAssertEqual(MotiCollection.movies.products(from: items).map(\.id), ["popcorn", "chips", "soda"])
+        XCTAssertEqual(MotiCollection.pasta.products(from: items).map(\.id), ["pasta", "sauce", "oil"])
+        XCTAssertEqual(MotiCollection.salad.products(from: items).map(\.id), ["leaves", "veg", "feta", "oil"])
     }
 
     func testHomeSharesSelectedOriginAndQuantitiesWithList() {
@@ -303,9 +325,9 @@ final class StorefrontViewModelTests: XCTestCase {
     }
 
     func testCatalogSectionsAndFullCategoryUseTheSameOrderAndSharedSelection() throws {
-        var products = (0..<7).map { CatalogProduct(id: "milk-\($0)", name: "Milk \($0)", category: " Dairy ", productType: "milk") }
+        var products = (0..<5).map { CatalogProduct(id: "milk-\($0)", name: "Milk \($0)", category: " Dairy ", productType: "milk") }
+        products += (0..<4).map { CatalogProduct(id: "fruit-\($0)", name: "Apple \($0)", category: "Produce") }
         products.append(contentsOf: [
-            CatalogProduct(id: "fruit", name: "Apple", category: "Produce"),
             CatalogProduct(id: "extra", name: "Extra", category: "Accessories"),
             CatalogProduct(id: "unknown", name: "Unknown", category: "  "),
             CatalogProduct(id: "missing", name: "Missing")
@@ -317,7 +339,8 @@ final class StorefrontViewModelTests: XCTestCase {
         XCTAssertEqual(sections.map(\.id.rawValue), ["Dairy", "Produce", "Accessories", ""])
         let dairy = try XCTUnwrap(sections.first)
         let full = StorefrontViewModel(page: .collection(.category(dairy.id)), repository: repo, list: list)
-        XCTAssertEqual(full.products.count, 7)
+        XCTAssertEqual(full.products.count, 5)
+        XCTAssertEqual(sections.filter(\.hasMoreProducts).map(\.id), [dairy.id])
         XCTAssertEqual(dairy.preview.map(\.id), Array(full.products.prefix(4)).map(\.id))
         XCTAssertEqual(Set(sections.last!.preview.map(\.id)), ["unknown", "missing"])
         let milk = try XCTUnwrap(full.products.last)

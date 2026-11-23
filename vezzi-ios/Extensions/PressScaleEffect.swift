@@ -5,21 +5,27 @@ extension View {
     /// Scales a button or its surrounding container while its primary button is pressed.
     /// The primary button must inherit this modifier's style. Give secondary controls
     /// an explicit button style to keep their press feedback independent.
-    func pressScaleEffect() -> some View {
-        modifier(PressScaleModifier())
+    func pressScaleEffect(acceptsRapidTaps: Bool = false) -> some View {
+        modifier(PressScaleModifier(acceptsRapidTaps: acceptsRapidTaps))
     }
 }
 
 private struct PressScaleModifier: ViewModifier {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isPressed = false
+    let acceptsRapidTaps: Bool
 
     func body(content: Content) -> some View {
-        content
-            .buttonStyle(PressTrackingButtonStyle(isPressed: $isPressed))
-            .animation(pressAnimation) { view in
-                view.scaleEffect(isPressed && !reduceMotion ? Const.pressedScale : Const.restingScale)
+        Group {
+            if acceptsRapidTaps {
+                content.buttonStyle(RapidTapButtonStyle(isPressed: $isPressed))
+            } else {
+                content.buttonStyle(PressTrackingButtonStyle(isPressed: $isPressed))
             }
+        }
+        .animation(pressAnimation) { view in
+            view.scaleEffect(isPressed && !reduceMotion ? Const.pressedScale : Const.restingScale)
+        }
     }
 
     private var pressAnimation: Animation? {
@@ -35,11 +41,43 @@ private struct PressScaleModifier: ViewModifier {
 }
 
 private struct PressTrackingButtonStyle: ButtonStyle {
+    @Binding var isPressed: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.modifier(PressTracking(isPressed: $isPressed))
+    }
+}
+
+/// Checklist taps must finish independently even when a scroll view delays delivery to its content.
+private struct RapidTapButtonStyle: PrimitiveButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
     @Binding var isPressed: Bool
 
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
+        let activate = { if isEnabled { configuration.trigger() } }
+        return configuration.label
+            .modifier(PressTracking(isPressed: $isPressed))
+            .gesture(ButtonTap(action: activate))
+            .accessibilityAction(.default, activate)
+    }
+}
+
+private struct ButtonTap: UIGestureRecognizerRepresentable {
+    let action: () -> Void
+
+    func makeUIGestureRecognizer(context: Context) -> UITapGestureRecognizer { UITapGestureRecognizer() }
+
+    func handleUIGestureRecognizerAction(_ recognizer: UITapGestureRecognizer, context: Context) {
+        if recognizer.state == .ended { action() }
+    }
+}
+
+private struct PressTracking: ViewModifier {
+    @Environment(\.isEnabled) private var isEnabled
+    @Binding var isPressed: Bool
+
+    func body(content: Content) -> some View {
+        content
             .gesture(TouchDownObserver { pressed in
                 isPressed = pressed && isEnabled
             })

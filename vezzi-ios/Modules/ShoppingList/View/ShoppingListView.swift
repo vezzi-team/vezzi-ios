@@ -8,6 +8,7 @@ struct ShoppingListView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showsStores = false
+    @State private var showsActiveTripAlert = false
     @State private var showsAddress = false
     @State private var summaryHeight: CGFloat = .zero
     @State private var viewportHeight: CGFloat = .zero
@@ -416,6 +417,7 @@ struct ShoppingListView: View {
             }
         }
         .animation(reduceMotion ? nil : .easeOut(duration: Const.transitionDuration), value: viewModel.list.selection.quantities.keys.sorted())
+        .activeShoppingTripAlert(isPresented: $showsActiveTripAlert)
     }
 
     private var columns: [GridItem] {
@@ -427,7 +429,7 @@ struct ShoppingListView: View {
     }
 
     private func quantity(for id: String) -> Binding<Int> {
-        Binding(get: { viewModel.list.selection.quantity(for: id) }, set: { viewModel.list.selection.setQuantity($0, for: id) })
+        viewModel.list.selection.quantityBinding(for: id, activeTripAlert: $showsActiveTripAlert)
     }
 
     private var selectedProduct: Binding<Product?> {

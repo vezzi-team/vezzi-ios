@@ -7,7 +7,6 @@ final class ProductSelection: ObservableObject {
     @Published private(set) var feedbackRevision = 0
     @Published private(set) var hasAddedProductThisSession = false
     @Published var showsLimitAlert = false
-    @Published var showsShoppingAlert = false
     var isShopping = false
 
     static let quantityRange = 0...99
@@ -17,14 +16,9 @@ final class ProductSelection: ObservableObject {
 
     func quantity(for productID: String) -> Int { quantities[productID, default: 0] }
 
-    subscript(productID id: String) -> Int {
-        get { quantity(for: id) }
-        set { setQuantity(newValue, for: id) }
-    }
-
-    func setQuantity(_ quantity: Int, for productID: String) {
+    func setQuantity(_ quantity: Int, for productID: String, onActiveTrip: () -> Void = {}) {
         guard !isShopping else {
-            showsShoppingAlert = true
+            onActiveTrip()
             return
         }
         let value = min(max(quantity, Self.quantityRange.lowerBound), Self.quantityRange.upperBound)

@@ -1,5 +1,24 @@
 import SwiftUI
 
+extension ProductSelection {
+    /// The screen that received the tap presents the alert, including inside sheets and full-screen covers.
+    func quantityBinding(for id: String, activeTripAlert: Binding<Bool>) -> Binding<Int> {
+        Binding(get: { self.quantity(for: id) }, set: { value in
+            self.setQuantity(value, for: id) { activeTripAlert.wrappedValue = true }
+        })
+    }
+}
+
+extension View {
+    func activeShoppingTripAlert(isPresented: Binding<Bool>) -> some View {
+        alert(Texts.Trip.active, isPresented: isPresented) {
+            Button(Texts.ShoppingList.understood, role: .cancel) {}
+        } message: {
+            Text(Texts.Trip.activeHint)
+        }
+    }
+}
+
 struct ProductQuantityControl: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
