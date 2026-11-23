@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// Keeps navigation and cache preparation alive underneath the brief launch overlay.
+/// Presents first-launch onboarding or the home tabs beneath the brief splash.
 struct AppLaunchView: View {
     @StateObject private var splash = SplashViewModel()
+    @AppStorage("onboarding.completed") private var completedOnboarding = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
 
@@ -17,13 +18,7 @@ struct AppLaunchView: View {
 
     var body: some View {
         ZStack {
-            AppRootView(
-                catalog: catalog,
-                authentication: authentication,
-                shoppingList: shoppingList,
-                location: location,
-                contentScale: showsSplash ? Const.initialContentScale : Const.restingContentScale
-            )
+            launchContent
                 .allowsHitTesting(!showsSplash)
                 .accessibilityHidden(showsSplash)
 
@@ -56,11 +51,28 @@ struct AppLaunchView: View {
         }
     }
 
+    private var launchContent: some View {
+        ZStack {
+            if completedOnboarding {
+                AppRootView(catalog: catalog, authentication: authentication, shoppingList: shoppingList,
+                            location: location, contentScale: showsSplash ? Const.initialContentScale : Const.restingContentScale)
+                    .transition(.identity)
+            } else {
+                OnboardingView(authentication: authentication) { completedOnboarding = true }
+                    .transition(.opacity)
+                    .zIndex(1)
+            }
+        }
+        .animation(animatesReveal ? .easeInOut(duration: Const.onboardingDismissDuration) : nil,
+                   value: completedOnboarding)
+    }
+
     private enum Const {
         static let splashZIndex: Double = 1
         static let initialContentScale: CGFloat = 1.35
         static let restingContentScale: CGFloat = 1
         static let contentRevealDuration: TimeInterval = 0.4
+        static let onboardingDismissDuration: TimeInterval = 0.4
         static let dismissDuration: TimeInterval = 0.12
     }
 }

@@ -2553,6 +2553,240 @@
         }
       }
     },
+    "OnboardingCatalogDescription" : {
+      "comment" : "Tap + on a product in the catalog to add it to your list.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap + on a product in the catalog to add it to your list."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите «+» на карточке в каталоге, чтобы добавить товар в список."
+          }
+        }
+      }
+    },
+    "OnboardingCatalogTitle" : {
+      "comment" : "Build your shopping list",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Build your shopping list"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Соберите список покупок"
+          }
+        }
+      }
+    },
+    "OnboardingComparisonDescription" : {
+      "comment" : "Compare prices and walking times in My list, then pick your route.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compare prices and walking times in My list, then pick your route."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сравните цены и время в пути в «Моём списке» и выберите маршрут."
+          }
+        }
+      }
+    },
+    "OnboardingComparisonTitle" : {
+      "comment" : "Spend less or walk less",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spend less or walk less"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выгоднее или быстрее?"
+          }
+        }
+      }
+    },
+    "OnboardingGuest" : {
+      "comment" : "Continue as a guest",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue as a guest"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжить без входа"
+          }
+        }
+      }
+    },
+    "OnboardingNext" : {
+      "comment" : "Continue",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжить"
+          }
+        }
+      }
+    },
+    "OnboardingProgress" : {
+      "comment" : "Current page and total number of onboarding pages",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Step %1$lld of %2$lld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шаг %1$lld из %2$lld"
+          }
+        }
+      }
+    },
+    "OnboardingRoutesDescription" : {
+      "comment" : "See the stops on the map and compare walking times before you head out.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "See the stops on the map and compare walking times before you head out."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Посмотрите, в каком порядке обойти магазины и сколько займёт дорога."
+          }
+        }
+      }
+    },
+    "OnboardingRoutesTitle" : {
+      "comment" : "Choose your route",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose your route"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите маршрут"
+          }
+        }
+      }
+    },
+    "OnboardingShoppingDescription" : {
+      "comment" : "Tap the products you’ve picked up to see your total and what’s left.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the products you’ve picked up to see your total and what’s left."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отмечайте товары в магазине, чтобы видеть сумму и оставшиеся покупки."
+          }
+        }
+      }
+    },
+    "OnboardingShoppingTitle" : {
+      "comment" : "Check off your purchases",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check off your purchases"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отмечайте покупки"
+          }
+        }
+      }
+    },
+    "OnboardingSkip" : {
+      "comment" : "Skip",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пропустить"
+          }
+        }
+      }
+    },
+    "OnboardingStart" : {
+      "comment" : "Start shopping",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start shopping"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "К покупкам"
+          }
+        }
+      }
+    },
     "ProductAddedToList" : {
       "comment" : "Confirmation after adding a product",
       "localizations" : {

@@ -15,6 +15,25 @@ final class Texts {
         static let title = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Polka"
     }
     
+    enum Onboarding {
+        static let catalogTitle = NSLocalizedString("OnboardingCatalogTitle", comment: "Build your shopping list")
+        static let catalogDescription = NSLocalizedString("OnboardingCatalogDescription", comment: "Tap + on a product in the catalog to add it to your list.")
+        static let comparisonTitle = NSLocalizedString("OnboardingComparisonTitle", comment: "Spend less or walk less")
+        static let comparisonDescription = NSLocalizedString("OnboardingComparisonDescription", comment: "Compare prices and walking times in My list, then pick your route.")
+        static let shoppingTitle = NSLocalizedString("OnboardingShoppingTitle", comment: "Check off your purchases")
+        static let shoppingDescription = NSLocalizedString("OnboardingShoppingDescription", comment: "Tap the products you’ve picked up to see your total and what’s left.")
+        static let routesTitle = NSLocalizedString("OnboardingRoutesTitle", comment: "Choose your route")
+        static let routesDescription = NSLocalizedString("OnboardingRoutesDescription", comment: "See the stops on the map and compare walking times before you head out.")
+        static let skip = NSLocalizedString("OnboardingSkip", comment: "Skip")
+        static let next = NSLocalizedString("OnboardingNext", comment: "Continue")
+        static let guest = NSLocalizedString("OnboardingGuest", comment: "Continue as a guest")
+        static let start = NSLocalizedString("OnboardingStart", comment: "Start shopping")
+
+        static func progress(_ current: Int, _ total: Int) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("OnboardingProgress", comment: "Current page and total number of onboarding pages"), current, total)
+        }
+    }
+
     // MARK: - Shared Controls
 
     enum Common {

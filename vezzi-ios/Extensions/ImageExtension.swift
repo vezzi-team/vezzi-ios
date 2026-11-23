@@ -9,6 +9,13 @@ import SwiftUI
 import UIKit
 
 extension Image {
+    enum Onboarding {
+        static let catalog = Image("OnboardingCatalog")
+        static let comparison = Image("OnboardingComparison")
+        static let shopping = Image("OnboardingShopping")
+        static let routes = Image("OnboardingRoutes")
+    }
+
     // MARK: - SF Symbols
 
     enum System {

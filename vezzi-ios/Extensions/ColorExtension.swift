@@ -8,6 +8,10 @@
 import SwiftUI
 
 extension Color {
+    enum Onboarding {
+        static let bezel = Color("OnboardingBezel")
+    }
+
     enum Map {
         // Explicit asset lookup also resolves correctly in UIKit style expressions.
         static let route = Color("AccentColor")
