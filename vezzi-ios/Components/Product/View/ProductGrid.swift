@@ -26,14 +26,16 @@ struct ProductGrid: View {
     var showsPricePrefix = true
     let open: (Product) -> Void
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @State private var showsActiveTripAlert = false
 
     var body: some View {
         LazyVGrid(columns: ProductGridLayout.columns(for: dynamicTypeSize), alignment: .leading, spacing: Const.rowSpacing) {
             ForEach(products) { product in
                 ProductCard(product: product, showsStoreBadges: showsStoreBadges, showsPricePrefix: showsPricePrefix,
-                            quantity: $selection[productID: product.id]) { open(product) }
+                            quantity: selection.quantityBinding(for: product.id, activeTripAlert: $showsActiveTripAlert)) { open(product) }
             }
         }
+        .activeShoppingTripAlert(isPresented: $showsActiveTripAlert)
     }
 
     private enum Const {

@@ -585,6 +585,24 @@ final class ShoppingListRepositoryTests: XCTestCase {
         subscription.cancel()
     }
 
+    func testActiveTripReportsEachBlockedEditToItsSender() {
+        let selection = ProductSelection()
+        selection.replaceQuantities(["existing": 2])
+        selection.isShopping = true
+        var rejections: [String] = []
+
+        selection.setQuantity(1, for: "new") { rejections.append("grid") }
+        selection.setQuantity(0, for: "existing") { rejections.append("details") }
+        XCTAssertEqual(rejections, ["grid", "details"])
+        XCTAssertEqual(selection.quantities, ["existing": 2])
+        XCTAssertFalse(selection.hasAddedProductThisSession)
+        XCTAssertEqual(selection.feedbackRevision, 0)
+
+        selection.isShopping = false
+        selection.setQuantity(1, for: "new") { XCTFail("Editing should resume after the trip ends") }
+        XCTAssertEqual(selection.quantity(for: "new"), 1)
+    }
+
     func testSelectionEnforcesProductLimitWithoutBlockingRemovals() {
         let selection = ProductSelection()
         for number in 1...30 { selection.setQuantity(1, for: String(number)) }

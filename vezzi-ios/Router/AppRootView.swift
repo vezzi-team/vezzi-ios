@@ -66,9 +66,6 @@ struct AppRootView: View {
         .alert(Texts.ShoppingList.limitTitle, isPresented: $productSelection.showsLimitAlert) {
             Button(Texts.ShoppingList.understood, role: .cancel) {}
         } message: { Text(Texts.ShoppingList.limitDescription) }
-        .alert(Texts.Trip.active, isPresented: $productSelection.showsShoppingAlert) {
-            Button(Texts.ShoppingList.understood, role: .cancel) {}
-        } message: { Text(Texts.Trip.activeHint) }
         .sheet(item: presentedSheet) { sheet in
             DestinationFactory.sheet(for: sheet, authentication: authentication, preferences: preferences,
                                      list: shoppingList, location: location)

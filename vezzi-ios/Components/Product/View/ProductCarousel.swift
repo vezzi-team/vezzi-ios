@@ -4,6 +4,7 @@ import SwiftUI
 struct ProductCarousel: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var showsActiveTripAlert = false
     let products: [Product]
     @ObservedObject var selection: ProductSelection
     var showsStoreBadges = true
@@ -15,7 +16,8 @@ struct ProductCarousel: View {
             LazyHStack(alignment: .top, spacing: Const.cardSpacing) {
                 ForEach(products) { product in
                     ProductCard(product: product, promotion: product.promotion, showsStoreBadges: showsStoreBadges,
-                                showsPricePrefix: showsPricePrefix, quantity: $selection[productID: product.id]) {
+                                showsPricePrefix: showsPricePrefix,
+                                quantity: selection.quantityBinding(for: product.id, activeTripAlert: $showsActiveTripAlert)) {
                         open(product)
                     }
                     .containerRelativeFrame(.horizontal) { width, _ in
@@ -31,6 +33,7 @@ struct ProductCarousel: View {
         .scrollIndicators(.hidden, axes: .horizontal)
         .scrollTargetBehavior(.viewAligned)
         .fixedSize(horizontal: false, vertical: true)
+        .activeShoppingTripAlert(isPresented: $showsActiveTripAlert)
     }
 
     private enum Const {

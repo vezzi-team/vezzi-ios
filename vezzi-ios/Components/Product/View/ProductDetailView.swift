@@ -60,6 +60,7 @@ private struct ProductDetailPage: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showsAllStores = false
+    @State private var showsActiveTripAlert = false
     @AppStorage(Const.storeSortPreferenceKey) private var storeSort: ProductStoreSort = .priceAscending
     @State private var productNameBottom: CGFloat = .zero
     @State private var showsProductNameInNavigationBar = false
@@ -78,6 +79,7 @@ private struct ProductDetailPage: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { navigationHeader }
             .safeAreaBar(edge: .bottom, spacing: .zero) { bottomActions }
+            .activeShoppingTripAlert(isPresented: $showsActiveTripAlert)
     }
 
     // MARK: - Navigation Header
@@ -461,10 +463,7 @@ private struct ProductDetailPage: View {
     }
 
     private func quantityBinding(for productID: String) -> Binding<Int> {
-        Binding(
-            get: { selection.quantity(for: productID) },
-            set: { selection.setQuantity($0, for: productID) }
-        )
+        selection.quantityBinding(for: productID, activeTripAlert: $showsActiveTripAlert)
     }
 
     private enum Const {
