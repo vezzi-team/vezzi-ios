@@ -104,9 +104,9 @@ struct AppRootView: View {
             Text(tab.title)
         } icon: {
             switch tab {
-            case .home: Image.System.house
-            case .shoppingList: Image.System.checklist
-            case .catalog: Image.System.catalog
+            case .home: Image.Glyph.home
+            case .shoppingList: Image.Glyph.list
+            case .catalog: Image.Glyph.catalog
             case .search: Image.System.magnifyingGlass
             }
         }

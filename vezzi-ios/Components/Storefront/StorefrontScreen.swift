@@ -155,8 +155,7 @@ struct StorefrontScreen: View {
                 if let user = authentication.user {
                     ProfileAvatar(email: user.email, isCompact: true)
                 } else {
-                    Image.System.person
-                        .font(.title3.weight(.medium))
+                    Image.Glyph.profile
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
