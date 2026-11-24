@@ -39,7 +39,7 @@ struct StorefrontScreen: View {
         // The scroll view can retain its refresh action after the cover is dismissed.
         .refreshable { [weak viewModel] in await viewModel?.refresh() }
         .environment(\.isShimmerEnabled, isFeedVisible)
-        .background(Color.Background.primary.ignoresSafeArea())
+        .background(pageBackground.ignoresSafeArea())
         .onReceive(router.willOpenShoppingList) {
             if viewModel.selectedDetail != nil { viewModel.dismissProduct() }
             showsAddress = false
@@ -54,6 +54,13 @@ struct StorefrontScreen: View {
             LocationPickerView(coordinate: viewModel.list.origin, options: viewModel.list.routeOptions,
                                address: viewModel.list.originAddress, location: location, onConfirm: viewModel.list.setRoute)
         }
+    }
+
+    private var pageBackground: Color {
+        if case .collection(.moti(let collection)) = page {
+            return Color.Background.motiCollection(collection)
+        }
+        return Color.Background.primary
     }
 
     private var isFeedVisible: Bool {
