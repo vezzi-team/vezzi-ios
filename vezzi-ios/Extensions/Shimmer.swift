@@ -49,6 +49,9 @@ private final class ShimmerScrollActivity {
     var locallyMoving = false { didSet { update() } }
     var parentIsMoving = false { didSet { update() } }
 
+    // Avoid the isolated-deinit runtime crash on iOS 26.2 when the scroll view is removed.
+    nonisolated deinit {}
+
     private func update() {
         let moving = locallyMoving || parentIsMoving
         if moving != isMoving.value { isMoving.send(moving) }
