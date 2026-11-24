@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 
 /// Manages the selected tab and a separate navigation history for each tab.
 @MainActor
@@ -6,7 +7,7 @@ final class AppRouter: ObservableObject {
     @Published private(set) var selectedTab: Tab
     @Published private(set) var navigationPaths: [Tab: [Route]]
     @Published private(set) var presentedSheet: Sheet?
-    @Published var presentedCollection: StorefrontCollection?
+    @Published var presentedCover: Cover?
     let willOpenShoppingList = PassthroughSubject<Void, Never>()
 
     init(selectedTab: Tab = .home) {
@@ -53,7 +54,7 @@ final class AppRouter: ObservableObject {
 
     func openShoppingList() {
         willOpenShoppingList.send()
-        presentedCollection = nil
+        presentedCover = nil
         dismissSheet()
         popToRoot(in: .shoppingList)
         selectedTab = .shoppingList
@@ -65,6 +66,24 @@ final class AppRouter: ObservableObject {
 
     func dismissSheet() {
         presentedSheet = nil
+    }
+
+    func returnHomeFromSurvey() {
+        popToRoot(in: .home)
+        selectedTab = .home
+        presentedCover = nil
+    }
+
+    func openProfileFromSurvey() {
+        guard case .survey = presentedCover else { return }
+        if path(in: selectedTab).last != .profile { push(.profile, in: selectedTab) }
+        presentedCover = nil
+    }
+
+    enum Cover: Hashable, Identifiable {
+        case collection(StorefrontCollection)
+        case survey(accountID: UUID)
+        var id: Self { self }
     }
 
     enum Sheet: Hashable, Identifiable {

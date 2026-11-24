@@ -1,14 +1,17 @@
 import SwiftUI
 
 enum CatalogBannerContent: Equatable {
-    case survey, catalog, offline, signIn, failed, cacheUnavailable
+    case survey, home, catalog, offline, signIn, failed, cacheUnavailable
 
-    init(isHome: Bool, status: CatalogStatus, isCacheUnavailable: Bool, requiresAuthentication: Bool) {
+    init(isHome: Bool, hasCompletedSurvey: Bool, status: CatalogStatus, isCacheUnavailable: Bool, authentication: AuthenticationSession) {
         if status.isOffline || status.failure == .offline { self = .offline }
-        else if requiresAuthentication { self = .signIn }
+        else if authentication.requiresSignIn && !authentication.isChangingAccount { self = .signIn }
         else if status.failure != nil { self = .failed }
         else if isCacheUnavailable { self = .cacheUnavailable }
-        else { self = isHome ? .survey : .catalog }
+        else if !isHome { self = .catalog }
+        else if authentication.isChangingAccount { self = .home }
+        else if authentication.user == nil { self = .signIn }
+        else { self = hasCompletedSurvey ? .home : .survey }
     }
 
     var offersRefresh: Bool {
@@ -18,6 +21,7 @@ enum CatalogBannerContent: Equatable {
     var title: String {
         switch self {
         case .survey: Texts.Home.Discovery.surveyTitle
+        case .home: Texts.Tabbar.home
         case .catalog: Texts.Catalog.title
         case .offline: Texts.Catalog.offlineTitle
         case .signIn: Texts.Catalog.signInRequired
@@ -29,6 +33,7 @@ enum CatalogBannerContent: Equatable {
     func message(hasSnapshot: Bool) -> String {
         switch self {
         case .survey: Texts.Home.Discovery.surveySubtitle
+        case .home: Texts.Home.Discovery.description
         case .catalog: Texts.Catalog.description
         case .offline, .failed: hasSnapshot ? Texts.Catalog.staleMessage : Texts.Catalog.noCacheMessage
         case .signIn: Texts.ShoppingList.signInDescription
@@ -45,9 +50,9 @@ struct CatalogStatusBanner: View {
     var body: some View {
         Group {
             switch content {
-            case .survey, .catalog:
+            case .home, .catalog:
                 card.accessibilityElement(children: .combine)
-            case .offline, .failed, .cacheUnavailable, .signIn:
+            case .survey, .offline, .failed, .cacheUnavailable, .signIn:
                 Button(action: action) { card }
                     .pressScaleEffect()
                     .disabled(isUpdating)
@@ -89,7 +94,7 @@ struct CatalogStatusBanner: View {
 
     private var caption: String? {
         switch content {
-        case .catalog: nil
+        case .home, .catalog: nil
         case .survey: Texts.Home.Discovery.surveyStart
         case .signIn: Texts.Authentication.signIn
         case .offline, .failed, .cacheUnavailable: isUpdating ? Texts.Catalog.updating : Texts.Catalog.refresh

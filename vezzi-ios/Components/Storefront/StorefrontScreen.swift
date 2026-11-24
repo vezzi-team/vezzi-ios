@@ -7,6 +7,7 @@ struct StorefrontScreen: View {
     @ObservedObject var authentication: AuthenticationSession
     let storefrontTransition: Namespace.ID
     @EnvironmentObject private var router: AppRouter
+    @Environment(\.hasCompletedShoppingSurvey) private var hasCompletedSurvey
     @State private var showsAddress = false
     private let location: any DeviceLocating
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -57,7 +58,7 @@ struct StorefrontScreen: View {
 
     private var isFeedVisible: Bool {
         viewModel.selectedDetail == nil && router.presentedSheet == nil && !showsAddress &&
-            ((page != .catalog && page != .home) || router.presentedCollection == nil)
+            ((page != .catalog && page != .home) || router.presentedCover == nil)
     }
 
     @ViewBuilder private func feed(viewportHeight: CGFloat) -> some View {
@@ -75,10 +76,10 @@ struct StorefrontScreen: View {
             }
         } else if page == .catalog {
             CatalogView(viewModel: viewModel, viewportHeight: viewportHeight, transition: storefrontTransition,
-                        openCategory: { router.presentedCollection = .category($0) }) { header }
+                        openCategory: { router.presentedCover = .collection(.category($0)) }) { header }
         } else {
             HomeView(shelves: viewModel.shelves, selection: viewModel.selection, open: viewModel.showProduct,
-                     collectionTransition: storefrontTransition, openCollection: { router.presentedCollection = .moti($0) }) { header }
+                     collectionTransition: storefrontTransition, openCollection: { router.presentedCover = .collection(.moti($0)) }) { header }
         }
     }
 
@@ -165,7 +166,7 @@ struct StorefrontScreen: View {
         .buttonStyle(.plain)
         .foregroundStyle(Color.Label.primary)
         .glassEffect(authentication.user == nil ? .regular.interactive() : .identity, in: .circle)
-        .disabled(authentication.isRestoring || authentication.isSigningOut)
+        .disabled(authentication.isChangingAccount)
         .accessibilityLabel(Texts.Profile.Main.title)
         .accessibilityIdentifier(AccessibilityID.Home.profile)
     }
@@ -201,12 +202,20 @@ struct StorefrontScreen: View {
     }
 
     private var catalogBanner: some View {
-        let content = CatalogBannerContent(isHome: page == .home, status: viewModel.catalogStatus,
+        let content = CatalogBannerContent(isHome: page == .home, hasCompletedSurvey: hasCompletedSurvey, status: viewModel.catalogStatus,
                                            isCacheUnavailable: viewModel.isCacheUnavailable,
-                                           requiresAuthentication: authentication.requiresSignIn)
+                                           authentication: authentication)
         return CatalogStatusBanner(content: content, status: viewModel.catalogStatus) {
-            if content == .signIn { router.presentAuthentication() }
-            else { Task { await viewModel.refresh() } }
+            switch content {
+            case .survey:
+                guard !authentication.isChangingAccount, let accountID = authentication.user?.id else { return }
+                router.presentedCover = .survey(accountID: accountID)
+            case .signIn:
+                guard !authentication.isChangingAccount, authentication.user == nil else { return }
+                router.presentAuthentication()
+            case .offline, .failed, .cacheUnavailable: Task { await viewModel.refresh() }
+            case .home, .catalog: break
+            }
         }
     }
 

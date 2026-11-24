@@ -5,6 +5,7 @@ struct ProfileView: View {
     @ObservedObject var list: ShoppingListRepository
     @EnvironmentObject private var router: AppRouter
     @Environment(\.preferredShoppingMode) private var mode
+    @Environment(\.hasCompletedShoppingSurvey) private var hasCompletedSurvey
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
@@ -12,6 +13,7 @@ struct ProfileView: View {
             VStack(spacing: ProfileLayout.cardSpacing) {
                 accountCard
                 preferenceCards
+                if hasCompletedSurvey, let accountID = session.user?.id { surveyCard(for: accountID) }
                 settingsCard
                 contactCard
                 #if DEBUG
@@ -106,6 +108,18 @@ struct ProfileView: View {
         }
         .pressScaleEffect()
         .accessibilityIdentifier(AccessibilityID.Profile.destination(sheet.rawValue))
+    }
+
+    private func surveyCard(for accountID: UUID) -> some View {
+        Button { router.presentedCover = .survey(accountID: accountID) } label: {
+            ProfileCard(verticalInset: .zero, showsShadow: true) {
+                ProfileRow(title: Texts.Profile.Main.retakeSurvey, image: Image.System.repeatSurvey,
+                           minimumHeight: Const.menuRowHeight)
+            }
+        }
+        .pressScaleEffect()
+        .disabled(session.isChangingAccount)
+        .accessibilityIdentifier(AccessibilityID.Profile.retakeSurvey)
     }
 
     private var settingsCard: some View {

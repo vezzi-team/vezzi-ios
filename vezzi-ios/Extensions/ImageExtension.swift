@@ -9,6 +9,39 @@ import SwiftUI
 import UIKit
 
 extension Image {
+    enum Survey {
+        static func illustration(for question: SurveyQuestion) -> Image {
+            switch question {
+            case .priority: Image(.surveyPriority)
+            case .distance: Image(.surveyDistance)
+            case .basket: Image(.surveyBasket)
+            case .household: Image(.surveyHousehold)
+            case .schedule: Image(.surveySchedule)
+            case .routine: Image(.surveyRoutine)
+            }
+        }
+
+        static func icon(for answer: SurveyAnswer, in question: SurveyQuestion) -> Image? {
+            switch answer {
+            case .save: Image(.surveySave)
+            case .time: Image(.surveyTime)
+            case .balance: Image(.surveyBalance)
+            case .situation: Image(.surveyVaries)
+            case .today: Image(.surveyToday)
+            case .days: Image(.surveyDays)
+            case .stock: Image(.surveyStock)
+            case .varies: question == .basket ? Image(.surveyShuffle) : Image(.surveyVaries)
+            case .myself: Image(.surveySelf)
+            case .pair: Image(.surveyPair)
+            case .family: Image(.surveyFamily)
+            default: nil
+            }
+        }
+
+        static let happyFace = Image(.surveyHappyFace)
+        static let receiptEdge = Image(.surveyReceiptEdge)
+    }
+
     enum Glyph {
         static let home = Image(.glyphHome)
         static let list = Image(.glyphList)
@@ -39,6 +72,7 @@ extension Image {
         static let location = Image(systemName: "location")
         static let locationFill = Image(systemName: "location.fill")
         static let profileDebug = Image(systemName: "ladybug")
+        static let repeatSurvey = Image(systemName: "arrow.triangle.2.circlepath")
         static let walk = Image(systemName: "figure.walk")
         static let chevronRight = Image(systemName: "chevron.right")
         static let chevronLeft = Image(systemName: "chevron.left")

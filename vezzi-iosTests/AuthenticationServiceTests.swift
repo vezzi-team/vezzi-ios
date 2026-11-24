@@ -858,11 +858,15 @@ final class AuthenticationServiceTests: XCTestCase {
             XCTFail("The stub rejected these credentials")
         } catch { XCTAssertEqual(AuthenticationFailure.from(error, intent: .signIn), .invalidCredentials) }
         for isHome in [true, false] {
-            XCTAssertEqual(CatalogBannerContent(isHome: isHome, status: .init(), isCacheUnavailable: false,
-                                                requiresAuthentication: session.requiresSignIn), .signIn)
+            XCTAssertEqual(CatalogBannerContent(isHome: isHome, hasCompletedSurvey: true, status: .init(), isCacheUnavailable: false,
+                                                authentication: session), .signIn)
         }
 
+        XCTAssertEqual(CatalogBannerContent(isHome: true, hasCompletedSurvey: false, status: .init(isOffline: true),
+                                            isCacheUnavailable: false, authentication: session), .offline)
         try await session.signIn(email: AuthFixtures.user.email, password: "password", intent: .signIn, requestID: UUID())
+        XCTAssertEqual(CatalogBannerContent(isHome: true, hasCompletedSurvey: false, status: .init(),
+                                            isCacheUnavailable: false, authentication: session), .survey)
         await session.restore(afterRejectionOf: oldIdentity.sessionID)
         XCTAssertNotNil(session.user)
         XCTAssertFalse(session.requiresSignIn)
