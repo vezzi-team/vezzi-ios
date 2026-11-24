@@ -223,12 +223,13 @@ final class CatalogRepositoryTests: XCTestCase {
         XCTAssertTrue(limited.allSatisfy { $0.id.hasPrefix("other-") })
         let textResults = await catalogItems(from: repository, matching: "selected")
         XCTAssertEqual(textResults.map(\.id), ["selected"])
-        let related = await publishedItems(repository.observeRelatedProducts(to: "selected", storeID: nil), where: { $0.count == 2 })
+        let related = await publishedItems(repository.observeRelatedProducts(to: "selected", storeID: nil)
+            .map(\.items).eraseToAnyPublisher(), where: { $0.count == 2 })
         XCTAssertEqual(related.map(\.id), ["alternative-1", "alternative-2"])
 
         let snapshot = try CatalogFixtures.snapshot(batch)
         let previewRelated = await publishedItems(PreviewCatalogRepository(snapshot: snapshot)
-            .observeRelatedProducts(to: "selected", storeID: nil), where: { $0.count == 2 })
+            .observeRelatedProducts(to: "selected", storeID: nil).map(\.items).eraseToAnyPublisher(), where: { $0.count == 2 })
         XCTAssertEqual(previewRelated, related)
     }
 
@@ -243,7 +244,7 @@ final class CatalogRepositoryTests: XCTestCase {
         let initial = expectation(description: "Initial alternatives")
         let updated = expectation(description: "Alternative price updates")
         let removed = expectation(description: "Alternative leaves the group")
-        let observation = repository.observeRelatedProducts(to: "p1", storeID: nil).sink { items in
+        let observation = await repository.observeRelatedProducts(to: "p1", storeID: nil).map(\.items).sink { items in
             XCTAssertTrue(Thread.isMainThread)
             if items.isEmpty { removed.fulfill() }
             else if items.first?.offers.first?.offer.price == 120 { updated.fulfill() }

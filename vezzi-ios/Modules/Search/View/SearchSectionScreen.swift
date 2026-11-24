@@ -55,8 +55,9 @@ struct SearchProductSheet: ViewModifier {
         let product = Binding(get: { isPresenter ? viewModel.selectedProduct : nil },
                               set: { _ in viewModel.dismissProduct() })
         content.sheet(item: product) { product in
-            ProductDetailView(product: product, relatedProducts: viewModel.relatedProducts, selection: selection,
-                              showsPricePrefix: viewModel.selectedProductStoreID == nil)
+            let storeID = viewModel.selectedProductStoreID
+            ProductDetailView(product: product, loadAlternatives: { await viewModel.alternatives(for: $0, storeID: storeID) },
+                              selection: selection, showsPricePrefix: storeID == nil)
         }
     }
 }

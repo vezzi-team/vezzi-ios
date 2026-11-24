@@ -4,6 +4,31 @@ import XCTest
 
 @MainActor
 final class SearchViewModelTests: XCTestCase {
+    func testOfflineAlternativesAreOrderedByDisplayedPriceInBothModes() async throws {
+        let cache = ControlledCatalogCache()
+        let products = ["root", "a", "b", "c", "unpriced"].map {
+            CatalogProduct(id: $0, name: $0, productType: "milk")
+        }
+        cache.snapshot = try CatalogFixtures.snapshot(CatalogImport(
+            products: products, stores: [CatalogStore(id: "x", name: "X"), CatalogStore(id: "y", name: "Y")],
+            offers: [
+                CatalogOffer(id: "xa", productID: "a", storeID: "x", price: 150, currency: "RUB"),
+                CatalogOffer(id: "ya", productID: "a", storeID: "y", price: 40, currency: "RUB"),
+                CatalogOffer(id: "xb", productID: "b", storeID: "x", price: 70, currency: "RUB"),
+                CatalogOffer(id: "xc", productID: "c", storeID: "x", price: 70, currency: "RUB")
+            ]
+        ))
+        let repository = DefaultCatalogRepository(cache: cache)
+        repository.updateConnectivity(isConnected: false)
+        let model = SearchViewModel(repository: repository)
+        let all = await model.alternatives(for: "root", storeID: nil)
+        XCTAssertEqual(all.map(\.id), ["a", "b", "c", "unpriced"])
+        XCTAssertEqual(all.map(\.lowestPrice), [40, 70, 70, nil])
+        let scoped = await model.alternatives(for: "root", storeID: "x")
+        XCTAssertEqual(scoped.map(\.id), ["b", "c", "a"])
+        XCTAssertEqual(scoped.map(\.lowestPrice), [70, 70, 150])
+    }
+
     func testServerMatchesUseCatalogOffersAndUpdateBothModesWithoutRepeatingTheQuery() async throws {
         let hit = CatalogProduct(id: "p1", name: "Remote product")
         let source = SearchCatalogSource { _ in [hit] }
@@ -343,7 +368,7 @@ final class SearchViewModelTests: XCTestCase {
         XCTAssertEqual(model.sections.first?.products.map(\.id), ["category", "name", "type"])
     }
 
-    func testFasterModeOrdersStoresAndUsesOnlyTheirOwnPrices() {
+    func testFasterModeOrdersStoresAndUsesOnlyTheirOwnPrices() async {
         let model = mockViewModel()
         model.mode = .faster
         XCTAssertEqual(model.sections.map(\.id), ["pyaterochka", "perekrestok"])
@@ -357,7 +382,7 @@ final class SearchViewModelTests: XCTestCase {
         XCTAssertEqual(firstMilk?.lowestPrice, 99)
         XCTAssertEqual(secondMilk?.lowestPrice, 109)
         model.showProduct(secondMilk!, storeID: "perekrestok")
-        let alternatives = model.relatedProducts
+        let alternatives = await model.alternatives(for: secondMilk!.id, storeID: model.selectedProductStoreID)
         XCTAssertEqual(alternatives.count, 2)
         XCTAssertTrue(alternatives.allSatisfy { $0.offers.first?.storeID == "perekrestok" })
     }
@@ -369,15 +394,17 @@ final class SearchViewModelTests: XCTestCase {
         let milk = try XCTUnwrap(model.sections.first?.products.first)
         XCTAssertEqual(milk.id, "milk")
         model.showProduct(milk)
-        XCTAssertEqual(Set(model.relatedProducts.map(\.id)), ["milk-domik", "milk-kubanskaya"])
-        XCTAssertTrue(model.relatedProducts.allSatisfy { $0.offers.count == 2 })
+        let general = await model.alternatives(for: milk.id, storeID: model.selectedProductStoreID)
+        XCTAssertEqual(Set(general.map(\.id)), ["milk-domik", "milk-kubanskaya"])
+        XCTAssertTrue(general.allSatisfy { $0.offers.count == 2 })
         model.dismissProduct()
 
         model.mode = .faster
         let storeMilk = try XCTUnwrap(model.sections.first { $0.storeID == "perekrestok" }?.products.first)
         model.showProduct(storeMilk, storeID: "perekrestok")
-        XCTAssertEqual(Set(model.relatedProducts.map(\.id)), ["milk-domik", "milk-kubanskaya"])
-        XCTAssertTrue(model.relatedProducts.allSatisfy { $0.offers.count == 1 && $0.offers[0].storeID == "perekrestok" })
+        let scoped = await model.alternatives(for: milk.id, storeID: model.selectedProductStoreID)
+        XCTAssertEqual(Set(scoped.map(\.id)), ["milk-domik", "milk-kubanskaya"])
+        XCTAssertTrue(scoped.allSatisfy { $0.offers.count == 1 && $0.offers[0].storeID == "perekrestok" })
         XCTAssertEqual(model.query, Texts.Product.Mock.milkBrand)
     }
 
@@ -470,39 +497,48 @@ final class SearchViewModelTests: XCTestCase {
         }
     }
 
-    func testClosingOrReplacingDetailsCancelsPendingAlternatives() throws {
-        let repository = ControlledRelatedCatalogRepository()
-        let model = SearchViewModel(repository: repository)
-        let milk = try XCTUnwrap(model.items.first { $0.id == "milk" })
-        let bread = try XCTUnwrap(model.sections.flatMap(\.products).first { $0.id == "bread" })
-        let product = try XCTUnwrap(model.sections.flatMap(\.products).first { $0.id == milk.id })
-        model.showProduct(product)
-        let oldResponse = repository.responses[0]
-        model.showProduct(bread)
-        oldResponse.send([milk])
-        XCTAssertEqual(model.selectedProduct?.id, "bread")
-        XCTAssertTrue(model.relatedProducts.isEmpty)
-        model.dismissProduct()
-        repository.responses[1].send([milk])
-        XCTAssertNil(model.selectedProduct)
-        XCTAssertTrue(model.relatedProducts.isEmpty)
+    func testCancelledDetailPageIgnoresItsLateAlternativesAndCanLoadAgain() async {
+        let details = ProductDetailViewModel()
+        let suspended = expectation(description: "Request started")
+        var reply: CheckedContinuation<[Product], Never>?
+        let request = Task {
+            await details.loadAlternatives(for: "milk") { _ in
+                await withCheckedContinuation {
+                    reply = $0
+                    suspended.fulfill()
+                }
+            }
+        }
+        await fulfillment(of: [suspended], timeout: 5)
+        request.cancel()
+        reply?.resume(returning: ProductMockData.alternatives(for: "milk"))
+        await request.value
+        XCTAssertTrue(details.alternatives(for: "milk").isEmpty)
+        XCTAssertTrue(details.productsByID.isEmpty)
+        await details.loadAlternatives(for: "milk", using: ProductMockData.alternatives)
+        XCTAssertEqual(details.alternatives(for: "milk").count, 2)
     }
 
-    func testDetailSnapshotAndStoreScopeSurviveFurtherResults() throws {
-        let repository = ControlledRelatedCatalogRepository()
-        let model = SearchViewModel(repository: repository)
-        model.mode = .faster
-        let milk = try XCTUnwrap(model.sections.first { $0.storeID == "perekrestok" }?.products.first { $0.id == "milk" })
-        model.showProduct(milk, storeID: "perekrestok")
-        let alternatives = SearchMockData.snapshot().relatedItems(to: milk.id)
-        repository.responses[0].send(alternatives)
-        XCTAssertEqual(model.relatedProducts.count, 2)
-        model.mode = .cheaper
-        repository.responses[0].send([])
-        XCTAssertEqual(model.relatedProducts.count, 2, "A new snapshot cannot invalidate navigation inside the sheet")
-        XCTAssertTrue(model.relatedProducts.allSatisfy { $0.offers.count == 1 && $0.offers[0].storeID == "perekrestok" })
-        model.dismissProduct()
-        XCTAssertEqual(model.relatedProducts.count, 2, "Retain pushed destinations during the dismissal animation")
+    func testEachPushedPageKeepsItsOwnRankedSnapshotIncludingAnEmptyResponse() async throws {
+        let details = ProductDetailViewModel()
+        let original = ProductMockData.products[0]
+        let child = try XCTUnwrap(ProductMockData.alternatives(for: original.id).first)
+        let grandchild = ProductMockData.products[1]
+        var requests: [String] = []
+        func load(_ id: String) async -> [Product] {
+            requests.append(id)
+            if id == original.id { return [child] }
+            if id == child.id { return [grandchild] }
+            return []
+        }
+        for product in [original, child, grandchild, child, original, grandchild] {
+            await details.loadAlternatives(for: product.id, using: load)
+        }
+        XCTAssertEqual(requests, [original.id, child.id, grandchild.id])
+        XCTAssertEqual(details.alternatives(for: original.id).map(\.id), [child.id])
+        XCTAssertEqual(details.alternatives(for: child.id).map(\.id), [grandchild.id])
+        XCTAssertTrue(details.alternatives(for: grandchild.id).isEmpty)
+        XCTAssertEqual(details.productsByID[grandchild.id]?.name, grandchild.name)
     }
 
     func testQueryFiltersBothModesAndClearingRestoresAllShelves() async {
@@ -588,26 +624,4 @@ private actor SearchCatalogSource: CatalogSource, CatalogProductSearching {
         exportETags.append(ifNoneMatch)
         return try await export.loadCatalog(ifNoneMatch: ifNoneMatch)
     }
-}
-
-@MainActor
-private final class ControlledRelatedCatalogRepository: CatalogRepository {
-    let canRefresh = false
-    private let catalog = MockSearchRepository()
-    private(set) var responses: [PassthroughSubject<[CatalogItem], Never>] = []
-
-    nonisolated deinit {}
-
-    func observeProducts(matching query: String) -> AnyPublisher<[CatalogItem], Never> {
-        catalog.observeProducts(matching: query)
-    }
-
-    func observeRelatedProducts(to productID: String, storeID: String?) -> AnyPublisher<[CatalogItem], Never> {
-        let response = PassthroughSubject<[CatalogItem], Never>()
-        responses.append(response)
-        return response.eraseToAnyPublisher()
-    }
-
-    func importCatalog(_ batch: CatalogImport) async throws {}
-    func refresh() async throws {}
 }

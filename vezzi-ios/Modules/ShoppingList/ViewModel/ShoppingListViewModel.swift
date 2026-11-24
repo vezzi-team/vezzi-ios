@@ -7,13 +7,11 @@ final class ShoppingListViewModel: ObservableObject {
     @Published var mode = ShoppingMode.cheaper
     @Published private(set) var selectedProduct: Product?
     @Published private(set) var selectedProductOffer: ProductOffer?
-    @Published private(set) var relatedProducts: [Product] = []
     @Published var routes: ShoppingRoutesSnapshot?
     @Published private var catalogItems: [String: CatalogItem] = [:]
     let list: ShoppingListRepository
     private let catalog: any CatalogRepository
     private var subscriptions = Set<AnyCancellable>()
-    private var relatedSubscription: AnyCancellable?
 
     init(catalog: any CatalogRepository, list: ShoppingListRepository) {
         self.catalog = catalog
@@ -134,18 +132,15 @@ final class ShoppingListViewModel: ObservableObject {
     }
 
     func showProduct(_ product: Product) {
-        relatedSubscription?.cancel()
-        relatedProducts = []
         selectedProductOffer = plannedOffers[product.id]
         selectedProduct = catalogItems[product.id].map { Product(catalog: $0) } ?? product
-        relatedSubscription = catalog.observeRelatedProducts(to: product.id, storeID: nil)
-            .prefix(1).sink { [weak self] in self?.relatedProducts = $0.map { Product(catalog: $0) } }
+    }
+
+    func alternatives(for productID: String) async -> [Product] {
+        await catalog.alternativeProducts(for: productID)
     }
 
     func dismissProduct() {
-        relatedSubscription?.cancel()
-        relatedSubscription = nil
-        // Keep the offer and alternatives stable while the sheet is dismissing.
         selectedProduct = nil
     }
 }

@@ -345,7 +345,7 @@ final class StorefrontViewModelTests: XCTestCase {
         XCTAssertEqual(fallback.storeTitle, "Магазин")
     }
 
-    func testCatalogSectionsAndFullCategoryUseTheSameOrderAndSharedSelection() throws {
+    func testCatalogSectionsAndFullCategoryUseTheSameOrderAndSharedSelection() async throws {
         var products = (0..<5).map { CatalogProduct(id: "milk-\($0)", name: "Milk \($0)", category: " Dairy ", productType: "milk") }
         products += (0..<4).map { CatalogProduct(id: "fruit-\($0)", name: "Apple \($0)", category: "Produce") }
         products.append(contentsOf: [
@@ -369,7 +369,8 @@ final class StorefrontViewModelTests: XCTestCase {
         XCTAssertEqual(model.selection.quantity(for: milk.id), 2)
         full.showProduct(milk)
         XCTAssertEqual(full.selectedDetail?.product.id, milk.id)
-        XCTAssertFalse(full.relatedProducts.isEmpty)
+        let alternatives = await full.alternatives(for: milk.id)
+        XCTAssertFalse(alternatives.isEmpty)
         full.dismissProduct()
         XCTAssertNil(full.selectedDetail)
     }

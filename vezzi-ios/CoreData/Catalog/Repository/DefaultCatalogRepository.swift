@@ -52,8 +52,40 @@ final class DefaultCatalogRepository: CatalogRepository {
 
     func observeAllProducts() -> AnyPublisher<[CatalogItem], Never> { observeItems { $0.allItems() } }
 
-    func observeRelatedProducts(to productID: String, storeID: String?) -> AnyPublisher<[CatalogItem], Never> {
-        observeItems { $0.snapshot.relatedItems(to: productID, storeID: storeID) }
+    func observeRelatedProducts(to productID: String, storeID: String?) async -> AnyPublisher<CatalogAlternatives, Never> {
+        var matches: [CatalogProduct] = []
+        if let provider = source as? any CatalogAnalogProviding, networkPath.value {
+            do {
+                matches = try await provider.analogs(for: productID)
+            } catch let error as URLError where error.code != .cancelled {
+                // A transport failure can precede the path monitor's update.
+            } catch APIError.http(let status, _, _, _) where status == 408 || status == 429 || (500..<600).contains(status) {
+                // The endpoint is temporarily unavailable. Resolve this page from the catalog.
+            } catch {
+                return Empty().eraseToAnyPublisher()
+            }
+        }
+        guard !Task.isCancelled else { return Empty().eraseToAnyPublisher() }
+        if cacheStatus.value == .loading { startCachePreparation() }
+        let loading = cacheStatus.combineLatest(catalogStatus, networkPath)
+            .map { cache, status, connected in
+                (cache == .loading && !status.hasSnapshot) || (status.isRefreshing && connected)
+            }
+            .removeDuplicates()
+        return publications.combineLatest(loading)
+            .receive(on: searchQueue)
+            .compactMap { @Sendable [matches] publication, loading -> CatalogAlternatives? in
+                let snapshot = publication.snapshot
+                // A detail page keeps its first result. Wait for missing catalog records before joining offers.
+                if loading && matches.contains(where: { snapshot.products[$0.id] == nil }) { return nil }
+                let ranked = snapshot.items(for: matches).compactMap { $0.scoped(to: storeID) }
+                if !ranked.isEmpty { return .ranked(ranked) }
+                let local = snapshot.relatedItems(to: productID, storeID: storeID)
+                return loading && local.isEmpty ? nil : .local(local)
+            }
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
     }
 
     private func observeItems(_ query: @escaping @Sendable (PublishedSnapshot) -> [CatalogItem]) -> AnyPublisher<[CatalogItem], Never> {
@@ -75,7 +107,6 @@ final class DefaultCatalogRepository: CatalogRepository {
         if let refreshTask { return try await refreshTask.value }
         guard let source else { throw CatalogError.sourceUnavailable }
         let task = Task {
-            catalogStatus.value.isRefreshing = true
             publications.send(PublishedSnapshot(snapshot.evaluated(at: Date())))
             defer {
                 refreshTask = nil
@@ -107,6 +138,7 @@ final class DefaultCatalogRepository: CatalogRepository {
             }
         }
         refreshTask = task
+        catalogStatus.value.isRefreshing = true
         try await task.value
     }
 

@@ -45,7 +45,7 @@ struct StorefrontScreen: View {
             showsAddress = false
         }
         .sheet(item: selectedDetail) { detail in
-            ProductDetailView(product: detail.product, relatedProducts: viewModel.relatedProducts,
+            ProductDetailView(product: detail.product, loadAlternatives: viewModel.alternatives,
                               selection: viewModel.selection, selectedOffer: detail.promotion,
                               selectedStoreTitle: Texts.Product.Stores.promotion)
                 .environment(\.isShimmerEnabled, true)

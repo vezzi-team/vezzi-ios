@@ -705,6 +705,164 @@ final class AuthenticationServiceTests: XCTestCase {
         XCTAssertTrue(server.requests.isEmpty)
     }
 
+    func testPublicAnalogsPreserveServerRankAndJoinPricesForTheSelectedStore() async throws {
+        func row(_ id: Int) -> String {
+            #"{"id":\#(id),"name":"Product \#(id)","category":"Food","package_amount":200,"package_unit":"g","similarity":0.7,"min_price_kopecks":3000}"#
+        }
+        let payload = "[" + [7, 9, 9, 3, 1, 5].map(row).joined(separator: ",") + "]"
+        let (client, server) = makeClient { _, _ in .json(payload) }
+        let repository = DefaultCatalogRepository(source: APICatalogSource(client: client))
+        let products = [7, 9, 3, 1, 5].map { CatalogProduct(id: String($0), name: "Product \($0)", category: "Food") }
+        let stores = [CatalogStore(id: "a", name: "A"), CatalogStore(id: "b", name: "B"), CatalogStore(id: "c", name: "C")]
+        let offers = [
+            CatalogOffer(id: "a9", productID: "9", storeID: "a", price: 100, currency: "RUB", inStock: true),
+            CatalogOffer(id: "b9", productID: "9", storeID: "b", price: 30, currency: "RUB", inStock: true),
+            CatalogOffer(id: "a3", productID: "3", storeID: "a", price: 80, currency: "RUB", inStock: false),
+            CatalogOffer(id: "a1", productID: "1", storeID: "a", price: 70, currency: "RUB", inStock: true),
+            CatalogOffer(id: "c9", productID: "9", storeID: "c", price: 30, currency: "RUB", inStock: false),
+            CatalogOffer(id: "a5", productID: "5", storeID: "a", price: 40, currency: "RUB", inStock: true),
+            CatalogOffer(id: "c5", productID: "5", storeID: "c", price: 60, currency: "RUB", inStock: true)
+        ]
+        try await repository.importCatalog(CatalogImport(products: products, stores: stores, offers: offers))
+
+        let all = await repository.alternativeProducts(for: "7")
+        XCTAssertEqual(all.map(\.id), ["9", "3", "1"])
+        XCTAssertEqual(all.first?.lowestPrice, 30)
+        let search = SearchViewModel(repository: repository)
+        let scoped = await search.alternatives(for: "7", storeID: "a")
+        XCTAssertEqual(scoped.map(\.id), ["9", "1"])
+        XCTAssertEqual(scoped.map(\.lowestPrice), [100, 70])
+        XCTAssertEqual(scoped.flatMap(\.offers).map(\.storeID), ["a", "a"])
+        let local = await repository.alternativeProducts(for: "7", storeID: "c")
+        XCTAssertEqual(local.map(\.id), ["5"])
+        XCTAssertEqual(local.flatMap(\.offers).map(\.id), ["c5"])
+        XCTAssertEqual(server.requests.count, 3)
+        for request in server.requests {
+            XCTAssertEqual(request.httpMethod, "GET")
+            XCTAssertEqual(request.url?.path, "/api/v1/products/7/analogs")
+            XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+        }
+    }
+
+    func testOfflineAndEmptyServerAnalogsUseTheCachedGroup() async throws {
+        let cache = ControlledCatalogCache()
+        cache.snapshot = try CatalogFixtures.snapshot(CatalogImport(products: [
+            CatalogProduct(id: "7", name: "Original", productType: "milk"),
+            CatalogProduct(id: "9", name: "Other milk", productType: "milk"),
+            CatalogProduct(id: "10", name: "Bread", productType: "bread")
+        ]))
+        let (client, server) = makeClient { _, requests in
+            switch requests.count {
+            case 1: .failure(.networkConnectionLost)
+            case 2: .failure(.timedOut)
+            default: .json("[]")
+            }
+        }
+        let repository = DefaultCatalogRepository(cache: cache, source: APICatalogSource(client: client))
+        repository.updateConnectivity(isConnected: false)
+        let offline = await repository.alternativeProducts(for: "7")
+        XCTAssertEqual(offline.map(\.id), ["9"])
+        XCTAssertTrue(server.requests.isEmpty)
+
+        repository.updateConnectivity(isConnected: true)
+        let interrupted = await repository.alternativeProducts(for: "7")
+        XCTAssertEqual(interrupted.map(\.id), ["9"])
+        let timedOut = await repository.alternativeProducts(for: "7")
+        XCTAssertEqual(timedOut.map(\.id), ["9"])
+        let reopened = DefaultCatalogRepository(cache: cache, source: APICatalogSource(client: client))
+        let local = await reopened.alternativeProducts(for: "7")
+        XCTAssertEqual(local.map(\.id), ["9"])
+        let noAlternatives = await reopened.alternativeProducts(for: "10")
+        XCTAssertTrue(noAlternatives.isEmpty)
+        XCTAssertEqual(server.requests.count, 4)
+    }
+
+    func testOpenDetailResolvesRankedAndLocalAnalogsWhenInitialExportArrives() async throws {
+        let root = #"{"id":77,"name":"Original milk","category":"Dairy","product_type":"milk","package_amount":1,"package_unit":"l"}"#
+        let analog = #"{"id":42,"name":"Milk","category":"Dairy","product_type":"milk","package_amount":930.5,"package_unit":"ml","min_price_kopecks":8999,"similarity":0.7}"#
+        let export = CatalogAPIFixture.json.replacingOccurrences(of: #""products":["#, with: #""products":["# + root + ",")
+        let scenarios: [(response: String, cachedIDs: [String])] = [
+            ("[]", []), ("[\(analog)]", []), ("[]", ["77"]), ("[\(analog)]", ["77"])
+        ]
+        for (response, cachedIDs) in scenarios {
+            let (client, server) = makeClient { request, _ in
+                switch request.url?.lastPathComponent {
+                case "export": .json(export, delay: 0.5)
+                case "search": .json("[\(root)]")
+                case "analogs": .json(response)
+                default: .json("{}", status: 404)
+                }
+            }
+            let cache = ControlledCatalogCache()
+            cache.snapshot = try CatalogFixtures.snapshot(CatalogImport(products: cachedIDs.map {
+                CatalogProduct(id: $0, name: "Original milk", productType: "milk")
+            }))
+            let repository = DefaultCatalogRepository(cache: cache, source: APICatalogSource(client: client))
+            let refresh = Task { try await repository.refresh() }
+            await waitUntil { server.count("/export") == 1 }
+            guard case .items(let results) = await repository.searchProducts(matching: "Original") else {
+                return XCTFail("Expected the server search result before the export")
+            }
+            let rows = await publishedItems(results, where: { !$0.isEmpty })
+            let productID = try XCTUnwrap(rows.first?.id)
+            let detail = ProductDetailViewModel()
+            let load: (String) async -> [Product] = { await repository.alternativeProducts(for: $0) }
+            await detail.loadAlternatives(for: productID, using: load)
+            let items = detail.alternatives(for: productID)
+            XCTAssertEqual(items.map(\.id), ["42"])
+            XCTAssertEqual(items.first?.lowestPrice, Decimal(string: "89.99"))
+            XCTAssertEqual(items.first?.offers.map(\.storeID), ["7"])
+            try await refresh.value
+            await detail.loadAlternatives(for: productID, using: load)
+            XCTAssertEqual(server.count("/analogs"), 1)
+            XCTAssertEqual(server.count("/export"), 1)
+        }
+    }
+
+    func testFailedInitialExportSettlesEmptyAlternativesWithoutACache() async {
+        let (client, server) = makeClient { request, _ in
+            .json("{}", status: 503, delay: request.url?.lastPathComponent == "export" ? 0.2 : 0)
+        }
+        let repository = DefaultCatalogRepository(source: APICatalogSource(client: client))
+        let refresh = Task { try? await repository.refresh() }
+        await waitUntil { server.count("/export") == 1 }
+        let result = await repository.observeRelatedProducts(to: "7", storeID: nil)
+        let items = await publishedItems(result.map(\.items).eraseToAnyPublisher(), where: { _ in true })
+        XCTAssertTrue(items.isEmpty)
+        await refresh.value
+        XCTAssertEqual(server.count("/analogs"), 1)
+    }
+
+    func testUnavailableAnalogEndpointUsesCachedStoreOffersAndRetriesOnReopening() async throws {
+        let cache = ControlledCatalogCache()
+        cache.snapshot = try CatalogFixtures.snapshot(CatalogImport(
+            products: ["7", "8", "9"].map { CatalogProduct(id: $0, name: "Milk " + $0, productType: "milk") },
+            stores: [CatalogStore(id: "a", name: "A"), CatalogStore(id: "b", name: "B")],
+            offers: [
+                CatalogOffer(id: "a8", productID: "8", storeID: "a", price: 75, currency: "RUB"),
+                CatalogOffer(id: "b9", productID: "9", storeID: "b", price: 60, currency: "RUB")
+            ]
+        ))
+        let ranked = #"[{"id":9,"name":"Milk 9","category":"Dairy","package_amount":1,"package_unit":"l","similarity":0.8,"min_price_kopecks":6000}]"#
+        let (client, server) = makeClient { _, requests in
+            requests.count < 3 ? .json("{}", status: 503) : .json(ranked)
+        }
+        let repository = DefaultCatalogRepository(cache: cache, source: APICatalogSource(client: client))
+        let search = SearchViewModel(repository: repository)
+        let load: (String) async -> [Product] = { await search.alternatives(for: $0, storeID: nil) }
+        let firstPage = ProductDetailViewModel()
+        await firstPage.loadAlternatives(for: "7", using: load)
+        await firstPage.loadAlternatives(for: "7", using: load)
+        XCTAssertEqual(firstPage.alternatives(for: "7").map(\.id), ["9", "8"])
+        XCTAssertEqual(server.count("/analogs"), 1)
+        let scoped = await search.alternatives(for: "7", storeID: "a")
+        XCTAssertEqual(scoped.flatMap(\.offers).map(\.id), ["a8"])
+        let reopened = ProductDetailViewModel()
+        await reopened.loadAlternatives(for: "7", using: load)
+        XCTAssertEqual(reopened.alternatives(for: "7").map(\.id), ["9"])
+        XCTAssertEqual(server.count("/analogs"), 3)
+    }
+
     func testPublicProductSearchEncodesQueryAndDecodesDistinctProductIDs() async throws {
         let row = #"{"id":42,"name":"Сыр","brand":null,"category":"Сыры","product_type":null,"package_amount":150.5,"package_unit":"g"}"#
         let (client, server) = makeClient { _, _ in .json("[\(row),\(row)]") }

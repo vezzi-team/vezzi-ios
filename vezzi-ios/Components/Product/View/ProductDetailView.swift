@@ -2,9 +2,10 @@ import SwiftUI
 
 struct ProductDetailView: View {
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var viewModel = ProductDetailViewModel()
     @State private var path: [String] = []
     let product: Product
-    let relatedProducts: [Product]
+    let loadAlternatives: (String) async -> [Product]
     let selection: ProductSelection
     var showsPricePrefix = true
     var selectedOffer: ProductOffer? = nil
@@ -15,7 +16,7 @@ struct ProductDetailView: View {
             productPage(for: product, selectedOffer: selectedOffer)
                 .toolbar { dismissToolbar }
                 .navigationDestination(for: String.self) { productID in
-                    if let product = ([product] + relatedProducts).first(where: { $0.id == productID }) {
+                    if let product = viewModel.productsByID[productID] {
                         productPage(for: product)
                     }
                 }
@@ -28,11 +29,12 @@ struct ProductDetailView: View {
     // MARK: - Navigation
 
     private func productPage(for product: Product, selectedOffer: ProductOffer? = nil) -> some View {
-        ProductDetailPage(product: product, relatedProducts: [self.product] + relatedProducts,
+        ProductDetailPage(product: product, alternatives: viewModel.alternatives(for: product.id),
                           selection: selection, showsPricePrefix: showsPricePrefix,
                           selectedOffer: selectedOffer, selectedStoreTitle: selectedStoreTitle) { alternative in
             path.append(alternative.id)
         }
+        .task(id: product.id) { await viewModel.loadAlternatives(for: product.id, using: loadAlternatives) }
     }
 
     private var dismissToolbar: some ToolbarContent {
@@ -66,7 +68,7 @@ private struct ProductDetailPage: View {
     @State private var showsProductNameInNavigationBar = false
 
     let product: Product
-    let relatedProducts: [Product]
+    let alternatives: [Product]
     @ObservedObject var selection: ProductSelection
     let showsPricePrefix: Bool
     let selectedOffer: ProductOffer?
@@ -439,10 +441,6 @@ private struct ProductDetailPage: View {
 
     // MARK: - Alternatives
 
-    private var alternatives: [Product] {
-        relatedProducts.filter { $0.id != product.id }
-    }
-
     private var alternativeProducts: some View {
         LazyVGrid(columns: ProductGridLayout.columns(for: dynamicTypeSize), alignment: .leading, spacing: Const.contentInset) {
             ForEach(alternatives) { alternative in
@@ -547,13 +545,13 @@ nonisolated private enum ProductDetailMockDistances {
 #Preview("Product") {
     @Previewable @StateObject var selection = ProductSelection()
     ProductDetailView(product: ProductMockData.products[0],
-                      relatedProducts: ProductMockData.alternatives(for: ProductMockData.products[0].id), selection: selection)
+                      loadAlternatives: ProductMockData.alternatives, selection: selection)
 }
 
 #Preview("Product — dark, large text") {
     @Previewable @StateObject var selection = ProductSelection()
     ProductDetailView(product: ProductMockData.products[0],
-                      relatedProducts: ProductMockData.alternatives(for: ProductMockData.products[0].id), selection: selection)
+                      loadAlternatives: ProductMockData.alternatives, selection: selection)
         .preferredColorScheme(.dark)
         .dynamicTypeSize(.accessibility3)
 }
@@ -565,21 +563,21 @@ nonisolated private enum ProductDetailMockDistances {
         scoped.offers = Array(product.offers.prefix(1))
         return scoped
     }
-    ProductDetailView(product: products[0], relatedProducts: Array(products.dropFirst()),
+    ProductDetailView(product: products[0], loadAlternatives: { id in products.filter { $0.id != id } },
                       selection: selection, showsPricePrefix: false)
 }
 
 #Preview("Product — selected store") {
     @Previewable @StateObject var selection = ProductSelection()
     let product = ProductMockData.products[0]
-    ProductDetailView(product: product, relatedProducts: ProductMockData.alternatives(for: product.id),
+    ProductDetailView(product: product, loadAlternatives: ProductMockData.alternatives,
                       selection: selection, selectedOffer: product.offers[1])
 }
 
 #Preview("Product — selected store, large text") {
     @Previewable @StateObject var selection = ProductSelection()
     let product = ProductMockData.products[0]
-    ProductDetailView(product: product, relatedProducts: ProductMockData.alternatives(for: product.id),
+    ProductDetailView(product: product, loadAlternatives: ProductMockData.alternatives,
                       selection: selection, selectedOffer: product.offers[1])
         .preferredColorScheme(.dark)
         .dynamicTypeSize(.accessibility3)
@@ -591,6 +589,6 @@ nonisolated private enum ProductDetailMockDistances {
     product.offers.append(ProductOffer(id: "preview.extra.offer", storeID: "preview.extra.store",
                                        name: Texts.Search.Mock.perekrestok, price: 109,
                                        address: Texts.Home.Mock.workAddress))
-    return ProductDetailView(product: product, relatedProducts: ProductMockData.alternatives(for: product.id),
+    return ProductDetailView(product: product, loadAlternatives: ProductMockData.alternatives,
                              selection: selection)
 }
