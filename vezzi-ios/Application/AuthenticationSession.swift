@@ -6,6 +6,7 @@ import Foundation
 final class AuthenticationSession: ObservableObject {
     @Published private(set) var identity: AuthenticationIdentity?
     var user: AuthenticatedUser? { identity?.user }
+    var isChangingAccount: Bool { isRestoring || isSigningOut }
     @Published private(set) var isRestoring: Bool
     @Published private(set) var isVerifying = false
     @Published private(set) var isSigningOut = false

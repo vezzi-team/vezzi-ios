@@ -1,7 +1,14 @@
 import Foundation
 
-nonisolated struct APICatalogSource: CatalogSource, CatalogProductSearching {
+nonisolated struct APICatalogSource: CatalogSource, CatalogProductSearching, CatalogAnalogProviding {
     let client: APIClient
+
+    @concurrent func analogs(for productID: String) async throws -> [CatalogProduct] {
+        guard let id = Int64(productID) else { throw APIError.invalidResponse }
+        let products: [CatalogProductDTO] = try await client.send("products/\(id)/analogs")
+        var seen: Set<Int64> = [id]
+        return products.filter { seen.insert($0.id).inserted }.prefix(3).map(\.record)
+    }
 
     @concurrent func searchProducts(matching query: String) async throws -> [CatalogProduct] {
         let request = APIRequest(path: "products/search", queryItems: [

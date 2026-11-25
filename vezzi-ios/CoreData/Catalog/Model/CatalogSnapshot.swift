@@ -125,11 +125,7 @@ nonisolated struct CatalogSnapshot: Sendable {
         guard let product = products[productID] else { return [] }
         let candidates = sortedProductIDs.lazy.compactMap { products[$0] }
             .filter { $0.id != productID && $0.groupID == product.groupID }
-            .map(item)
-            .filter { item in
-                guard let storeID else { return true }
-                return item.offers.contains { $0.store.id == storeID && $0.offer.inStock != false }
-            }
+            .compactMap { item(for: $0).scoped(to: storeID) }
             .prefix(CatalogSearch.resultLimit)
         return Array(candidates)
     }

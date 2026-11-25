@@ -13,10 +13,9 @@ protocol CatalogRepository: AnyObject {
     /// Resolves the text once, then observes catalog prices and stores for those matches.
     func searchProducts(matching query: String) async -> CatalogSearchResult
     func observeAllProducts() -> AnyPublisher<[CatalogItem], Never>
-    /// Matches the product's group across the catalog, independently of text search.
-    /// A store scope includes only items with an offer not marked out of stock at that active store.
-    /// Excludes the product itself and returns at most CatalogSearch.resultLimit items on the main queue.
-    func observeRelatedProducts(to productID: String, storeID: String?) -> AnyPublisher<[CatalogItem], Never>
+    /// Prefers server-ranked alternatives and uses the local group when offline or no match fits the scope.
+    /// A store scope includes only that store's offers for products not marked out of stock there.
+    func observeRelatedProducts(to productID: String, storeID: String?) async -> AnyPublisher<CatalogAlternatives, Never>
     /// Accepts session changes. Optional cache writes are not a durability guarantee.
     func importCatalog(_ batch: CatalogImport) async throws
     func refresh() async throws
@@ -44,6 +43,17 @@ enum CatalogSearchResult {
     case items(AnyPublisher<[CatalogItem], Never>)
 }
 
+nonisolated enum CatalogAlternatives: Equatable, Sendable {
+    case ranked([CatalogItem])
+    case local([CatalogItem])
+
+    var items: [CatalogItem] {
+        switch self {
+        case .ranked(let items), .local(let items): items
+        }
+    }
+}
+
 nonisolated enum CatalogCacheState: Equatable, Sendable {
     case disabled
     case loading
@@ -65,6 +75,10 @@ nonisolated protocol CatalogSource: Sendable {
 
 nonisolated protocol CatalogProductSearching: Sendable {
     func searchProducts(matching query: String) async throws -> [CatalogProduct]
+}
+
+nonisolated protocol CatalogAnalogProviding: Sendable {
+    func analogs(for productID: String) async throws -> [CatalogProduct]
 }
 
 nonisolated enum CatalogError: Error, Equatable {

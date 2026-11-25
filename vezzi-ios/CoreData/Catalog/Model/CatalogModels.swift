@@ -173,4 +173,10 @@ nonisolated struct CatalogItem: Equatable, Identifiable, Sendable {
     var id: String { product.id }
     let product: CatalogProduct
     let offers: [CachedOffer]
+
+    func scoped(to storeID: String?) -> Self? {
+        guard let storeID else { return self }
+        let storeOffers = offers.filter { $0.store.id == storeID && $0.offer.inStock != false }
+        return storeOffers.isEmpty ? nil : Self(product: product, offers: storeOffers)
+    }
 }

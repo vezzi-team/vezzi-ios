@@ -57,7 +57,7 @@ struct ShoppingListView: View {
         .onAppear { viewModel.list.setPresented(true) }
         .onDisappear { if viewModel.routes == nil { viewModel.list.setPresented(false) } }
         .sheet(item: selectedProduct) { product in
-            ProductDetailView(product: product, relatedProducts: viewModel.relatedProducts, selection: viewModel.list.selection,
+            ProductDetailView(product: product, loadAlternatives: viewModel.alternatives, selection: viewModel.list.selection,
                               selectedOffer: viewModel.selectedProductOffer)
         }
         .fullScreenCover(item: $viewModel.routes) { snapshot in

@@ -17,7 +17,6 @@ final class SearchViewModel: ObservableObject {
     @Published private(set) var items: [CatalogItem] = []
     @Published private(set) var selectedProduct: Product?
     @Published private(set) var selectedProductStoreID: String?
-    @Published private(set) var relatedProducts: [Product] = []
     @Published private(set) var emptyState = CatalogEmptyState.empty
 
     var canRefresh: Bool { repository.canRefresh }
@@ -38,7 +37,6 @@ final class SearchViewModel: ObservableObject {
     private var normalizedQuery: String { query.trimmingCharacters(in: .whitespacesAndNewlines) }
     private var isLoadingReplacement: Bool { emptyState == .loading && !resultsMatchQuery }
     private var resultsSubscription: AnyCancellable?
-    private var relatedSubscription: AnyCancellable?
     private var statusSubscription: AnyCancellable?
 
     init(repository: any CatalogRepository, stores: [String: SearchStoreInfo] = [:], groupOrder: [String] = []) {
@@ -124,30 +122,17 @@ final class SearchViewModel: ObservableObject {
     // MARK: - Presentation
 
     func showProduct(_ product: Product, storeID: String? = nil) {
-        relatedSubscription?.cancel()
-        relatedProducts = []
         selectedProductStoreID = storeID
         selectedProduct = product
-        relatedSubscription = repository.observeRelatedProducts(to: product.id, storeID: storeID)
-            // Keep one detail snapshot so later catalog updates cannot invalidate pushed pages.
-            .prefix(1)
-            .sink { [weak self] items in
-                guard let self else { return }
-                self.relatedProducts = items.map(self.product).compactMap { product in
-                    guard let storeID else { return product }
-                    guard let offer = product.offers.first(where: { $0.storeID == storeID && $0.inStock != false }) else { return nil }
-                    var scoped = product
-                    scoped.offers = [offer]
-                    return scoped
-                }.sorted(by: self.priceOrder)
-            }
+    }
+
+    func alternatives(for productID: String, storeID: String?) async -> [Product] {
+        await repository.alternativeProducts(for: productID, storeID: storeID,
+                                             distances: stores.mapValues(\.distance), localOrder: priceOrder)
     }
 
     func dismissProduct() {
-        relatedSubscription?.cancel()
-        relatedSubscription = nil
         selectedProduct = nil
-        // Retain the snapshot during dismissal; the next selection replaces it.
     }
 
     private func rebuildSections() {

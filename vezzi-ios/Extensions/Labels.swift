@@ -15,6 +15,29 @@ final class Texts {
         static let title = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Polka"
     }
     
+    enum Survey {
+        static let title = NSLocalizedString("SurveyTitle", comment: "Getting to know Polka")
+        static let next = NSLocalizedString("SurveyNext", comment: "Next")
+        static let optional = NSLocalizedString("SurveyOptional", comment: "Optional")
+        static let ready = NSLocalizedString("SurveyReady", comment: "Polka is ready")
+        static let mainPriority = NSLocalizedString("SurveyMainPriority", comment: "Your shopping priority")
+        static let hint = NSLocalizedString("SurveyHint", comment: "You can change your priority in your profile.")
+        static let home = NSLocalizedString("SurveyHome", comment: "Go to Home")
+        static let profile = NSLocalizedString("SurveyProfile", comment: "Go to profile")
+
+        static func progress(_ current: Int, _ total: Int) -> String {
+            String.localizedStringWithFormat(NSLocalizedString("SurveyProgress", comment: "Survey question number and total"), current, total)
+        }
+
+        static func title(for question: SurveyQuestion) -> String {
+            NSLocalizedString("Survey.question.\(question.rawValue)", comment: "Survey question")
+        }
+
+        static func title(for answer: SurveyAnswer) -> String {
+            NSLocalizedString("Survey.answer.\(answer.rawValue)", comment: "Survey answer")
+        }
+    }
+
     enum Onboarding {
         static let catalogTitle = NSLocalizedString("OnboardingCatalogTitle", comment: "Build your shopping list")
         static let catalogDescription = NSLocalizedString("OnboardingCatalogDescription", comment: "Tap + on a product in the catalog to add it to your list.")
@@ -54,6 +77,7 @@ final class Texts {
 
     enum Home {
         enum Discovery {
+            static let description = NSLocalizedString("HomeDiscoveryDescription", comment: "Home section description")
             static let emptyCollection = NSLocalizedString("HomeDiscoveryEmptyCollection", comment: "No products in this collection yet")
             static let surveyTitle = NSLocalizedString("HomeSurveyTitle", comment: "Take a survey")
             static let surveySubtitle = NSLocalizedString("HomeSurveySubtitle", comment: "Survey invitation")
@@ -295,6 +319,7 @@ final class Texts {
 
         enum Main {
             static let title = NSLocalizedString("ProfileMainTitle", comment: "Profile")
+            static let retakeSurvey = NSLocalizedString("ProfileRetakeSurvey", comment: "Retake the shopping survey")
             static let personalDetails = NSLocalizedString("ProfileMainPersonalDetails", comment: "My details")
             static let email = NSLocalizedString("ProfileEmail", comment: "Email address")
             static let settings = NSLocalizedString("ProfileMainSettings", comment: "Settings")

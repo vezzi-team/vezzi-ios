@@ -18,8 +18,8 @@ final class PreviewCatalogRepository: CatalogRepository {
             .eraseToAnyPublisher()
     }
 
-    func observeRelatedProducts(to productID: String, storeID: String?) -> AnyPublisher<[CatalogItem], Never> {
-        Just(snapshot.relatedItems(to: productID, storeID: storeID)).eraseToAnyPublisher()
+    func observeRelatedProducts(to productID: String, storeID: String?) -> AnyPublisher<CatalogAlternatives, Never> {
+        Just(.local(snapshot.relatedItems(to: productID, storeID: storeID))).eraseToAnyPublisher()
     }
 
     func observeAllProducts() -> AnyPublisher<[CatalogItem], Never> { Just(snapshot.allItems()).eraseToAnyPublisher() }

@@ -4,6 +4,32 @@ import XCTest
 
 @MainActor
 final class ScreenLifetimeTests: XCTestCase {
+    func testReplacingScreenWithNestedShimmerScrollViewsReleasesHost() async throws {
+        let appeared = expectation(description: "The shimmer placeholder appeared")
+        let window: UIWindow
+        weak var previousScreen: UIViewController?
+        do {
+            let screen = ScrollView {
+                ScrollView(.horizontal) {
+                    Color.Background.placeholder.frame(width: 80, height: 80)
+                        .shimmer()
+                        .onAppear { appeared.fulfill() }
+                }
+                .pauseShimmerWhileScrolling()
+            }
+            .pauseShimmerWhileScrolling()
+            let host = UIHostingController(rootView: screen)
+            previousScreen = host
+            window = try makeWindow(root: host)
+        }
+        defer { window.isHidden = true }
+        await fulfillment(of: [appeared], timeout: 5)
+        await waitForTwoFrames(in: window)
+        window.rootViewController = UIViewController()
+        await waitForTwoFrames(in: window)
+        try await assertReleased { previousScreen == nil }
+    }
+
     func testSceneOverlaySurvivesTabChangesWithoutTakingFocusOrInterceptingOutsideTouches() async throws {
         let visible = expectation(description: "The overlay has an interactive region")
         let switched = expectation(description: "The second tab appeared")

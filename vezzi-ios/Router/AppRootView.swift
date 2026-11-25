@@ -60,7 +60,7 @@ struct AppRootView: View {
         }
         // Also gives the search tab its detached appearance on iOS 27.
         .tabViewSearchActivation(.searchTabSelection)
-        .accessibilityHidden(appRouter.presentedCollection != nil)
+        .accessibilityHidden(appRouter.presentedCover != nil)
         .tint(.accentColor)
         .sensoryFeedback(.selection, trigger: productSelection.feedbackRevision)
         .alert(Texts.ShoppingList.limitTitle, isPresented: $productSelection.showsLimitAlert) {
@@ -70,17 +70,7 @@ struct AppRootView: View {
             DestinationFactory.sheet(for: sheet, authentication: authentication, preferences: preferences,
                                      list: shoppingList, location: location)
         }
-        .fullScreenCover(item: $appRouter.presentedCollection) { collection in
-            let cover = DestinationFactory.collection(collection, catalog: catalog, authentication: authentication,
-                                                      storefrontTransition: storefrontTransition, shoppingList: shoppingList, location: location) {
-                appRouter.presentedCollection = nil
-            }
-            if reduceMotion {
-                cover
-            } else {
-                cover.navigationTransition(.zoom(sourceID: collection, in: storefrontTransition))
-            }
-        }
+        .fullScreenCover(item: $appRouter.presentedCover, content: cover)
         .onChange(of: authentication.user) { _, user in
             if user == nil {
                 appRouter.popToRoot(in: .home)
@@ -91,9 +81,29 @@ struct AppRootView: View {
             if case .profile? = appRouter.presentedSheet { appRouter.dismissSheet() }
         }
         .environment(\.preferredShoppingMode, preferences.mode)
+        .environment(\.hasCompletedShoppingSurvey, preferences.hasCompletedSurvey)
         .environmentObject(appRouter)
         .modifier(CartAdditionNoticePresenter(hasAddedProduct: productSelection.hasAddedProductThisSession,
                                              openList: appRouter.openShoppingList))
+    }
+
+    @ViewBuilder
+    private func cover(_ destination: AppRouter.Cover) -> some View {
+        switch destination {
+        case .survey(let accountID):
+            NavigationStack {
+                ShoppingSurveyView(preferences: preferences, accountID: accountID)
+                    .navigationTitle(Texts.Survey.title)
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+        case .collection(let collection):
+            let content = DestinationFactory.collection(collection, catalog: catalog, authentication: authentication,
+                                                        storefrontTransition: storefrontTransition, shoppingList: shoppingList, location: location) {
+                appRouter.presentedCover = nil
+            }
+            if reduceMotion { content }
+            else { content.navigationTransition(.zoom(sourceID: collection, in: storefrontTransition)) }
+        }
     }
 
     private func tabLabel(for tab: AppRouter.Tab) -> some View {

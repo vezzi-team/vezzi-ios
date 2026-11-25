@@ -39,6 +39,14 @@ extension Color {
         static let sheet = Color("BackgroundSheet")
         static let placeholder = Color("BackgroundPlaceholder")
         static let placeholderLighter = Color("BackgroundPlaceholderLighter")
+
+        static func motiCollection(_ collection: MotiCollection) -> Color {
+            switch collection {
+            case .pasta: Color(.backgroundMotiPasta)
+            case .movies: Color(.backgroundMotiMovies)
+            case .salad: Color(.backgroundMotiSalad)
+            }
+        }
     }
     
     // MARK: - Label Colors

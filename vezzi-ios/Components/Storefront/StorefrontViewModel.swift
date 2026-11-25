@@ -10,12 +10,10 @@ final class StorefrontViewModel: ObservableObject {
     @Published private(set) var catalogStatus = CatalogStatus()
     @Published private var cacheState = CatalogCacheState.disabled
     @Published private(set) var selectedDetail: StorefrontProductDetail?
-    @Published private(set) var relatedProducts: [Product] = []
     let selection: ProductSelection
     let list: ShoppingListRepository
     private let repository: any CatalogRepository
     private var subscriptions = Set<AnyCancellable>()
-    private var relatedSubscription: AnyCancellable?
 
     init(page: StorefrontPage, repository: any CatalogRepository, list: ShoppingListRepository? = nil) {
         self.repository = repository
@@ -55,18 +53,15 @@ final class StorefrontViewModel: ObservableObject {
     }
 
     func showProduct(_ product: Product, promotion: ProductOffer? = nil) {
-        relatedSubscription?.cancel()
-        relatedProducts = []
         selectedDetail = StorefrontProductDetail(product: product, promotion: promotion)
-        relatedSubscription = repository.observeRelatedProducts(to: product.id, storeID: nil)
-            .prefix(1).sink { [weak self] in self?.relatedProducts = $0.map { Product(catalog: $0) } }
+    }
+
+    func alternatives(for productID: String) async -> [Product] {
+        await repository.alternativeProducts(for: productID)
     }
 
     func dismissProduct() {
-        relatedSubscription?.cancel()
-        relatedSubscription = nil
         selectedDetail = nil
-        // Keep the snapshot alive until the sheet's dismissal animation ends.
     }
 }
 

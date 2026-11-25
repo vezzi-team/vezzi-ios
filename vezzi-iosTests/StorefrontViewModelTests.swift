@@ -3,16 +3,18 @@ import XCTest
 
 @MainActor
 final class StorefrontViewModelTests: XCTestCase {
-    func testStorefrontBannersUsePageCopyUnlessAStatusRequiresAttention() {
+    func testStorefrontBannersUsePageCopyUnlessAStatusRequiresAttention() async {
+        let session = AuthenticationSession(service: ProfileAccountFixture())
+        await session.restore()
         for isHome in [true, false] {
-            func banner(_ status: CatalogStatus, expired: Bool = false,
-                        cacheUnavailable: Bool = false) -> CatalogBannerContent {
-                CatalogBannerContent(isHome: isHome, status: status, isCacheUnavailable: cacheUnavailable,
-                                     requiresAuthentication: expired)
+            func banner(_ status: CatalogStatus,
+                        cacheUnavailable: Bool = false, completed: Bool = false) -> CatalogBannerContent {
+                CatalogBannerContent(isHome: isHome, hasCompletedSurvey: completed, status: status, isCacheUnavailable: cacheUnavailable,
+                                     authentication: session)
             }
             XCTAssertEqual(banner(.init(isRefreshing: true, isSynthetic: true)), isHome ? .survey : .catalog)
-            XCTAssertEqual(banner(.init(), expired: true), .signIn)
-            XCTAssertEqual(banner(.init(isOffline: true), expired: true), .offline)
+            XCTAssertEqual(banner(.init(), completed: true), isHome ? .home : .catalog)
+            XCTAssertEqual(banner(.init(isOffline: true), completed: true), .offline)
             let unauthorized = CatalogRefreshFailure.from(APIError.http(status: 401, code: nil, requestID: nil, retryAfter: nil))
             // The public catalog sends no credentials. Its HTTP 401 does not expire an account.
             XCTAssertEqual(banner(.init(failure: unauthorized)), .failed)
@@ -20,6 +22,25 @@ final class StorefrontViewModelTests: XCTestCase {
             XCTAssertEqual(banner(.init(failure: .unavailable)), .failed)
             XCTAssertEqual(banner(.init(), cacheUnavailable: true), .cacheUnavailable)
         }
+    }
+
+    func testHomeBannerWaitsForIdentityAndFollowsRestorationAndSignOut() async throws {
+        let session = AuthenticationSession(service: ProfileAccountFixture(), startsRestoring: true)
+        func banner(isHome: Bool = true, completed: Bool = false, status: CatalogStatus = .init()) -> CatalogBannerContent {
+            CatalogBannerContent(isHome: isHome, hasCompletedSurvey: completed, status: status,
+                                 isCacheUnavailable: false, authentication: session)
+        }
+
+        XCTAssertEqual(banner(), .home)
+        await session.restore()
+        XCTAssertEqual(banner(), .survey)
+        XCTAssertEqual(banner(completed: true), .home)
+        try await session.signOut()
+        XCTAssertEqual(banner(), .signIn)
+        XCTAssertEqual(banner(completed: true), .signIn)
+        XCTAssertEqual(banner(isHome: false), .catalog)
+        XCTAssertEqual(banner(status: .init(isOffline: true)), .offline)
+        XCTAssertEqual(banner(status: .init(failure: .unavailable)), .failed)
     }
 
     func testMotiCollectionsKeepAvailableThemedProductsAndStableIDsWhenPricesChange() throws {
@@ -324,7 +345,7 @@ final class StorefrontViewModelTests: XCTestCase {
         XCTAssertEqual(fallback.storeTitle, "Магазин")
     }
 
-    func testCatalogSectionsAndFullCategoryUseTheSameOrderAndSharedSelection() throws {
+    func testCatalogSectionsAndFullCategoryUseTheSameOrderAndSharedSelection() async throws {
         var products = (0..<5).map { CatalogProduct(id: "milk-\($0)", name: "Milk \($0)", category: " Dairy ", productType: "milk") }
         products += (0..<4).map { CatalogProduct(id: "fruit-\($0)", name: "Apple \($0)", category: "Produce") }
         products.append(contentsOf: [
@@ -348,7 +369,8 @@ final class StorefrontViewModelTests: XCTestCase {
         XCTAssertEqual(model.selection.quantity(for: milk.id), 2)
         full.showProduct(milk)
         XCTAssertEqual(full.selectedDetail?.product.id, milk.id)
-        XCTAssertFalse(full.relatedProducts.isEmpty)
+        let alternatives = await full.alternatives(for: milk.id)
+        XCTAssertFalse(alternatives.isEmpty)
         full.dismissProduct()
         XCTAssertNil(full.selectedDetail)
     }

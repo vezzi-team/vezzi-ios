@@ -38,6 +38,23 @@ final class ProfileViewModelTests: XCTestCase {
         XCTAssertFalse(draft.isSigningOut)
     }
 
+    func testCompletingSurveyIsAccountScopedAndIndependentOfManualPreference() async throws {
+        let suite = UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let session = AuthenticationSession(service: ProfileAccountFixture())
+        let preferences = ShoppingPreferences(authentication: session, defaults: defaults)
+        await session.restore()
+        let id = try XCTUnwrap(session.user?.id)
+        preferences.save(.faster, for: id)
+        XCTAssertFalse(preferences.hasCompletedSurvey)
+        preferences.completeSurvey(with: .faster, for: id)
+        XCTAssertTrue(ShoppingPreferences(authentication: session, defaults: defaults).hasCompletedSurvey)
+        try await session.signOut()
+        preferences.completeSurvey(with: .cheaper, for: id)
+        XCTAssertFalse(preferences.hasCompletedSurvey)
+    }
+
     func testProfileSheetPreservesTabHistories() {
         let router = AppRouter()
         router.push(.profile, in: .home)
@@ -55,7 +72,7 @@ final class ProfileViewModelTests: XCTestCase {
 }
 
 /// Credential-free fixture: never calls the production authentication service.
-private actor ProfileAccountFixture: AuthenticationService {
+actor ProfileAccountFixture: AuthenticationService {
     private var identity: AuthenticationIdentity?
     private let failSignOut: Bool
 
