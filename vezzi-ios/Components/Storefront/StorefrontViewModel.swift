@@ -23,8 +23,9 @@ final class StorefrontViewModel: ObservableObject {
         list.$originAddress.removeDuplicates().sink { [weak self] _ in self?.objectWillChange.send() }.store(in: &subscriptions)
         repository.status.sink { [weak self] in self?.catalogStatus = $0 }.store(in: &subscriptions)
         repository.cacheState.removeDuplicates().sink { [weak self] in self?.cacheState = $0 }.store(in: &subscriptions)
-        repository.observeAllProducts().sink { [weak self] items in
+        repository.observeAllProducts().sink { [weak self] snapshot in
             guard let self else { return }
+            let items = snapshot.filter { $0.product.hasImage }
             self.catalogHasProducts = !items.isEmpty
             switch page {
             case .home:

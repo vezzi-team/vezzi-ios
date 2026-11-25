@@ -16,6 +16,11 @@ nonisolated struct CatalogProduct: Codable, Equatable, Identifiable, Sendable {
     var packageQuantity: Decimal?
     var packageUnit: String?
 
+    var imageURL: URL?
+    var wideImageURL: URL?
+
+    var hasImage: Bool { imageURL != nil || wideImageURL != nil }
+
     /// Shared by catalog grouping and the independent alternatives query.
     var groupID: String { productType ?? category ?? id }
 }
@@ -29,6 +34,7 @@ nonisolated struct CatalogStore: Codable, Equatable, Identifiable, Sendable {
     var longitude: Double?
     var isActive: Bool = true
     var format: String?
+    var logoURL: URL?
 }
 
 nonisolated struct CatalogOffer: Codable, Equatable, Identifiable, Sendable {

@@ -24,7 +24,8 @@ enum SearchMockData {
             for product in group {
                 batch.products.append(CatalogProduct(id: product.id, name: product.name, brand: product.brand,
                                                      category: title, productType: groupID,
-                                                     packageQuantity: product.packageQuantity, packageUnit: product.packageUnit))
+                                                     packageQuantity: product.packageQuantity, packageUnit: product.packageUnit,
+                                                     imageURL: PreviewCatalogRepository.artworkURL))
                 for (store, offer) in zip(storeRecords, product.offers) {
                     batch.offers.append(CatalogOffer(id: product.id + "." + store.id, productID: product.id,
                                                      storeID: store.id, price: offer.price, currency: offer.currency,
@@ -53,6 +54,10 @@ final class MockSearchRepository: CatalogRepository {
     }
 
     func observeAllProducts() -> AnyPublisher<[CatalogItem], Never> { Just(snapshot.allItems()).eraseToAnyPublisher() }
+
+    func observeStoreLogoURLs() -> AnyPublisher<[String: URL], Never> {
+        Just(snapshot.stores.compactMapValues(\.logoURL)).eraseToAnyPublisher()
+    }
 
     func importCatalog(_ batch: CatalogImport) async throws {}
     func refresh() async throws {}

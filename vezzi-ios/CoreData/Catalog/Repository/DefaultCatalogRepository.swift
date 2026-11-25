@@ -37,7 +37,7 @@ final class DefaultCatalogRepository: CatalogRepository {
     nonisolated deinit {}
 
     func observeProducts(matching query: String) -> AnyPublisher<[CatalogItem], Never> {
-        observeItems { $0.snapshot.items(matching: query) }
+        observeSnapshot { $0.snapshot.items(matching: query) }
     }
 
     func searchProducts(matching query: String) async -> CatalogSearchResult {
@@ -45,12 +45,16 @@ final class DefaultCatalogRepository: CatalogRepository {
            !query.isEmpty, query.unicodeScalars.count <= CatalogSearch.serverQueryLimit,
            let matches = try? await search.searchProducts(matching: query) {
             guard !matches.isEmpty else { return .noServerMatches }
-            return .items(observeItems { $0.snapshot.items(for: matches) })
+            return .items(observeSnapshot { $0.snapshot.items(for: matches) })
         }
         return .items(observeProducts(matching: query))
     }
 
-    func observeAllProducts() -> AnyPublisher<[CatalogItem], Never> { observeItems { $0.allItems() } }
+    func observeAllProducts() -> AnyPublisher<[CatalogItem], Never> { observeSnapshot { $0.allItems() } }
+
+    func observeStoreLogoURLs() -> AnyPublisher<[String: URL], Never> {
+        observeSnapshot { $0.snapshot.stores.compactMapValues(\.logoURL) }
+    }
 
     func observeRelatedProducts(to productID: String, storeID: String?) async -> AnyPublisher<CatalogAlternatives, Never> {
         var matches: [CatalogProduct] = []
@@ -88,7 +92,9 @@ final class DefaultCatalogRepository: CatalogRepository {
             .eraseToAnyPublisher()
     }
 
-    private func observeItems(_ query: @escaping @Sendable (PublishedSnapshot) -> [CatalogItem]) -> AnyPublisher<[CatalogItem], Never> {
+    private func observeSnapshot<Value: Equatable & Sendable>(
+        _ query: @escaping @Sendable (PublishedSnapshot) -> Value
+    ) -> AnyPublisher<Value, Never> {
         publications
             .receive(on: searchQueue)
             .map(query)

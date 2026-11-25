@@ -4,6 +4,7 @@ import SwiftUI
 struct AppRootView: View {
     @StateObject private var preferences: ShoppingPreferences
     @StateObject private var appRouter: AppRouter
+    @StateObject private var imageRetries: CatalogImageRetries
     @ObservedObject private var productSelection: ProductSelection
     private let shoppingList: ShoppingListRepository
     private let location: any DeviceLocating
@@ -22,6 +23,7 @@ struct AppRootView: View {
         contentScale: CGFloat = Const.defaultContentScale
     ) {
         self.catalog = catalog
+        _imageRetries = StateObject(wrappedValue: CatalogImageRetries(catalog: catalog))
         self.authentication = authentication
         _preferences = StateObject(wrappedValue: ShoppingPreferences(authentication: authentication))
         let list = shoppingList ?? ShoppingListRepository()
@@ -81,6 +83,7 @@ struct AppRootView: View {
             if case .profile? = appRouter.presentedSheet { appRouter.dismissSheet() }
         }
         .environment(\.preferredShoppingMode, preferences.mode)
+        .environment(\.catalogImageRetries, imageRetries)
         .environment(\.hasCompletedShoppingSurvey, preferences.hasCompletedSurvey)
         .environmentObject(appRouter)
         .modifier(CartAdditionNoticePresenter(hasAddedProduct: productSelection.hasAddedProductThisSession,

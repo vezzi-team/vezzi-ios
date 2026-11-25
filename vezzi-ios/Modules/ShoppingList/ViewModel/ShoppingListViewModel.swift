@@ -8,6 +8,7 @@ final class ShoppingListViewModel: ObservableObject {
     @Published private(set) var selectedProduct: Product?
     @Published private(set) var selectedProductOffer: ProductOffer?
     @Published var routes: ShoppingRoutesSnapshot?
+    @Published private(set) var storeLogoURLs: [String: URL] = [:]
     @Published private var catalogItems: [String: CatalogItem] = [:]
     let list: ShoppingListRepository
     private let catalog: any CatalogRepository
@@ -23,6 +24,7 @@ final class ShoppingListViewModel: ObservableObject {
             self?.dismissProduct()
             self?.selectedProductOffer = nil
         }.store(in: &subscriptions)
+        catalog.observeStoreLogoURLs().assign(to: &$storeLogoURLs)
         catalog.observeAllProducts().sink { [weak self] items in
             self?.catalogItems = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
         }.store(in: &subscriptions)
@@ -45,8 +47,7 @@ final class ShoppingListViewModel: ObservableObject {
         let assigned = plannedOffers
         return list.selection.quantities.keys.sorted().map { id in
             var product = catalogItems[id].map { Product(catalog: $0) } ?? fallback[id].map {
-                Product(id: $0.id, name: $0.name, brand: $0.brand ?? "", packageQuantity: $0.packageQuantity,
-                        packageUnit: $0.packageUnit, category: $0.category.map(ProductCategory.init(rawValue:)), offers: [])
+                Product(record: $0, offers: [])
             } ?? Product(id: id, name: Texts.ShoppingList.unavailableProduct, brand: "", packageQuantity: nil,
                          packageUnit: nil, category: nil, offers: [])
             if let offer = assigned[id] {
@@ -57,12 +58,15 @@ final class ShoppingListViewModel: ObservableObject {
     }
 
     private var plannedOffers: [String: ProductOffer] {
-        Dictionary((plan?.stops ?? []).flatMap { stop in
+        let media = planMedia
+        return Dictionary((plan?.stops ?? []).flatMap { stop in
             stop.items.map { item in
-                (item.product.id, item.assignedOffer(in: stop.store))
+                (item.product.id, media.offer(for: item, in: stop.store))
             }
         }, uniquingKeysWith: { first, _ in first })
     }
+
+    var planMedia: ShoppingPlanMedia { ShoppingPlanMedia(items: catalogItems, storeLogos: storeLogoURLs) }
 
     var cheapest: ShoppingPlan? { list.planResult?.plans.first }
     var fastest: ShoppingPlan? { list.planResult?.fastestPlans?.first }

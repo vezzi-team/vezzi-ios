@@ -13,6 +13,8 @@ protocol CatalogRepository: AnyObject {
     /// Resolves the text once, then observes catalog prices and stores for those matches.
     func searchProducts(matching query: String) async -> CatalogSearchResult
     func observeAllProducts() -> AnyPublisher<[CatalogItem], Never>
+    /// Store identities are independent of products and of which offers are in stock.
+    func observeStoreLogoURLs() -> AnyPublisher<[String: URL], Never>
     /// Prefers server-ranked alternatives and uses the local group when offline or no match fits the scope.
     /// A store scope includes only that store's offers for products not marked out of stock there.
     func observeRelatedProducts(to productID: String, storeID: String?) async -> AnyPublisher<CatalogAlternatives, Never>

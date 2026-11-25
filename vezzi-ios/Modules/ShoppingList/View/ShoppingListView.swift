@@ -67,6 +67,7 @@ struct ShoppingListView: View {
             LocationPickerView(coordinate: viewModel.list.origin, options: viewModel.list.routeOptions,
                                address: viewModel.list.originAddress, location: location, onConfirm: viewModel.list.setRoute)
         }
+        .environment(\.shoppingPlanMedia, viewModel.planMedia)
     }
 
     // MARK: - Header

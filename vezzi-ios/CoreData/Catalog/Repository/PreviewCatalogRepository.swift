@@ -24,12 +24,18 @@ final class PreviewCatalogRepository: CatalogRepository {
 
     func observeAllProducts() -> AnyPublisher<[CatalogItem], Never> { Just(snapshot.allItems()).eraseToAnyPublisher() }
 
+    func observeStoreLogoURLs() -> AnyPublisher<[String: URL], Never> {
+        Just(snapshot.stores.compactMapValues(\.logoURL)).eraseToAnyPublisher()
+    }
+
     func importCatalog(_ batch: CatalogImport) async throws {}
     func refresh() async throws {}
 
+    static let artworkURL = Bundle.main.url(forResource: "PreviewProduct", withExtension: "png")
+
     static var sample: PreviewCatalogRepository {
         let product = CatalogProduct(id: "preview-product", name: "Молоко", brand: "Пример",
-                                     packageQuantity: 900, packageUnit: "мл")
+                                     packageQuantity: 900, packageUnit: "мл", imageURL: artworkURL)
         let store = CatalogStore(id: "preview-store", name: "Магазин рядом")
         let offer = CatalogOffer(id: "preview-offer", productID: product.id, storeID: store.id,
                                  price: Decimal(string: "99.90")!, currency: "RUB", inStock: true,

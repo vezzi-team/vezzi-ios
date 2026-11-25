@@ -59,11 +59,20 @@ struct ProductCard: View {
     }
 
     private var artwork: some View {
-        UnevenRoundedRectangle(topLeadingRadius: Const.cornerRadius, bottomLeadingRadius: Const.artworkCornerRadius,
-                               bottomTrailingRadius: Const.artworkCornerRadius, topTrailingRadius: Const.cornerRadius)
-            .fill(Color.Background.placeholder)
+        let shape = UnevenRoundedRectangle(topLeadingRadius: Const.cornerRadius, bottomLeadingRadius: Const.artworkCornerRadius,
+                                           bottomTrailingRadius: Const.artworkCornerRadius, topTrailingRadius: Const.cornerRadius)
+        return Color.Background.placeholder
             .aspectRatio(Const.artworkAspectRatio, contentMode: .fit)
-            .shimmer(isActive: isPurchased != true)
+            .overlay {
+                GeometryReader { geometry in
+                    if geometry.size.width > 0 {
+                        CatalogImage(url: product.imageURL, usage: .card(width: geometry.size.width),
+                                     showsLoadingShimmer: isPurchased != true)
+                            .opacity(isPurchased == true ? 0.35 : 1)
+                    }
+                }
+            }
+            .clipShape(shape)
             .overlay {
                 if let isPurchased {
                     Image.System.checkmark
@@ -249,20 +258,29 @@ struct ProductCard: View {
     }
 
     private func storeIcons(_ stores: [ProductOffer], fitting width: CGFloat) -> some View {
-        let visible = stores.prefix(Const.maximumStoreCount).enumerated().prefix { index, _ in
-            Const.storeSize + CGFloat(index) * (Const.storeSize + Const.storeOverlap) <= width
-        }
-        return HStack(spacing: Const.storeOverlap) {
-            ForEach(Array(visible), id: \.element.storeID) { index, _ in
-                StoreLogoPlaceholder(style: .lighter)
+        let badges = ProductStoreBadgeLayout(storeCount: stores.count, availableWidth: width)
+        return HStack(spacing: ProductStoreBadgeLayout.overlap) {
+            ForEach(Array(stores.prefix(badges.logoCount).enumerated()), id: \.element.storeID) { index, offer in
+                StoreLogo(url: offer.logoURL, style: .lighter)
                     .frame(width: Const.storeSize, height: Const.storeSize)
-                    .overlay(Circle().strokeBorder(Color.Background.elevated, lineWidth: Const.borderWidth))
+                    .overlay(Circle().strokeBorder(Color.Border.primary, lineWidth: Const.borderWidth))
                     .transition(reduceMotion ? .identity : .opacity)
-                    .zIndex(-Double(index))
+                    .zIndex(Double(badges.logoCount - index))
+            }
+            if badges.extraCount > 0 {
+                Text(verbatim: "+" + badges.extraCount.formatted())
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.Label.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .frame(width: Const.storeSize, height: Const.storeSize)
+                    .background(Color.Background.primary, in: .circle)
+                    .overlay(Circle().strokeBorder(Color.Border.primary, lineWidth: Const.borderWidth))
             }
         }
+        .environment(\.colorScheme, .light)
         .animation(reduceMotion ? nil : .easeInOut(duration: Const.offerTransitionDuration),
-                   value: visible.map(\.element.storeID))
+                   value: stores.map(\.storeID))
     }
 
     private var quantityControl: some View {
@@ -288,9 +306,7 @@ struct ProductCard: View {
         static let cornerRadius: CGFloat = 16
         static let artworkCornerRadius: CGFloat = 10
         static let artworkAspectRatio: CGFloat = 1
-        static let storeSize: CGFloat = 24
-        static let storeOverlap: CGFloat = -4
-        static let maximumStoreCount = 3
+        static let storeSize = ProductStoreBadgeLayout.size
         static let borderWidth: CGFloat = 1
         static let nameLineLimit = 2
         static let nameFontSize: CGFloat = 14
@@ -307,6 +323,24 @@ struct ProductCard: View {
         static let offerTransitionDuration: TimeInterval = 0.2
         static let purchaseTransitionDuration: TimeInterval = 0.1
         static let purchaseMarkSpeed: Double = 5
+    }
+}
+
+struct ProductStoreBadgeLayout {
+    static let size: CGFloat = 24
+    static let overlap: CGFloat = -4
+    let logoCount: Int
+    let extraCount: Int
+
+    init(storeCount: Int, availableWidth: CGFloat) {
+        let slots = (0..<3).filter { Self.size + CGFloat($0) * (Self.size + Self.overlap) <= availableWidth }.count
+        guard slots > 0 else {
+            logoCount = 0
+            extraCount = 0
+            return
+        }
+        logoCount = storeCount <= min(2, slots) ? storeCount : slots - 1
+        extraCount = storeCount - logoCount
     }
 }
 

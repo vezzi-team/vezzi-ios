@@ -707,12 +707,12 @@ final class AuthenticationServiceTests: XCTestCase {
 
     func testPublicAnalogsPreserveServerRankAndJoinPricesForTheSelectedStore() async throws {
         func row(_ id: Int) -> String {
-            #"{"id":\#(id),"name":"Product \#(id)","category":"Food","package_amount":200,"package_unit":"g","similarity":0.7,"min_price_kopecks":3000}"#
+            #"{"id":\#(id),"name":"Product \#(id)","category":"Food","image_url":"https://images.example.test/product.webp","package_amount":200,"package_unit":"g","similarity":0.7,"min_price_kopecks":3000}"#
         }
         let payload = "[" + [7, 9, 9, 3, 1, 5].map(row).joined(separator: ",") + "]"
         let (client, server) = makeClient { _, _ in .json(payload) }
         let repository = DefaultCatalogRepository(source: APICatalogSource(client: client))
-        let products = [7, 9, 3, 1, 5].map { CatalogProduct(id: String($0), name: "Product \($0)", category: "Food") }
+        let products = [7, 9, 3, 1, 5].map { CatalogProduct(id: String($0), name: "Product \($0)", category: "Food", imageURL: CatalogFixtures.imageURL) }
         let stores = [CatalogStore(id: "a", name: "A"), CatalogStore(id: "b", name: "B"), CatalogStore(id: "c", name: "C")]
         let offers = [
             CatalogOffer(id: "a9", productID: "9", storeID: "a", price: 100, currency: "RUB", inStock: true),
@@ -747,9 +747,9 @@ final class AuthenticationServiceTests: XCTestCase {
     func testOfflineAndEmptyServerAnalogsUseTheCachedGroup() async throws {
         let cache = ControlledCatalogCache()
         cache.snapshot = try CatalogFixtures.snapshot(CatalogImport(products: [
-            CatalogProduct(id: "7", name: "Original", productType: "milk"),
-            CatalogProduct(id: "9", name: "Other milk", productType: "milk"),
-            CatalogProduct(id: "10", name: "Bread", productType: "bread")
+            CatalogProduct(id: "7", name: "Original", productType: "milk", imageURL: CatalogFixtures.imageURL),
+            CatalogProduct(id: "9", name: "Other milk", productType: "milk", imageURL: CatalogFixtures.imageURL),
+            CatalogProduct(id: "10", name: "Bread", productType: "bread", imageURL: CatalogFixtures.imageURL)
         ]))
         let (client, server) = makeClient { _, requests in
             switch requests.count {
@@ -778,8 +778,8 @@ final class AuthenticationServiceTests: XCTestCase {
     }
 
     func testOpenDetailResolvesRankedAndLocalAnalogsWhenInitialExportArrives() async throws {
-        let root = #"{"id":77,"name":"Original milk","category":"Dairy","product_type":"milk","package_amount":1,"package_unit":"l"}"#
-        let analog = #"{"id":42,"name":"Milk","category":"Dairy","product_type":"milk","package_amount":930.5,"package_unit":"ml","min_price_kopecks":8999,"similarity":0.7}"#
+        let root = #"{"id":77,"name":"Original milk","category":"Dairy","product_type":"milk","image_url":"https://images.example.test/product.webp","package_amount":1,"package_unit":"l"}"#
+        let analog = #"{"id":42,"name":"Milk","category":"Dairy","product_type":"milk","image_url":"https://images.example.test/product.webp","package_amount":930.5,"package_unit":"ml","min_price_kopecks":8999,"similarity":0.7}"#
         let export = CatalogAPIFixture.json.replacingOccurrences(of: #""products":["#, with: #""products":["# + root + ",")
         let scenarios: [(response: String, cachedIDs: [String])] = [
             ("[]", []), ("[\(analog)]", []), ("[]", ["77"]), ("[\(analog)]", ["77"])
@@ -795,7 +795,7 @@ final class AuthenticationServiceTests: XCTestCase {
             }
             let cache = ControlledCatalogCache()
             cache.snapshot = try CatalogFixtures.snapshot(CatalogImport(products: cachedIDs.map {
-                CatalogProduct(id: $0, name: "Original milk", productType: "milk")
+                CatalogProduct(id: $0, name: "Original milk", productType: "milk", imageURL: CatalogFixtures.imageURL)
             }))
             let repository = DefaultCatalogRepository(cache: cache, source: APICatalogSource(client: client))
             let refresh = Task { try await repository.refresh() }
@@ -836,14 +836,14 @@ final class AuthenticationServiceTests: XCTestCase {
     func testUnavailableAnalogEndpointUsesCachedStoreOffersAndRetriesOnReopening() async throws {
         let cache = ControlledCatalogCache()
         cache.snapshot = try CatalogFixtures.snapshot(CatalogImport(
-            products: ["7", "8", "9"].map { CatalogProduct(id: $0, name: "Milk " + $0, productType: "milk") },
+            products: ["7", "8", "9"].map { CatalogProduct(id: $0, name: "Milk " + $0, productType: "milk", imageURL: CatalogFixtures.imageURL) },
             stores: [CatalogStore(id: "a", name: "A"), CatalogStore(id: "b", name: "B")],
             offers: [
                 CatalogOffer(id: "a8", productID: "8", storeID: "a", price: 75, currency: "RUB"),
                 CatalogOffer(id: "b9", productID: "9", storeID: "b", price: 60, currency: "RUB")
             ]
         ))
-        let ranked = #"[{"id":9,"name":"Milk 9","category":"Dairy","package_amount":1,"package_unit":"l","similarity":0.8,"min_price_kopecks":6000}]"#
+        let ranked = #"[{"id":9,"name":"Milk 9","category":"Dairy","image_url":"https://images.example.test/product.webp","package_amount":1,"package_unit":"l","similarity":0.8,"min_price_kopecks":6000}]"#
         let (client, server) = makeClient { _, requests in
             requests.count < 3 ? .json("{}", status: 503) : .json(ranked)
         }
@@ -864,7 +864,7 @@ final class AuthenticationServiceTests: XCTestCase {
     }
 
     func testPublicProductSearchEncodesQueryAndDecodesDistinctProductIDs() async throws {
-        let row = #"{"id":42,"name":"Сыр","brand":null,"category":"Сыры","product_type":null,"package_amount":150.5,"package_unit":"g"}"#
+        let row = #"{"id":42,"name":"Сыр","brand":null,"category":"Сыры","product_type":null,"image_url":"https://images.example.test/product.webp","package_amount":150.5,"package_unit":"g"}"#
         let (client, server) = makeClient { _, _ in .json("[\(row),\(row)]") }
         let query = "Сыр + 50% & хлеб"
         let matches = try await APICatalogSource(client: client).searchProducts(matching: query)
@@ -895,6 +895,9 @@ final class AuthenticationServiceTests: XCTestCase {
         XCTAssertEqual(batch.products.first?.packageQuantity, Decimal(string: "930.5"))
         XCTAssertEqual(batch.products.first?.packageUnit, "ml")
         XCTAssertEqual(batch.stores.first?.format, "supermarket")
+        XCTAssertEqual(batch.products.first?.imageURL?.absoluteString, "https://images.example.test/product.webp")
+        XCTAssertEqual(batch.products.first?.wideImageURL?.absoluteString, "https://images.example.test/wide.webp")
+        XCTAssertEqual(batch.stores.first?.logoURL?.absoluteString, "https://images.example.test/store.png")
         XCTAssertEqual(batch.offers.first?.offer.price, Decimal(string: "89.99"))
         XCTAssertEqual(batch.offers.first?.offer.cardPrice, Decimal(string: "79.99"))
         XCTAssertEqual(batch.offers.first?.offer.priceConditions, "With a card")
@@ -1196,7 +1199,7 @@ nonisolated private final class MemoryAuthenticationStore: AuthenticationSession
     }
 }
 
-nonisolated private struct HTTPStubReply: Sendable {
+nonisolated struct HTTPStubReply: Sendable {
     var status = 200
     var body = Data()
     var headers: [String: String] = [:]
@@ -1209,7 +1212,7 @@ nonisolated private struct HTTPStubReply: Sendable {
     static func failure(_ code: URLError.Code) -> Self { Self(error: URLError(code)) }
 }
 
-nonisolated private final class AuthenticationHTTPStub: @unchecked Sendable {
+nonisolated final class AuthenticationHTTPStub: @unchecked Sendable {
     let host = UUID().uuidString.lowercased() + ".invalid"
     private let lock = NSLock()
     private var received: [URLRequest] = []
@@ -1228,7 +1231,7 @@ nonisolated private final class AuthenticationHTTPStub: @unchecked Sendable {
     }
 }
 
-nonisolated private final class AuthenticationURLProtocol: URLProtocol, @unchecked Sendable {
+nonisolated final class AuthenticationURLProtocol: URLProtocol, @unchecked Sendable {
     private final class Registry: @unchecked Sendable {
         let lock = NSLock()
         var servers: [String: AuthenticationHTTPStub] = [:]
@@ -1305,5 +1308,5 @@ nonisolated private struct RemovalFailingStore: AuthenticationSessionStore {
 }
 
 nonisolated private enum CatalogAPIFixture {
-    static let json = #"{"import_id":7,"imported_at":"2026-11-08T00:00:00Z","is_synthetic":true,"offer_max_age_hours":48,"products":[{"id":42,"name":"Milk","brand":null,"category":"Dairy","product_type":"milk","package_amount":930.5,"package_unit":"ml"}],"stores":[{"id":7,"chain":"Store","name":"Nearby","address":"Street","latitude":59.9,"longitude":30.3,"format":"supermarket"}],"offers":[{"id":"7-42","product_id":42,"store_id":7,"price_kopecks":8999,"currency":"RUB","card_price_kopecks":7999,"in_stock":null,"price_type":"promo","price_conditions":"With a card","source_product_id":"source-42","source_url":"https://example.com/product","source_updated_at":"2026-11-08T00:00:00Z"}]}"#
+    static let json = #"{"import_id":7,"imported_at":"2026-11-08T00:00:00Z","is_synthetic":true,"offer_max_age_hours":48,"products":[{"id":42,"name":"Milk","brand":null,"category":"Dairy","product_type":"milk","image_url":"https://images.example.test/product.webp","image_wide_url":"https://images.example.test/wide.webp","package_amount":930.5,"package_unit":"ml"}],"stores":[{"id":7,"chain":"Store","name":"Nearby","address":"Street","latitude":59.9,"longitude":30.3,"format":"supermarket","logo_url":"https://images.example.test/store.png"}],"offers":[{"id":"7-42","product_id":42,"store_id":7,"price_kopecks":8999,"currency":"RUB","card_price_kopecks":7999,"in_stock":null,"price_type":"promo","price_conditions":"With a card","source_product_id":"source-42","source_url":"https://example.com/product","source_updated_at":"2026-11-08T00:00:00Z"}]}"#
 }

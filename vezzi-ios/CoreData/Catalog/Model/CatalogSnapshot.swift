@@ -111,7 +111,7 @@ nonisolated struct CatalogSnapshot: Sendable {
     func items(matching query: String) -> [CatalogItem] {
         let words = query.split(whereSeparator: \.isWhitespace).map(String.init)
         let matches = sortedProductIDs.lazy.compactMap { products[$0] }.filter { product in
-            words.allSatisfy { word in
+            product.hasImage && words.allSatisfy { word in
                 [product.name, product.brand, product.category].compactMap { $0 }.contains {
                     $0.range(of: word, options: [.caseInsensitive, .diacriticInsensitive]) != nil
                 }
@@ -124,14 +124,19 @@ nonisolated struct CatalogSnapshot: Sendable {
     func relatedItems(to productID: String, storeID: String? = nil) -> [CatalogItem] {
         guard let product = products[productID] else { return [] }
         let candidates = sortedProductIDs.lazy.compactMap { products[$0] }
-            .filter { $0.id != productID && $0.groupID == product.groupID }
+            .filter { $0.hasImage && $0.id != productID && $0.groupID == product.groupID }
             .compactMap { item(for: $0).scoped(to: storeID) }
             .prefix(CatalogSearch.resultLimit)
         return Array(candidates)
     }
 
     func items(for matches: [CatalogProduct]) -> [CatalogItem] {
-        matches.map { item(for: products[$0.id] ?? $0) }
+        matches.compactMap { match in
+            var product = products[match.id] ?? match
+            product.imageURL = match.imageURL ?? product.imageURL
+            product.wideImageURL = match.wideImageURL ?? product.wideImageURL
+            return product.hasImage ? item(for: product) : nil
+        }
     }
 
     private func item(for product: CatalogProduct) -> CatalogItem {

@@ -47,7 +47,7 @@ final class StorefrontViewModelTests: XCTestCase {
         let types = ["Макаронные изделия", "Снеки и чипсы", "Овощи"]
         var batch = CatalogFixtures.catalog()
         batch.products = (0..<30).map { index in
-            CatalogProduct(id: String(index), name: "Item \(index)", productType: types[index % types.count])
+            CatalogProduct(id: String(index), name: "Item \(index)", productType: types[index % types.count], imageURL: CatalogFixtures.imageURL)
         }
         batch.offers = batch.products.map { product in
             CatalogOffer(id: product.id, productID: product.id, storeID: "s1", price: 20, currency: "RUB", inStock: product.id != "0")
@@ -81,7 +81,7 @@ final class StorefrontViewModelTests: XCTestCase {
             ("other", "Шампунь с ароматом попкорна", "Гигиена")
         ]
         var batch = CatalogFixtures.catalog()
-        batch.products = entries.map { CatalogProduct(id: $0.0, name: $0.1, productType: $0.2) }
+        batch.products = entries.map { CatalogProduct(id: $0.0, name: $0.1, productType: $0.2, imageURL: CatalogFixtures.imageURL) }
         batch.offers = batch.products.map {
             CatalogOffer(id: $0.id, productID: $0.id, storeID: "s1", price: 20, currency: "RUB", inStock: true)
         }
@@ -108,7 +108,7 @@ final class StorefrontViewModelTests: XCTestCase {
     func testHomeSelectsFiveAvailableFreshPromotionsAndKeepsAllOffersForDetails() throws {
         let types = ["Хлеб", "Молоко", "Макаронные изделия", "Яйца куриные", "Крупы", "Масло сливочное", "Хлеб"]
         let items = types.enumerated().map { index, type in
-            let product = CatalogProduct(id: String(index), name: type, productType: type)
+            let product = CatalogProduct(id: String(index), name: type, productType: type, imageURL: CatalogFixtures.imageURL)
             func offer(_ id: String, _ price: Decimal, promo: Bool = true, fresh: Bool = true, stock: Bool? = true) -> CachedOffer {
                 let value = CatalogOffer(id: id, productID: product.id, storeID: id, price: price, currency: "RUB",
                                          inStock: stock, priceType: promo ? "promo" : "current")
@@ -132,7 +132,7 @@ final class StorefrontViewModelTests: XCTestCase {
     }
 
     func testDealsShelfRejectsAPromotionWhenAnyStoreShowsALowerPrice() throws {
-        let crackers = CatalogProduct(id: "crackers", name: "3 корочки")
+        let crackers = CatalogProduct(id: "crackers", name: "3 корочки", imageURL: CatalogFixtures.imageURL)
         let metro = CatalogStore(id: "metro", name: "METRO")
         let vkusvill = CatalogStore(id: "vkusvill", name: "ВкусВилл")
         let other = CatalogStore(id: "other", name: "Дары природы")
@@ -244,7 +244,7 @@ final class StorefrontViewModelTests: XCTestCase {
     }
 
     private func shelfPromotion(for offers: [CachedOffer]) -> ProductPromotion? {
-        Product(deal: CatalogItem(product: CatalogProduct(id: "p", name: "Item"), offers: offers))?.promotion
+        Product(deal: CatalogItem(product: CatalogProduct(id: "p", name: "Item", imageURL: CatalogFixtures.imageURL), offers: offers))?.promotion
     }
 
     private func shelfOffer(_ id: String, storeID: String? = nil, price: Decimal, currency: String = "RUB",
@@ -258,7 +258,7 @@ final class StorefrontViewModelTests: XCTestCase {
 
     func testPromotionsAreExclusiveToTheHomeDealsShelf() throws {
         var batch = CatalogFixtures.catalog(price: 100)
-        batch.products.append(CatalogProduct(id: "other", name: "Other"))
+        batch.products.append(CatalogProduct(id: "other", name: "Other", imageURL: CatalogFixtures.imageURL))
         batch.stores.append(CatalogStore(id: "s2", name: "Promo store"))
         batch.offers.append(CatalogOffer(id: "promo", productID: "p1", storeID: "s2", price: 80,
                                          currency: "RUB", inStock: true, priceType: "promo"))
@@ -286,7 +286,7 @@ final class StorefrontViewModelTests: XCTestCase {
         let address = "Санкт-Петербург, Лесная улица, 10"
         let storeName = "Пятёрочка — " + address
         let batch = CatalogImport(
-            products: [CatalogProduct(id: "milk", name: name, brand: "Простоквашино", packageQuantity: 930, packageUnit: "ml")],
+            products: [CatalogProduct(id: "milk", name: name, brand: "Простоквашино", packageQuantity: 930, packageUnit: "ml", imageURL: CatalogFixtures.imageURL)],
             stores: [CatalogStore(id: "store", name: storeName, address: address)],
             offers: [CatalogOffer(id: "offer", productID: "milk", storeID: "store", price: 90, currency: "RUB")])
         let snapshot = try CatalogFixtures.snapshot(batch)
@@ -326,7 +326,7 @@ final class StorefrontViewModelTests: XCTestCase {
         let name = "METRO — Комендантский проспект, 3 лит А"
         let address = "Санкт-Петербург, Комендантский проспект, 3 лит А"
         let batch = CatalogImport(
-            products: [CatalogProduct(id: "p", name: "Картофель фри")],
+            products: [CatalogProduct(id: "p", name: "Картофель фри", imageURL: CatalogFixtures.imageURL)],
             stores: [CatalogStore(id: "s", name: name, chainName: " METRO ", address: address)],
             offers: [CatalogOffer(id: "o", productID: "p", storeID: "s", price: 124, currency: "RUB")])
         let repository = PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(batch))
@@ -346,12 +346,13 @@ final class StorefrontViewModelTests: XCTestCase {
     }
 
     func testCatalogSectionsAndFullCategoryUseTheSameOrderAndSharedSelection() async throws {
-        var products = (0..<5).map { CatalogProduct(id: "milk-\($0)", name: "Milk \($0)", category: " Dairy ", productType: "milk") }
-        products += (0..<4).map { CatalogProduct(id: "fruit-\($0)", name: "Apple \($0)", category: "Produce") }
+        var products = (0..<5).map { CatalogProduct(id: "milk-\($0)", name: "Milk \($0)", category: " Dairy ", productType: "milk", imageURL: CatalogFixtures.imageURL) }
+        products += (0..<4).map { CatalogProduct(id: "fruit-\($0)", name: "Apple \($0)", category: "Produce", imageURL: CatalogFixtures.imageURL) }
         products.append(contentsOf: [
-            CatalogProduct(id: "extra", name: "Extra", category: "Accessories"),
-            CatalogProduct(id: "unknown", name: "Unknown", category: "  "),
-            CatalogProduct(id: "missing", name: "Missing")
+            CatalogProduct(id: "no-photo", name: "Milk with no artwork", category: "Dairy"),
+            CatalogProduct(id: "extra", name: "Extra", category: "Accessories", imageURL: CatalogFixtures.imageURL),
+            CatalogProduct(id: "unknown", name: "Unknown", category: "  ", imageURL: CatalogFixtures.imageURL),
+            CatalogProduct(id: "missing", name: "Missing", imageURL: CatalogFixtures.imageURL)
         ])
         let repo = PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(CatalogImport(products: products)))
         let list = ShoppingListRepository()

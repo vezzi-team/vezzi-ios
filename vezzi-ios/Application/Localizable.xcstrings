@@ -3374,6 +3374,60 @@
         }
       }
     },
+    "ProfileClearCacheAction" : {
+      "comment" : "Clear",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очистить"
+          }
+        }
+      }
+    },
+    "ProfileClearImageCache" : {
+      "comment" : "Clear image cache",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear image cache"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очистить кэш изображений"
+          }
+        }
+      }
+    },
+    "ProfileClearImageCacheQuestion" : {
+      "comment" : "Clear image cache?",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear image cache?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очистить кэш изображений?"
+          }
+        }
+      }
+    },
     "ProfileEditAddress" : {
       "comment" : "Change address",
       "extractionState" : "manual",
@@ -3406,6 +3460,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Электронная почта"
+          }
+        }
+      }
+    },
+    "ProfileImageCacheClearFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t clear the image cache. Try again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось очистить кэш изображений. Попробуйте ещё раз."
+          }
+        }
+      }
+    },
+    "ProfileImageCacheCleared" : {
+      "comment" : "Image cache cleared",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image cache cleared"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кэш изображений очищен"
           }
         }
       }

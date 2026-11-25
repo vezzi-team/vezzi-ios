@@ -42,6 +42,8 @@ final class CoreDataCatalogCacheTests: XCTestCase {
         let price = Decimal(string: "123456.789123456789")!
         let quantity = Decimal(string: "0.123456789123456789")!
         var batch = CatalogFixtures.catalog(price: price)
+        batch.products[0].wideImageURL = URL(string: "https://images.example.test/wide.webp")
+        batch.stores[0].logoURL = URL(string: "https://images.example.test/store.png")
         batch.products[0].packageQuantity = quantity
         batch.offers[0].sourceID = "source"
         batch.offers[0].sourceProductID = "source-product"
@@ -54,6 +56,7 @@ final class CoreDataCatalogCacheTests: XCTestCase {
         let reopened = PersistenceController(storeURL: url)
         let stored = try await CoreDataCatalogCache(persistence: reopened).loadSnapshot()
         XCTAssertEqual(stored.products["p1"], batch.products.first)
+        XCTAssertEqual(stored.stores["s1"], batch.stores.first)
         XCTAssertEqual(stored.offers["o1"]?.offer, batch.offers.first)
         XCTAssertEqual(stored.offers["o1"]?.cachedAt, CatalogFixtures.cachedAt)
         XCTAssertEqual(stored.items(matching: "").first?.offers.first?.store.id, "s1")
@@ -127,6 +130,10 @@ final class CoreDataCatalogCacheTests: XCTestCase {
         try await assertLegacyMigration(from: "PolkaV2")
     }
 
+    func testVersionThreeStoreRequestsFreshMediaWithoutDiscardingItsCartProducts() async throws {
+        try await assertLegacyMigration(from: "PolkaV3")
+    }
+
     private func assertLegacyMigration(from version: String) async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -159,7 +166,7 @@ final class CoreDataCatalogCacheTests: XCTestCase {
             offer.setValue(product, forKey: "product")
             offer.setValue(store, forKey: "store")
             offer.setValue(NSDecimalNumber(string: "99.90"), forKey: "price")
-            if version == "PolkaV2" {
+            if version != "Polka" {
                 offer.setValue("99.900000000000000001", forKey: "priceText")
                 product.setValue("900", forKey: "packageQuantityText")
             }
@@ -167,6 +174,15 @@ final class CoreDataCatalogCacheTests: XCTestCase {
             offer.setValue(CatalogFixtures.cachedAt, forKey: "cachedAt")
             offer.setValue(Date(timeIntervalSince1970: 100), forKey: "sourceUpdatedAt")
             offer.setValue("legacy-source", forKey: "sourceID")
+            if version == "PolkaV3" {
+                let metadata = NSEntityDescription.insertNewObject(forEntityName: "CatalogMetadataEntity", into: context)
+                metadata.setValue("active", forKey: "id")
+                metadata.setValue(7, forKey: "importID")
+                metadata.setValue(48, forKey: "offerMaxAgeHours")
+                metadata.setValue(CatalogFixtures.cachedAt, forKey: "importedAt")
+                metadata.setValue(CatalogFixtures.cachedAt, forKey: "validatedAt")
+                metadata.setValue("legacy-etag", forKey: "etag")
+            }
             try context.save()
         }
         for store in old.persistentStoreCoordinator.persistentStores { try old.persistentStoreCoordinator.remove(store) }
@@ -174,11 +190,17 @@ final class CoreDataCatalogCacheTests: XCTestCase {
         let cache = CoreDataCatalogCache(persistence: persistence)
         let migrated = try await cache.loadSnapshot()
         XCTAssertEqual(migrated.products["p1"]?.packageQuantity, 900)
-        XCTAssertEqual(migrated.offers["o1"]?.offer.price, Decimal(string: version == "PolkaV2" ? "99.900000000000000001" : "99.90"))
-        XCTAssertNil(migrated.metadata)
+        XCTAssertEqual(migrated.offers["o1"]?.offer.price, Decimal(string: version != "Polka" ? "99.900000000000000001" : "99.90"))
+        if version == "PolkaV3" {
+            XCTAssertEqual(migrated.metadata?.importID, 7)
+            XCTAssertNil(migrated.metadata?.etag)
+        } else {
+            XCTAssertNil(migrated.metadata)
+        }
+        XCTAssertTrue(migrated.items(matching: "").isEmpty)
         XCTAssertEqual(migrated.offers["o1"]?.cachedAt, CatalogFixtures.cachedAt)
         XCTAssertEqual(migrated.offers["o1"]?.offer.sourceID, "legacy-source")
-        XCTAssertEqual(migrated.items(matching: "").first?.offers.first?.store.name, "Legacy store")
+        XCTAssertEqual(migrated.allItems().first?.offers.first?.store.name, "Legacy store")
         let exact = Decimal(string: "123456.789123456789")!
         try await cache.save(CatalogFixtures.cached(CatalogFixtures.catalog(price: exact)))
         try closeStore(persistence)

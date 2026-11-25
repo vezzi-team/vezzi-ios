@@ -153,7 +153,7 @@ private struct ProductDetailPage: View {
 
     private var productSummary: some View {
         VStack(alignment: .leading, spacing: Const.summarySpacing) {
-            artworkPlaceholder
+            productArtwork
             productName
             priceSummary
         }
@@ -174,12 +174,12 @@ private struct ProductDetailPage: View {
             } action: { productNameBottom = $0 }
     }
 
-    private var artworkPlaceholder: some View {
-        RoundedRectangle(cornerRadius: Const.artworkCornerRadius)
-            .fill(Color.Background.placeholder)
+    private var productArtwork: some View {
+        CatalogImage(url: product.wideImageURL, fallbackURL: product.imageURL)
+            .frame(maxWidth: .infinity)
             .frame(height: dynamicTypeSize.isAccessibilitySize || verticalSizeClass == .compact
                    ? Const.compactArtworkHeight : Const.artworkHeight)
-            .shimmer()
+            .clipShape(.rect(cornerRadius: Const.artworkCornerRadius))
             .accessibilityHidden(true)
     }
 
@@ -359,7 +359,8 @@ private struct ProductDetailPage: View {
 
     private func offerRow(_ offer: ProductOffer) -> some View {
         HStack(alignment: .top, spacing: Const.storeSpacing) {
-            storeIcon
+            StoreLogo(url: offer.logoURL)
+                .frame(width: Const.storeSize, height: Const.storeSize)
             storeSummary(offer)
         }
         .padding(.vertical, Const.rowVerticalInset)
@@ -389,11 +390,6 @@ private struct ProductDetailPage: View {
             .appTextStyle(size: Const.storeFontSize, lineHeight: Const.storeLineHeight,
                            weight: .semibold, relativeTo: .headline)
             .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private var storeIcon: some View {
-        StoreLogoPlaceholder()
-            .frame(width: Const.storeSize, height: Const.storeSize)
     }
 
     private func storeSummary(_ offer: ProductOffer) -> some View {

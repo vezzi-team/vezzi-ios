@@ -330,6 +330,11 @@ final class Texts {
 
         enum Settings {
             static let language = NSLocalizedString("ProfileLanguage", comment: "App language")
+            static let clearImageCache = NSLocalizedString("ProfileClearImageCache", comment: "Clear cached images")
+            static let clearImageCacheQuestion = NSLocalizedString("ProfileClearImageCacheQuestion", comment: "Confirm clearing cached images")
+            static let clearCacheAction = NSLocalizedString("ProfileClearCacheAction", comment: "Confirm cache removal")
+            static let cacheCleared = NSLocalizedString("ProfileImageCacheCleared", comment: "Image cache cleared")
+            static let cacheClearFailed = NSLocalizedString("ProfileImageCacheClearFailed", comment: "Image cache could not be cleared")
             static let languagePrompt = NSLocalizedString("ProfileLanguagePrompt", comment: "Open the app’s settings to change its language?")
             static let openSettings = NSLocalizedString("ProfileOpenSettings", comment: "Open Settings")
             static let appearance = NSLocalizedString("ProfileAppearance", comment: "Appearance")

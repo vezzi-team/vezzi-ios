@@ -4,6 +4,18 @@ import XCTest
 
 @MainActor
 final class ProductCardLayoutTests: XCTestCase {
+    func testStoreBadgesShowOnlyWhatFitsAndCountEveryRemainingStore() {
+        let cases: [(count: Int, width: CGFloat, logos: Int, extra: Int)] = [
+            (0, 64, 0, 0), (3, 23, 0, 0), (1, 24, 1, 0), (3, 24, 0, 3),
+            (2, 44, 2, 0), (3, 44, 1, 2), (3, 64, 2, 1), (20, 100, 2, 18)
+        ]
+        for item in cases {
+            let layout = ProductStoreBadgeLayout(storeCount: item.count, availableWidth: item.width)
+            XCTAssertEqual(layout.logoCount, item.logos)
+            XCTAssertEqual(layout.extraCount, item.extra)
+        }
+    }
+
     func testMissingFieldsDoNotChangeCardHeight() {
         let offer = ProductOffer(id: "offer", storeID: "store", name: "Store", price: 99)
         let full = product(brand: "Brand", offers: [offer])

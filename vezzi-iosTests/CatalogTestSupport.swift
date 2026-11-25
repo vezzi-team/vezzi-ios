@@ -4,10 +4,11 @@ import XCTest
 @testable import vezzi_ios
 
 nonisolated enum CatalogFixtures {
+    static let imageURL = URL(string: "https://images.example.test/product.webp")!
     static let cachedAt = Date(timeIntervalSince1970: 1234)
 
     static func catalog(price: Decimal = Decimal(string: "99.90")!, date: Date? = Date(timeIntervalSince1970: 100)) -> CatalogImport {
-        CatalogImport(products: [CatalogProduct(id: "p1", name: "Молоко", brand: "Brand", packageQuantity: 900, packageUnit: "мл")],
+        CatalogImport(products: [CatalogProduct(id: "p1", name: "Молоко", brand: "Brand", packageQuantity: 900, packageUnit: "мл", imageURL: CatalogFixtures.imageURL)],
                       stores: [CatalogStore(id: "s1", name: "Store")],
                       offers: [CatalogOffer(id: "o1", productID: "p1", storeID: "s1", price: price,
                                             currency: "RUB", inStock: true, sourceUpdatedAt: date)])
@@ -31,7 +32,7 @@ nonisolated enum CatalogFixtures {
 
     static func largeCatalog() -> CatalogImport {
         CatalogImport(
-            products: (0..<1000).map { CatalogProduct(id: "p\($0)", name: "Product \($0)", brand: "Brand", category: "Food") },
+            products: (0..<1000).map { CatalogProduct(id: "p\($0)", name: "Product \($0)", brand: "Brand", category: "Food", imageURL: CatalogFixtures.imageURL) },
             stores: (0..<20).map { CatalogStore(id: "s\($0)", name: "Store \($0)") },
             offers: (0..<7868).map {
                 CatalogOffer(id: "o\($0)", productID: "p\($0 % 1000)", storeID: "s\($0 % 20)", price: 100, currency: "RUB")

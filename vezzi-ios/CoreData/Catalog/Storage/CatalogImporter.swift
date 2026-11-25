@@ -30,6 +30,8 @@ nonisolated enum CatalogImporter {
                 object.packageQuantity = value.packageQuantity.map(NSDecimalNumber.init(decimal:))
                 object.packageQuantityText = value.packageQuantity.map(ExactDecimal.encode)
                 object.packageUnit = value.packageUnit
+                object.imageURL = value.imageURL
+                object.wideImageURL = value.wideImageURL
                 productByID[value.id] = object
             }
 
@@ -46,6 +48,7 @@ nonisolated enum CatalogImporter {
                 object.longitude = value.longitude.map(NSNumber.init(value:))
                 object.isActive = value.isActive
                 object.format = value.format
+                object.logoURL = value.logoURL
                 storeByID[value.id] = object
             }
 
@@ -97,6 +100,7 @@ nonisolated enum CatalogImporter {
                 object.isSynthetic = metadata.isSynthetic
                 object.offerMaxAgeHours = Int64(metadata.offerMaxAgeHours)
                 object.etag = metadata.etag
+                object.includesMediaFields = true
                 object.validatedAt = metadata.validatedAt
             } else if records.replacesCatalog {
                 try removeMissing("CatalogMetadataEntity", keeping: [], in: context)

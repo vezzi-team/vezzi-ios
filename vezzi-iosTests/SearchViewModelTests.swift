@@ -7,7 +7,7 @@ final class SearchViewModelTests: XCTestCase {
     func testOfflineAlternativesAreOrderedByDisplayedPriceInBothModes() async throws {
         let cache = ControlledCatalogCache()
         let products = ["root", "a", "b", "c", "unpriced"].map {
-            CatalogProduct(id: $0, name: $0, productType: "milk")
+            CatalogProduct(id: $0, name: $0, productType: "milk", imageURL: CatalogFixtures.imageURL)
         }
         cache.snapshot = try CatalogFixtures.snapshot(CatalogImport(
             products: products, stores: [CatalogStore(id: "x", name: "X"), CatalogStore(id: "y", name: "Y")],
@@ -30,7 +30,7 @@ final class SearchViewModelTests: XCTestCase {
     }
 
     func testServerMatchesUseCatalogOffersAndUpdateBothModesWithoutRepeatingTheQuery() async throws {
-        let hit = CatalogProduct(id: "p1", name: "Remote product")
+        let hit = CatalogProduct(id: "p1", name: "Remote product", imageURL: CatalogFixtures.imageURL)
         let source = SearchCatalogSource { _ in [hit] }
         let repository = DefaultCatalogRepository(source: source)
         let model = SearchViewModel(repository: repository)
@@ -41,7 +41,7 @@ final class SearchViewModelTests: XCTestCase {
         XCTAssertTrue(model.sections.isEmpty)
 
         var batch = CatalogFixtures.catalog(price: 112)
-        batch.products.append(CatalogProduct(id: "local", name: "synonym"))
+        batch.products.append(CatalogProduct(id: "local", name: "synonym", imageURL: CatalogFixtures.imageURL))
         try await repository.importCatalog(batch)
         _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.first?.offers.first?.offer.price == 112 })
         XCTAssertEqual(model.sections.map(\.storeID), ["s1"])
@@ -87,7 +87,7 @@ final class SearchViewModelTests: XCTestCase {
 
     func testReconnectingAfterColdOfflineLaunchLoadsStoreOffersForActiveSearch() async throws {
         let catalog = ControlledCatalogSource()
-        let source = SearchCatalogSource(export: catalog) { _ in [CatalogProduct(id: "p1", name: "Milk")] }
+        let source = SearchCatalogSource(export: catalog) { _ in [CatalogProduct(id: "p1", name: "Milk", imageURL: CatalogFixtures.imageURL)] }
         let repository = DefaultCatalogRepository(source: source)
         repository.updateConnectivity(isConnected: false)
         let model = SearchViewModel(repository: repository)
@@ -115,7 +115,7 @@ final class SearchViewModelTests: XCTestCase {
                 started.fulfill()
                 do { try await Task.sleep(for: .seconds(10)) } catch { cancelled.fulfill() }
             }
-            return [CatalogProduct(id: query, name: query)]
+            return [CatalogProduct(id: query, name: query, imageURL: CatalogFixtures.imageURL)]
         }
         let model = SearchViewModel(repository: DefaultCatalogRepository(source: source))
         var seenIDs: [String] = []
@@ -135,7 +135,7 @@ final class SearchViewModelTests: XCTestCase {
     }
 
     func testReconnectRevalidatesOlderCachedCatalogAndJoinsNewStoresToActiveResults() async throws {
-        let product = CatalogProduct(id: "new", name: "New milk")
+        let product = CatalogProduct(id: "new", name: "New milk", imageURL: CatalogFixtures.imageURL)
         let export = ControlledCatalogSource()
         let source = SearchCatalogSource(export: export) { _ in [product] }
         let cache = ControlledCatalogCache()
@@ -198,7 +198,7 @@ final class SearchViewModelTests: XCTestCase {
                 started.fulfill()
                 for await _ in gate.stream { break }
             }
-            return [CatalogProduct(id: query, name: query)]
+            return [CatalogProduct(id: query, name: query, imageURL: CatalogFixtures.imageURL)]
         }
         let repository = DefaultCatalogRepository(source: source)
         let model = SearchViewModel(repository: repository)
@@ -244,7 +244,7 @@ final class SearchViewModelTests: XCTestCase {
     }
 
     func testNoOffersInFastestKeepsModePickerAvailable() throws {
-        let snapshot = try CatalogFixtures.snapshot(CatalogImport(products: [CatalogProduct(id: "p", name: "Milk")]))
+        let snapshot = try CatalogFixtures.snapshot(CatalogImport(products: [CatalogProduct(id: "p", name: "Milk", imageURL: CatalogFixtures.imageURL)]))
         let model = SearchViewModel(repository: PreviewCatalogRepository(snapshot: snapshot))
         model.mode = .faster
         XCTAssertTrue(model.sections.isEmpty)
@@ -287,7 +287,7 @@ final class SearchViewModelTests: XCTestCase {
     func testProductNameFallbackInSectionTitleOmitsDuplicatedPackage() throws {
         let name = "4 сезона Картофель фри, 450 г"
         let batch = CatalogImport(
-            products: [CatalogProduct(id: "p", name: name, brand: "4 сезона", packageQuantity: 450, packageUnit: "g")],
+            products: [CatalogProduct(id: "p", name: name, brand: "4 сезона", packageQuantity: 450, packageUnit: "g", imageURL: CatalogFixtures.imageURL)],
             stores: [CatalogStore(id: "s", name: "Store")],
             offers: [CatalogOffer(id: "o", productID: "p", storeID: "s", price: 100, currency: "RUB")])
         let model = SearchViewModel(repository: PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(batch)))
@@ -299,7 +299,7 @@ final class SearchViewModelTests: XCTestCase {
     func testFasterModeSeparatesAddressesAndKeepsBranchesOfOneChainDistinct() throws {
         let addresses = ["Санкт-Петербург, Комендантский проспект, 3 лит А", "Санкт-Петербург, Пулковское шоссе, 23"]
         let batch = CatalogImport(
-            products: [CatalogProduct(id: "p", name: "Молоко", category: "Молочное")],
+            products: [CatalogProduct(id: "p", name: "Молоко", category: "Молочное", imageURL: CatalogFixtures.imageURL)],
             stores: [
                 CatalogStore(id: "s1", name: "METRO — Комендантский проспект, 3 лит А", chainName: "METRO", address: addresses[0]),
                 CatalogStore(id: "s2", name: "METRO — Пулковское шоссе, 23", chainName: "METRO", address: addresses[1])
@@ -335,11 +335,11 @@ final class SearchViewModelTests: XCTestCase {
 
     func testCheaperModeMergesCategoryTitlesAcrossProductTypesAndKeepsOtherCategoriesSeparate() async throws {
         let products = [
-            CatalogProduct(id: "milk", name: "Молоко", category: "Молочные продукты", productType: "Молоко"),
-            CatalogProduct(id: "kefir", name: "Кефир", category: "Молочные продукты", productType: "Кефир"),
-            CatalogProduct(id: "yogurt", name: "Йогурт", category: "Молочные продукты", productType: "Йогурт"),
-            CatalogProduct(id: "cream", name: "Сливки", category: " МОЛОЧНЫЕ  продукты ", productType: "Сливки"),
-            CatalogProduct(id: "baby", name: "Детское молоко", category: "Детское питание", productType: "Молоко")
+            CatalogProduct(id: "milk", name: "Молоко", category: "Молочные продукты", productType: "Молоко", imageURL: CatalogFixtures.imageURL),
+            CatalogProduct(id: "kefir", name: "Кефир", category: "Молочные продукты", productType: "Кефир", imageURL: CatalogFixtures.imageURL),
+            CatalogProduct(id: "yogurt", name: "Йогурт", category: "Молочные продукты", productType: "Йогурт", imageURL: CatalogFixtures.imageURL),
+            CatalogProduct(id: "cream", name: "Сливки", category: " МОЛОЧНЫЕ  продукты ", productType: "Сливки", imageURL: CatalogFixtures.imageURL),
+            CatalogProduct(id: "baby", name: "Детское молоко", category: "Детское питание", productType: "Молоко", imageURL: CatalogFixtures.imageURL)
         ]
         let batch = CatalogImport(products: products, stores: [CatalogStore(id: "s", name: "Store")],
                                   offers: [("milk", 100), ("kefir", 80), ("yogurt", 80), ("baby", 70)].map { id, price in
@@ -359,9 +359,9 @@ final class SearchViewModelTests: XCTestCase {
 
     func testCheaperModeUsesTheSameShelfForMatchingFallbackTitles() throws {
         let batch = CatalogImport(products: [
-            CatalogProduct(id: "category", name: "Apple juice", category: "Juice"),
-            CatalogProduct(id: "type", name: "Orange juice", category: "  ", productType: "  Juice"),
-            CatalogProduct(id: "name", name: "Juice ", productType: " ")
+            CatalogProduct(id: "category", name: "Apple juice", category: "Juice", imageURL: CatalogFixtures.imageURL),
+            CatalogProduct(id: "type", name: "Orange juice", category: "  ", productType: "  Juice", imageURL: CatalogFixtures.imageURL),
+            CatalogProduct(id: "name", name: "Juice ", productType: " ", imageURL: CatalogFixtures.imageURL)
         ])
         let model = SearchViewModel(repository: PreviewCatalogRepository(snapshot: try CatalogFixtures.snapshot(batch)))
         XCTAssertEqual(model.sections.map(\.title), ["Juice"])

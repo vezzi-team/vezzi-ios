@@ -126,7 +126,7 @@ final class CatalogRepositoryTests: XCTestCase {
         await fulfillment(of: [started], timeout: 5)
         try await repository.refresh()
         var obsolete = CatalogFixtures.catalog()
-        obsolete.products.append(CatalogProduct(id: "deleted", name: "Deleted"))
+        obsolete.products.append(CatalogProduct(id: "deleted", name: "Deleted", imageURL: CatalogFixtures.imageURL))
         cache.finishLoading(try CatalogFixtures.snapshot(obsolete))
         await loading.value
         let items = await catalogItems(from: repository)
@@ -185,7 +185,7 @@ final class CatalogRepositoryTests: XCTestCase {
 
     func testFailedReplacementRetriesTheLatestWholeSnapshot() async throws {
         let cache = ControlledCatalogCache()
-        cache.snapshot = try CatalogFixtures.snapshot(CatalogImport(products: [CatalogProduct(id: "old", name: "Old")]))
+        cache.snapshot = try CatalogFixtures.snapshot(CatalogImport(products: [CatalogProduct(id: "old", name: "Old", imageURL: CatalogFixtures.imageURL)]))
         cache.writeError = URLError(.cannotWriteToFile)
         let source = ControlledCatalogSource()
         await source.succeed(with: CatalogFixtures.catalog())
@@ -210,12 +210,12 @@ final class CatalogRepositoryTests: XCTestCase {
     func testRelatedProductsAreIndependentOfTheTextSearchLimit() async throws {
         let repository = DefaultCatalogRepository()
         var batch = CatalogImport(products: (0..<CatalogSearch.resultLimit).map {
-            CatalogProduct(id: "other-\($0)", name: "A product \($0)", productType: "other")
+            CatalogProduct(id: "other-\($0)", name: "A product \($0)", productType: "other", imageURL: CatalogFixtures.imageURL)
         })
         batch.products += [
-            CatalogProduct(id: "selected", name: "Z selected milk", productType: "milk"),
-            CatalogProduct(id: "alternative-1", name: "Z alternative one", productType: "milk"),
-            CatalogProduct(id: "alternative-2", name: "Z alternative two", productType: "milk")
+            CatalogProduct(id: "selected", name: "Z selected milk", productType: "milk", imageURL: CatalogFixtures.imageURL),
+            CatalogProduct(id: "alternative-1", name: "Z alternative one", productType: "milk", imageURL: CatalogFixtures.imageURL),
+            CatalogProduct(id: "alternative-2", name: "Z alternative two", productType: "milk", imageURL: CatalogFixtures.imageURL)
         ]
         try await repository.importCatalog(batch)
         let limited = await catalogItems(from: repository)
@@ -237,7 +237,7 @@ final class CatalogRepositoryTests: XCTestCase {
         let repository = DefaultCatalogRepository()
         var batch = CatalogFixtures.catalog()
         batch.products[0].productType = "milk"
-        batch.products.append(CatalogProduct(id: "alternative", name: "Other milk", productType: "milk"))
+        batch.products.append(CatalogProduct(id: "alternative", name: "Other milk", productType: "milk", imageURL: CatalogFixtures.imageURL))
         batch.offers.append(CatalogOffer(id: "alternative-offer", productID: "alternative", storeID: "s1",
                                         price: 110, currency: "RUB"))
         try await repository.importCatalog(batch)
@@ -260,10 +260,43 @@ final class CatalogRepositoryTests: XCTestCase {
         await fulfillment(of: [removed], timeout: 5)
     }
 
+    func testShoppingListReceivesBranchLogosFromALateCatalogWithoutOffers() async throws {
+        let catalog = DefaultCatalogRepository()
+        let list = ShoppingListViewModel(catalog: catalog, list: ShoppingListRepository())
+        let logo = try XCTUnwrap(URL(string: "https://images.example.test/branch.png"))
+        let received = expectation(description: "Logo available to an already open shopping list")
+        let observation = list.$storeLogoURLs.filter { $0["branch"] == logo }.prefix(1)
+            .sink { _ in received.fulfill() }
+        defer { observation.cancel() }
+
+        try await catalog.importCatalog(CatalogImport(stores: [CatalogStore(id: "branch", name: "Store", logoURL: logo)]))
+        await fulfillment(of: [received], timeout: 5)
+        XCTAssertEqual(list.storeLogoURLs, ["branch": logo])
+    }
+
+    func testPhotoFilterPrecedesDiscoveryLimitsAndPreservesPersonalListRecords() throws {
+        let missing = (0...CatalogSearch.resultLimit).map {
+            CatalogProduct(id: "missing-\($0)", name: "A \($0)", category: "Dairy")
+        }
+        let wide = CatalogProduct(id: "wide", name: "Last", category: "Dairy", wideImageURL: CatalogFixtures.imageURL)
+        let snapshot = try CatalogFixtures.snapshot(CatalogImport(products: missing + [wide]))
+        XCTAssertEqual(snapshot.allItems().count, missing.count + 1)
+        XCTAssertEqual(snapshot.items(matching: "").map(\.id), [wide.id])
+        XCTAssertEqual(snapshot.relatedItems(to: missing[0].id).map(\.id), [wide.id])
+
+        var fresh = missing[0]
+        fresh.imageURL = CatalogFixtures.imageURL
+        let rankedWide = CatalogProduct(id: wide.id, name: wide.name)
+        let ranked = snapshot.items(for: [missing[1], rankedWide, fresh])
+        XCTAssertEqual(ranked.map(\.id), [wide.id, fresh.id])
+        XCTAssertEqual(ranked.first?.product.wideImageURL, wide.wideImageURL)
+        XCTAssertEqual(ranked.last?.product.imageURL, fresh.imageURL)
+    }
+
     func testRelatedQueryBoundsItsOwnResultsAndHandlesMissingGroups() throws {
-        let products = [CatalogProduct(id: "selected", name: "Selected", category: "Dairy")]
-            + (0...CatalogSearch.resultLimit).map { CatalogProduct(id: "p\($0)", name: "Product \($0)", category: "Dairy") }
-            + [CatalogProduct(id: "ungrouped", name: "Ungrouped")]
+        let products = [CatalogProduct(id: "selected", name: "Selected", category: "Dairy", imageURL: CatalogFixtures.imageURL)]
+            + (0...CatalogSearch.resultLimit).map { CatalogProduct(id: "p\($0)", name: "Product \($0)", category: "Dairy", imageURL: CatalogFixtures.imageURL) }
+            + [CatalogProduct(id: "ungrouped", name: "Ungrouped", imageURL: CatalogFixtures.imageURL)]
         let snapshot = try CatalogFixtures.snapshot(CatalogImport(products: products))
         let related = snapshot.relatedItems(to: "selected")
         XCTAssertEqual(related.count, CatalogSearch.resultLimit)
@@ -274,11 +307,11 @@ final class CatalogRepositoryTests: XCTestCase {
 
     func testRelatedQueryFiltersTheStoreBeforeApplyingItsLimit() throws {
         var batch = CatalogImport(products: (0..<CatalogSearch.resultLimit).map {
-            CatalogProduct(id: "unavailable-\($0)", name: "A product \($0)", productType: "milk")
+            CatalogProduct(id: "unavailable-\($0)", name: "A product \($0)", productType: "milk", imageURL: CatalogFixtures.imageURL)
         }, stores: [CatalogStore(id: "s1", name: "Store")])
         batch.products += [
-            CatalogProduct(id: "selected", name: "Selected", productType: "milk"),
-            CatalogProduct(id: "available", name: "Z available", productType: "milk")
+            CatalogProduct(id: "selected", name: "Selected", productType: "milk", imageURL: CatalogFixtures.imageURL),
+            CatalogProduct(id: "available", name: "Z available", productType: "milk", imageURL: CatalogFixtures.imageURL)
         ]
         batch.offers = [CatalogOffer(id: "offer", productID: "available", storeID: "s1", price: 100, currency: "RUB", inStock: true)]
         let snapshot = try CatalogFixtures.snapshot(batch)
@@ -321,7 +354,7 @@ final class CatalogRepositoryTests: XCTestCase {
     func testQueriesAreIndependentAndCancellationDoesNotAffectAnotherQuery() async throws {
         let repository = DefaultCatalogRepository()
         var batch = CatalogFixtures.catalog()
-        batch.products.append(CatalogProduct(id: "p2", name: "Bread"))
+        batch.products.append(CatalogProduct(id: "p2", name: "Bread", imageURL: CatalogFixtures.imageURL))
         try await repository.importCatalog(batch)
         let milk = expectation(description: "Milk query")
         let bread = expectation(description: "Bread query survives other cancellation")
@@ -336,14 +369,14 @@ final class CatalogRepositoryTests: XCTestCase {
         defer { first.cancel(); second.cancel() }
         await fulfillment(of: [milk], timeout: 5)
         first.cancel()
-        try await repository.importCatalog(CatalogImport(products: [CatalogProduct(id: "p2", name: "Bread", brand: "Fresh")]))
+        try await repository.importCatalog(CatalogImport(products: [CatalogProduct(id: "p2", name: "Bread", brand: "Fresh", imageURL: CatalogFixtures.imageURL)]))
         await fulfillment(of: [bread], timeout: 5)
     }
 
     func testSearchUsesAllWordsAcrossFieldsAndHonorsLimit() async throws {
         let repository = DefaultCatalogRepository()
         var batch = CatalogFixtures.largeCatalog()
-        batch.products.append(CatalogProduct(id: "special", name: "Café", brand: "Brand", category: "Drinks"))
+        batch.products.append(CatalogProduct(id: "special", name: "Café", brand: "Brand", category: "Drinks", imageURL: CatalogFixtures.imageURL))
         try await repository.importCatalog(batch)
         let all = await catalogItems(from: repository)
         XCTAssertEqual(all.count, CatalogSearch.resultLimit)
@@ -356,7 +389,7 @@ final class CatalogRepositoryTests: XCTestCase {
     func testReassigningOfferUpdatesProductIndex() async throws {
         let repository = DefaultCatalogRepository()
         var batch = CatalogFixtures.catalog()
-        batch.products.append(CatalogProduct(id: "p2", name: "Bread"))
+        batch.products.append(CatalogProduct(id: "p2", name: "Bread", imageURL: CatalogFixtures.imageURL))
         try await repository.importCatalog(batch)
         let offer = CatalogOffer(id: "o1", productID: "p2", storeID: "s1", price: 120, currency: "RUB",
                                  sourceUpdatedAt: Date(timeIntervalSince1970: 200))
@@ -369,7 +402,7 @@ final class CatalogRepositoryTests: XCTestCase {
     func testInvalidImportIsAtomicWithoutCache() async throws {
         let repository = DefaultCatalogRepository()
         try await repository.importCatalog(CatalogFixtures.catalog())
-        let invalid = CatalogImport(products: [CatalogProduct(id: "p2", name: "Must roll back")], offers: [
+        let invalid = CatalogImport(products: [CatalogProduct(id: "p2", name: "Must roll back", imageURL: CatalogFixtures.imageURL)], offers: [
             CatalogOffer(id: "bad", productID: "p2", storeID: "missing", price: 100, currency: "RUB")
         ])
         do {
@@ -385,7 +418,7 @@ final class CatalogRepositoryTests: XCTestCase {
         try await withThrowingTaskGroup(of: Void.self) { group in
             for index in 0..<30 {
                 group.addTask {
-                    try await repository.importCatalog(CatalogImport(products: [CatalogProduct(id: "p\(index)", name: "Product \(index)")]))
+                    try await repository.importCatalog(CatalogImport(products: [CatalogProduct(id: "p\(index)", name: "Product \(index)", imageURL: CatalogFixtures.imageURL)]))
                 }
             }
             try await group.waitForAll()
@@ -519,7 +552,7 @@ final class CatalogRepositoryTests: XCTestCase {
         try await withThrowingTaskGroup(of: Void.self) { group in
             for index in 0..<30 {
                 group.addTask {
-                    let product = CatalogProduct(id: "p\(index)", name: "Product \(index)")
+                    let product = CatalogProduct(id: "p\(index)", name: "Product \(index)", imageURL: CatalogFixtures.imageURL)
                     try await repository.importCatalog(CatalogImport(products: [product]))
                 }
             }

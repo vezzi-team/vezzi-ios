@@ -13,6 +13,8 @@ struct Product: Identifiable {
     let category: ProductCategory?
     var offers: [ProductOffer]
     var promotion: ProductPromotion?
+    var imageURL: URL?
+    var wideImageURL: URL?
 
     var displayName: String {
         let unpackaged = ProductDisplayText.removingPackage(quantity: packageQuantity, unit: packageUnit, from: name)
@@ -106,6 +108,7 @@ struct ProductOffer: Identifiable {
     var priceConditions: String?
     var address: String?
     var chainName: String?
+    var logoURL: URL?
 
     var storeTitle: String {
         if let chainName = chainName?.trimmingCharacters(in: .whitespacesAndNewlines), !chainName.isEmpty {
@@ -178,10 +181,13 @@ extension Product {
         let sorted = stores.values.sorted {
             $0.store.name == $1.store.name ? $0.store.id < $1.store.id : $0.store.name < $1.store.name
         }
-        self.init(id: item.id, name: item.product.name, brand: item.product.brand ?? "",
-                  packageQuantity: item.product.packageQuantity, packageUnit: item.product.packageUnit,
-                  category: item.product.category.map(ProductCategory.init(rawValue:)),
-                  offers: sorted.map { ProductOffer(cached: $0, distance: distances[$0.store.id]) })
+        self.init(record: item.product, offers: sorted.map { ProductOffer(cached: $0, distance: distances[$0.store.id]) })
+    }
+
+    init(record: CatalogProduct, offers: [ProductOffer]) {
+        self.init(id: record.id, name: record.name, brand: record.brand ?? "", packageQuantity: record.packageQuantity,
+                  packageUnit: record.packageUnit, category: record.category.map(ProductCategory.init(rawValue:)),
+                  offers: offers, imageURL: record.imageURL ?? record.wideImageURL, wideImageURL: record.wideImageURL ?? record.imageURL)
     }
 
     private static func representativeOffers(for item: CatalogItem) -> [String: CachedOffer] {
@@ -207,7 +213,8 @@ private extension ProductOffer {
         self.init(id: cached.id, storeID: cached.store.id, name: cached.store.name,
                   price: cached.offer.price, currency: cached.offer.currency, inStock: cached.offer.inStock,
                   distance: distance, isFresh: cached.isFresh, cardPrice: cached.offer.cardPrice,
-                  priceConditions: cached.offer.priceConditions, address: cached.store.address, chainName: cached.store.chainName)
+                  priceConditions: cached.offer.priceConditions, address: cached.store.address, chainName: cached.store.chainName,
+                  logoURL: cached.store.logoURL)
     }
 }
 
@@ -267,15 +274,25 @@ nonisolated enum StoreDisplayText {
     }
 }
 
-extension ShoppingPlanItem {
-    func assignedOffer(in store: CatalogStore) -> ProductOffer {
-        ProductOffer(id: "plan.\(store.id).\(product.id)", storeID: store.id, name: store.name, price: unitPrice,
-                     cardPrice: cardPrice, priceConditions: priceConditions, address: store.address, chainName: store.chainName)
+/// Resolve media by catalog ID while retaining the quantities, prices and labels of the saved plan.
+struct ShoppingPlanMedia {
+    var items: [String: CatalogItem] = [:]
+    var storeLogos: [String: URL] = [:]
+
+    func logo(for store: CatalogStore) -> URL? { storeLogos[store.id] ?? store.logoURL }
+
+    func offer(for item: ShoppingPlanItem, in store: CatalogStore) -> ProductOffer {
+        ProductOffer(id: "plan.\(store.id).\(item.product.id)", storeID: store.id, name: store.name, price: item.unitPrice,
+                     cardPrice: item.cardPrice, priceConditions: item.priceConditions, address: store.address,
+                     chainName: store.chainName, logoURL: logo(for: store))
     }
 
-    func cardProduct(in store: CatalogStore) -> Product {
-        Product(id: product.id, name: product.name, brand: product.brand ?? "", packageQuantity: product.packageQuantity,
-                packageUnit: product.packageUnit, category: product.category.map(ProductCategory.init(rawValue:)),
-                offers: [assignedOffer(in: store)])
+    func card(for item: ShoppingPlanItem, in store: CatalogStore) -> Product {
+        var record = item.product
+        if let current = items[record.id]?.product {
+            record.imageURL = current.imageURL ?? record.imageURL
+            record.wideImageURL = current.wideImageURL ?? record.wideImageURL
+        }
+        return Product(record: record, offers: [offer(for: item, in: store)])
     }
 }

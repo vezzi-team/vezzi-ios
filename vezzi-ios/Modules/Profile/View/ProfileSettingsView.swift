@@ -6,13 +6,17 @@ struct ProfileSettingsView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.catalogImageCache) private var imageCache
     @State private var confirmsLanguageChange = false
+    @State private var confirmsCacheClear = false
+    @State private var cacheState = CacheState.idle
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: ProfileLayout.sectionSpacing) {
                 languageRow
                 themeSection
+                imageCacheRow
             }
             .buttonStyle(.plain)
             .padding(ProfileLayout.inset)
@@ -69,6 +73,54 @@ struct ProfileSettingsView: View {
             }
         }
     }
+
+    private var imageCacheRow: some View {
+        ProfileCard(verticalInset: ProfileLayout.labelSpacing) {
+            VStack(alignment: .leading, spacing: ProfileLayout.labelSpacing) {
+                Button { confirmsCacheClear = true } label: {
+                    HStack {
+                        Text(Texts.Profile.Settings.clearImageCache)
+                        Spacer()
+                        switch cacheState {
+                        case .idle, .failed: EmptyView()
+                        case .clearing: ProgressView().controlSize(.small)
+                        case .cleared: Image.System.checkmark.foregroundStyle(Color.accentColor)
+                        }
+                    }
+                    .frame(minHeight: Const.rowHeight)
+                    .contentShape(Rectangle())
+                }
+                .disabled(cacheState == .clearing)
+                .accessibilityLabel(Texts.Profile.Settings.clearImageCache)
+                .accessibilityValue(cacheState == .cleared ? Texts.Profile.Settings.cacheCleared : "")
+                .accessibilityIdentifier(AccessibilityID.Profile.clearImageCache)
+                if cacheState == .failed {
+                    Text(Texts.Profile.Settings.cacheClearFailed)
+                        .font(.footnote)
+                        .foregroundStyle(Color.Label.secondary)
+                }
+            }
+        }
+        .alert(Texts.Profile.Settings.clearImageCacheQuestion, isPresented: $confirmsCacheClear) {
+            Button(Texts.Authentication.cancel, role: .cancel) {}
+            Button(Texts.Profile.Settings.clearCacheAction, role: .destructive, action: clearImageCache)
+        }
+    }
+
+    private func clearImageCache() {
+        guard cacheState != .clearing else { return }
+        cacheState = .clearing
+        Task {
+            do {
+                try await CatalogImageCache.clear(imageCache)
+                cacheState = .cleared
+            } catch {
+                cacheState = .failed
+            }
+        }
+    }
+
+    private enum CacheState { case idle, clearing, cleared, failed }
 
     private var languageName: String {
         let code = Bundle.main.preferredLocalizations.first ?? locale.identifier

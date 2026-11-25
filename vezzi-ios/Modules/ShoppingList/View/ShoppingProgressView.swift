@@ -11,6 +11,7 @@ struct ShoppingProgressView: View {
     @State private var purchaseFeedback = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var textSize
+    @Environment(\.shoppingPlanMedia) private var media
 
     var body: some View {
         Group {
@@ -75,7 +76,7 @@ struct ShoppingProgressView: View {
                 }
                 LazyVGrid(columns: ProductGridLayout.columns(for: textSize), spacing: 12) {
                     ForEach(stop.items, id: \.product.id) { item in
-                        ProductCard(product: item.cardProduct(in: stop.store), showsPricePrefix: false,
+                        ProductCard(product: media.card(for: item, in: stop.store), showsPricePrefix: false,
                                     isPurchased: item.isBought, quantity: .constant(item.quantity)) {
                             if let id = item.itemID, list.togglePurchase(itemID: id, planID: trip.plan.id) {
                                 purchaseFeedback.toggle()
@@ -138,7 +139,7 @@ struct ShoppingProgressView: View {
                                 Text(Texts.Trip.noneBought).font(.footnote).foregroundStyle(.secondary)
                             } else {
                                 ForEach(stop.boughtItems, id: \.product.id) { item in
-                                    LabeledContent(item.cardProduct(in: stop.store).displayName,
+                                    LabeledContent(media.card(for: item, in: stop.store).displayName,
                                                    value: Texts.Trip.quantity(item.quantity)).font(.footnote)
                                 }
                             }
@@ -237,6 +238,7 @@ extension View {
 }
 
 struct TripStoreLabel: View {
+    @Environment(\.shoppingPlanMedia) private var media
     let stop: ShoppingPlanStop
     var caption: String?
     var large = false
@@ -244,10 +246,17 @@ struct TripStoreLabel: View {
     var body: some View {
         let name = stop.store.chainName ?? stop.store.name
         HStack(spacing: 12) {
-            Text(String(name.prefix(1)).uppercased()).font(.title3.bold())
-                .frame(width: 46, height: 46)
-                .background(Color.Background.placeholder, in: .rect(cornerRadius: 15))
-                .accessibilityHidden(true)
+            Group {
+                if let logoURL = media.logo(for: stop.store) {
+                    CatalogImage(url: logoURL, usage: .logo)
+                } else {
+                    Text(String(name.prefix(1)).uppercased()).font(.title3.bold())
+                }
+            }
+            .frame(width: 46, height: 46)
+            .background(Color.Background.placeholder)
+            .clipShape(.rect(cornerRadius: 15))
+            .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 if let caption { Text(caption).font(.caption).foregroundStyle(.secondary) }
                 Text(name).font(large ? .title.bold() : .headline)

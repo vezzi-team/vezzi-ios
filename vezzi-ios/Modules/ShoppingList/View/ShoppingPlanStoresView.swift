@@ -1,5 +1,9 @@
 import SwiftUI
 
+extension EnvironmentValues {
+    @Entry var shoppingPlanMedia = ShoppingPlanMedia()
+}
+
 struct ShoppingPlanStoresView: View {
     let stops: [ShoppingPlanStop]
 
@@ -23,11 +27,12 @@ struct ShoppingPlanStoresView: View {
 }
 
 struct ShoppingPlanStoreRow: View {
+    @Environment(\.shoppingPlanMedia) private var media
     let stop: ShoppingPlanStop
 
     var body: some View {
         HStack(alignment: .top, spacing: Const.spacing) {
-            StoreLogoPlaceholder()
+            StoreLogo(url: media.logo(for: stop.store))
                 .frame(width: Const.logoSize, height: Const.logoSize)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: Const.captionSpacing) {

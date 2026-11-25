@@ -214,7 +214,7 @@ struct SearchView: View {
     private func sectionTitle(_ section: SearchSection) -> some View {
         HStack(alignment: .top, spacing: Const.storeSpacing) {
             if section.storeID != nil {
-                StoreLogoPlaceholder()
+                StoreLogo(url: section.products.first?.offers.first?.logoURL)
                     .frame(width: Const.storeSize, height: Const.storeSize)
             }
             sectionLabels(section)

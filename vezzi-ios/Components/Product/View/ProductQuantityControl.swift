@@ -41,6 +41,7 @@ struct ProductQuantityControl: View {
                 compactControl
             }
         }
+        .environment(\.colorScheme, .light)
         .animation(quantityAnimation, value: quantity)
     }
 
@@ -62,6 +63,10 @@ struct ProductQuantityControl: View {
         }
     }
 
+    private var frostedGlass: Glass {
+        .regular.tint(Color.Label.white.opacity(0.7)).interactive()
+    }
+
     private var addButton: some View {
         Button { setQuantity(1) } label: {
             Image.System.plus
@@ -71,7 +76,7 @@ struct ProductQuantityControl: View {
                 .contentShape(.circle)
         }
         .buttonStyle(.plain)
-        .glassEffect(.regular.interactive(), in: .capsule)
+        .glassEffect(frostedGlass, in: .capsule)
         .glassEffectID(Const.addGlassID, in: glassNamespace)
         .glassEffectTransition(reduceMotion ? .identity : .matchedGeometry)
         .accessibilityLabel(Texts.Product.Quantity.addProduct(productName))
@@ -94,7 +99,7 @@ struct ProductQuantityControl: View {
             .accessibilityIdentifier(AccessibilityID.Product.Quantity.increase(productID))
         }
         .buttonStyle(.plain)
-        .glassEffect(.regular.interactive(), in: .capsule)
+        .glassEffect(frostedGlass, in: .capsule)
         .glassEffectID(Const.counterGlassID, in: glassNamespace)
         .glassEffectTransition(reduceMotion ? .identity : .matchedGeometry)
         .frame(height: Const.controlHeight, alignment: .bottom)
@@ -109,7 +114,7 @@ struct ProductQuantityControl: View {
             .appTextStyle(size: Const.fontSize, lineHeight: Const.lineHeight, relativeTo: .footnote)
             .monospacedDigit()
             .contentTransition(numberTransition)
-            .foregroundStyle(Color.Label.primary)
+            .foregroundStyle(Color.Label.black)
             .lineLimit(1)
             .fixedSize(horizontal: true, vertical: false)
             .frame(minWidth: valueWidth, minHeight: Const.visualHeight)
@@ -131,6 +136,9 @@ struct ProductQuantityControl: View {
                 .appTextStyle(.appText, weight: .semibold)
                 .contentTransition(numberTransition)
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
+        .background(Color.Label.white, in: .capsule)
         .accessibilityLabel(Texts.Product.Quantity.quantityOf(productName))
         .accessibilityValue(Text(quantity, format: .number))
         .accessibilityIdentifier(AccessibilityID.Product.quantity(productID))
@@ -138,10 +146,14 @@ struct ProductQuantityControl: View {
 
     private var accessibleAddButton: some View {
         Button { setQuantity(1) } label: {
-            Label { Text(Texts.Product.Quantity.add) } icon: { Image.System.plus }
+            Label {
+                Text(Texts.Product.Quantity.add).foregroundStyle(Color.Label.black)
+            } icon: {
+                Image.System.plus.foregroundStyle(Color.accentColor)
+            }
         }
         .appTextStyle(.appText, weight: .semibold)
-        .buttonStyle(.glass)
+        .buttonStyle(.glass(frostedGlass))
         .accessibilityLabel(Texts.Product.Quantity.addProduct(productName))
         .accessibilityIdentifier(AccessibilityID.Product.Quantity.add(productID))
     }

@@ -2174,6 +2174,53 @@ nonisolated enum ShoppingListTestAccount {
 }
 
 extension ShoppingListRepositoryTests {
+    func testRestoredTripPicksUpCatalogMediaAndKeepsItsPurchasedPrice() async throws {
+        let item = ShoppingPlanItem(product: CatalogProduct(id: "p1", name: "Saved product"), quantity: 2, unitPrice: 12,
+                                    cardPrice: nil, priceConditions: nil, itemID: 1, status: .bought)
+        let store = CatalogStore(id: "branch", name: "Saved store")
+        let stop = ShoppingPlanStop(position: 1, store: store, items: [item], subtotal: 24)
+        let plan = ShoppingPlan(id: UUID(), total: 24, savings: 0, totalSeconds: 60, walkingMeters: 100,
+                                stops: [stop], points: [], usesRoadNetwork: true, isSynthetic: false)
+        let cart = ShoppingCart(id: UUID(), name: "List", status: "active",
+                                items: [ShoppingCartItem(product: item.product, quantity: 2)])
+        let trip = ShoppingTrip(cartID: cart.id, plan: plan, origin: .defaultOrigin, originAddress: nil, page: .store(stop.id))
+        let account = ShoppingListPreview.account
+        let cache = MemoryShoppingListCache()
+        try await cache.save(.init(cart: cart, pending: [:], plan: nil, trip: trip), account: account)
+        let service = ControlledShoppingService()
+        await service.setOffline(true)
+        let list = ShoppingListRepository(service: service, cache: cache)
+        let catalog = DefaultCatalogRepository()
+        let screen = ShoppingListViewModel(catalog: catalog, list: list)
+        list.setAccount(account)
+        await list.refresh()
+        let restoredStop = try XCTUnwrap(list.trip?.plan.stops.first)
+        let restoredItem = try XCTUnwrap(restoredStop.items.first)
+        XCTAssertNil(screen.planMedia.card(for: restoredItem, in: restoredStop.store).imageURL)
+
+        let square = try XCTUnwrap(URL(string: "https://media.invalid/square.webp"))
+        let wide = try XCTUnwrap(URL(string: "https://media.invalid/wide.webp"))
+        let logo = try XCTUnwrap(URL(string: "https://media.invalid/logo.png"))
+        let current = CatalogProduct(id: item.product.id, name: "Updated product", imageURL: square, wideImageURL: wide)
+        let branch = CatalogStore(id: store.id, name: "Updated store", logoURL: logo)
+        let offer = CatalogOffer(id: "offer", productID: current.id, storeID: branch.id, price: 99, currency: "RUB")
+        try await catalog.importCatalog(.init(products: [current], stores: [branch], offers: [offer]))
+        let deadline = ContinuousClock.now + .seconds(3)
+        while (screen.products.first?.imageURL == nil || screen.storeLogoURLs[store.id] == nil) && ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        let progress = screen.planMedia.card(for: restoredItem, in: restoredStop.store)
+        let listCard = try XCTUnwrap(screen.products.first)
+        for card in [listCard, progress] {
+            XCTAssertEqual(card.imageURL, square)
+            XCTAssertEqual(card.wideImageURL, wide)
+            XCTAssertEqual(card.offers.first?.logoURL, logo)
+            XCTAssertEqual(card.lowestPrice, 12)
+        }
+        XCTAssertEqual(progress.name, item.product.name)
+        XCTAssertEqual(list.trip?.spent, 24)
+    }
+
     func testActiveTripRestoresItsNavigationAndConfirmedPurchasesOffline() async throws {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: folder) }

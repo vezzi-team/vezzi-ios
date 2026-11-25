@@ -204,6 +204,7 @@ enum AccessibilityID {
         static let contact = "profile.contact"
         static let editAddress = "profile.address.edit"
         static let language = "profile.settings.language"
+        static let clearImageCache = "profile.settings.clearImageCache"
         static func theme(_ id: String) -> String { "profile.theme.\(id)" }
         static func priority(_ id: String) -> String { "profile.priority.\(id)" }
 

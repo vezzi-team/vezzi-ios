@@ -10,12 +10,15 @@ nonisolated final class ProductEntity: NSManagedObject {
     @NSManaged var packageQuantity: NSDecimalNumber?
     @NSManaged var packageQuantityText: String?
     @NSManaged var packageUnit: String?
+    @NSManaged var imageURL: URL?
+    @NSManaged var wideImageURL: URL?
     @NSManaged var offers: Set<OfferEntity>
 
     func catalogValue() throws -> CatalogProduct {
         let quantity = try ExactDecimal.decode(packageQuantityText, legacy: packageQuantity, entity: "Product", id: id)
         return CatalogProduct(id: id, name: name, brand: brand, category: category,
-                              productType: productType, packageQuantity: quantity, packageUnit: packageUnit)
+                              productType: productType, packageQuantity: quantity, packageUnit: packageUnit,
+                              imageURL: imageURL, wideImageURL: wideImageURL)
     }
 }
 
@@ -29,12 +32,13 @@ nonisolated final class StoreEntity: NSManagedObject {
     @NSManaged var longitude: NSNumber?
     @NSManaged var isActive: Bool
     @NSManaged var format: String?
+    @NSManaged var logoURL: URL?
     @NSManaged var offers: Set<OfferEntity>
 
     var value: CatalogStore {
         CatalogStore(id: id, name: name, chainName: chainName, address: address,
                      latitude: latitude?.doubleValue, longitude: longitude?.doubleValue,
-                     isActive: isActive, format: format)
+                     isActive: isActive, format: format, logoURL: logoURL)
     }
 }
 
@@ -85,10 +89,11 @@ nonisolated final class CatalogMetadataEntity: NSManagedObject {
     @NSManaged var isSynthetic: Bool
     @NSManaged var offerMaxAgeHours: Int64
     @NSManaged var etag: String?
+    @NSManaged var includesMediaFields: Bool
     @NSManaged var validatedAt: Date
 
     var value: CatalogMetadata {
         CatalogMetadata(importID: importID, importedAt: importedAt, isSynthetic: isSynthetic,
-                        offerMaxAgeHours: Int(offerMaxAgeHours), etag: etag, validatedAt: validatedAt)
+                        offerMaxAgeHours: Int(offerMaxAgeHours), etag: includesMediaFields ? etag : nil, validatedAt: validatedAt)
     }
 }
