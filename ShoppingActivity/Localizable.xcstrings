@@ -31,12 +31,12 @@
         }
       }
     },
-    "Heading home": {
+    "Home": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Возвращение домой"
+            "value": "Домой"
           }
         }
       }
@@ -51,22 +51,22 @@
         }
       }
     },
-    "Shopping summary": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Итог покупок"
-          }
-        }
-      }
-    },
     "Spent": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Потрачено"
+          }
+        }
+      }
+    },
+    "Summary": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Итог"
           }
         }
       }

@@ -46,8 +46,8 @@ private extension ShoppingActivityAttributes.Stage {
         switch self {
         case .walking: "On the way to the store"
         case .shopping: "At the store"
-        case .returning: "Heading home"
-        case .summary: "Shopping summary"
+        case .returning: "Home"
+        case .summary: "Summary"
         case .finishing: "Finishing shopping"
         }
     }
@@ -66,7 +66,15 @@ private extension ShoppingActivityAttributes.Stage {
 private struct ShoppingActivityCard: View {
     let state: TripState
 
+    private var destinationTitle: Text? {
+        switch state.stage {
+        case .returning, .summary: Text(state.stage.title)
+        case .walking, .shopping, .finishing: state.storeName.map(Text.init(verbatim:))
+        }
+    }
+
     var body: some View {
+        let destination = destinationTitle
         HStack(spacing: 10) {
             Image(systemName: state.stage.symbol)
                 .resizable().scaledToFit()
@@ -76,7 +84,7 @@ private struct ShoppingActivityCard: View {
                 .frame(width: 57)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
-                if state.storeName == nil {
+                if destination == nil {
                     Text(state.stage.title)
                         .font(.title3.bold())
                         .lineLimit(2)
@@ -97,14 +105,14 @@ private struct ShoppingActivityCard: View {
                         .accessibilityElement(children: .combine)
                     }
                     .layoutPriority(1)
-                    if let storeName = state.storeName {
-                        Text(verbatim: storeName)
+                    if let destination {
+                        destination
                             .font(.title3.bold())
                             .lineLimit(1)
                             .minimumScaleFactor(0.6)
                             .allowsTightening(true)
                             .frame(maxWidth: .infinity, alignment: .trailing)
-                            .accessibilityHint(Text(state.stage.title))
+                            .accessibilityHint(Text(state.stage.title), isEnabled: state.storeName != nil)
                     }
                 }
                 ProgressView(value: Double(state.bought), total: Double(max(state.total, 1)))
