@@ -534,7 +534,31 @@ extension ShoppingListAPITests {
         XCTAssertNil(list.failure)
         XCTAssertEqual(list.cart?.id, otherID)
         XCTAssertNil(list.trip)
+        XCTAssertTrue(list.hasVerifiedPlanStatus)
         XCTAssertFalse(list.selection.isShopping)
+    }
+
+    func testCartOnlyCacheDoesNotConfirmTripAbsenceUntilReconnection() async throws {
+        let cache = MemoryShoppingListCache()
+        let account = ShoppingListPreview.account
+        let previous = try await savedTrip(id: UUID())
+        try await cache.save(.init(cart: previous.cart, pending: [:], plan: nil), account: account)
+        let client = ShoppingRequestStub(responses: [try json([])])
+        await client.setOffline(true)
+        let list = ShoppingListRepository(service: APIShoppingListService(client: client), cache: cache)
+        list.setAccount(account)
+        await list.refresh()
+        XCTAssertTrue(list.hasResolvedCart)
+        XCTAssertEqual(list.failure, .offline)
+        XCTAssertNil(list.trip)
+        XCTAssertFalse(list.hasVerifiedPlanStatus)
+
+        await client.setOffline(false)
+        await list.refresh()
+        XCTAssertNil(list.failure)
+        XCTAssertTrue(list.hasVerifiedPlanStatus)
+        list.setAccount(nil)
+        XCTAssertFalse(list.hasVerifiedPlanStatus)
     }
 
     func testCartIsAvailableIfTheInitialProgressRequestFails() async throws {
@@ -545,6 +569,7 @@ extension ShoppingListAPITests {
         list.setAccount(account)
         await list.refresh()
         XCTAssertNotNil(list.failure)
+        XCTAssertFalse(list.hasVerifiedPlanStatus)
         XCTAssertEqual(list.selection.quantities, ["1": 2])
         let snapshot = try await cache.load(account: account)
         XCTAssertEqual(snapshot?.cart?.id, cartID)

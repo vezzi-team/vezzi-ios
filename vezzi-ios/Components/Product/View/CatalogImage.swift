@@ -42,11 +42,15 @@ struct CatalogImage: View {
     var body: some View {
         if let url {
             let revision = retries?.revision.value ?? 0
-            load(url) {
+            load(image(for: url)) {
                 if let fallbackURL, fallbackURL != url {
-                    load(fallbackURL) { failedPlaceholder(since: revision) }
+                    load(image(for: fallbackURL)) { retryOnRefresh(since: revision, content: placeholder) }
+                } else if case .logo = usage {
+                    // Existing installations can still show their previously cached logo offline.
+                    let cached = KFImage(url).setProcessor(CatalogImageCache.legacyLogoProcessor).onlyFromCache()
+                    retryOnRefresh(since: revision, content: load(cached, shimmer: false) { placeholder })
                 } else {
-                    failedPlaceholder(since: revision)
+                    retryOnRefresh(since: revision, content: placeholder)
                 }
             }
             .id(fallbackURL)
@@ -59,24 +63,25 @@ struct CatalogImage: View {
     }
 
     @ViewBuilder
-    private func failedPlaceholder(since revision: Int) -> some View {
+    private func retryOnRefresh(since revision: Int, content: some View) -> some View {
         if let retries {
-            placeholder.onReceive(retries.revision) { current in
+            content.onReceive(retries.revision) { current in
                 if current != revision { attempt = current }
             }
         } else {
-            placeholder
+            content
         }
     }
 
-    private func load<Failure: View>(_ url: URL, @ViewBuilder onFailure: @escaping () -> Failure) -> some View {
-        image(for: url)
+    private func load<Failure: View>(_ image: KFImage, shimmer: Bool = true,
+                                     @ViewBuilder onFailure: @escaping () -> Failure) -> some View {
+        image
             .targetCache(cache)
             .downloader(downloader)
             .loadDiskFileSynchronously(false)
             .asyncCacheTypeCheck()
             .cancelOnDisappear(true)
-            .placeholder { placeholder.shimmer(isActive: showsLoadingShimmer, style: shimmerStyle) }
+            .placeholder { placeholder.shimmer(isActive: showsLoadingShimmer && shimmer, style: shimmerStyle) }
             .onFailureView(onFailure)
             .fade(duration: reduceMotion ? 0 : Const.fadeDuration)
             .resizable()
@@ -109,8 +114,8 @@ struct CatalogImage: View {
                 .cacheMemoryOnly()
                 .cacheOriginalImage()
         case .logo:
-            return image.setProcessor(DownsamplingImageProcessor(size: CGSize(width: 48, height: 48)))
-                .scaleFactor(displayScale)
+            return image.setProcessor(CatalogImageCache.logoProcessor)
+                .scaleFactor(1)
                 .backgroundDecode()
         }
     }

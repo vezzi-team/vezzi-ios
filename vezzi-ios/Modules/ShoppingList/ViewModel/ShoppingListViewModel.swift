@@ -4,6 +4,7 @@ import Foundation
 @MainActor
 final class ShoppingListViewModel: ObservableObject {
     enum ContentState { case products, loading, empty, offline, unavailable }
+    enum ActivityDestination: Equatable { case progress, list }
     @Published var mode = ShoppingMode.cheaper
     @Published private(set) var selectedProduct: Product?
     @Published private(set) var selectedProductOffer: ProductOffer?
@@ -121,6 +122,13 @@ final class ShoppingListViewModel: ObservableObject {
         async let refreshList: Void = list.refresh()
         if catalog.canRefresh { try? await catalog.refresh() }
         await refreshList
+    }
+
+    func activityDestination(for planID: UUID?, isRestoringAccount: Bool) -> ActivityDestination? {
+        guard let planID else { return nil }
+        if list.account != nil, list.trip?.plan.id == planID { return .progress }
+        if isRestoringAccount || list.isBusy { return nil }
+        return .list
     }
 
     func showRoutes(startsAtSummary: Bool = false) {

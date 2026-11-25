@@ -1,0 +1,76 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "At the store": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В магазине"
+          }
+        }
+      }
+    },
+    "Bought": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Куплено"
+          }
+        }
+      }
+    },
+    "Finishing shopping": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завершаем покупки"
+          }
+        }
+      }
+    },
+    "Heading home": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Возвращение домой"
+          }
+        }
+      }
+    },
+    "On the way to the store": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По пути в магазин"
+          }
+        }
+      }
+    },
+    "Shopping summary": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Итог покупок"
+          }
+        }
+      }
+    },
+    "Spent": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Потрачено"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

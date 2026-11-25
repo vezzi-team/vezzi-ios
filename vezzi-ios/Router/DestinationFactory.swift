@@ -17,7 +17,8 @@ enum DestinationFactory {
             case .catalog:
                 storefront(.catalog)
             case .shoppingList:
-                ShoppingListView(catalog: catalog, list: shoppingList, location: location)
+                ShoppingListView(catalog: catalog, list: shoppingList, location: location,
+                                 isRestoringAccount: authentication.isRestoring)
             case .search:
                 SearchView(repository: catalog, selection: productSelection)
             case .profile:

@@ -11,6 +11,11 @@ enum CatalogImageCache {
         return cache
     }()
 
+    // Fixed pixels: Kingfisher's processor key includes the size but not the request's scale factor.
+    // 144 px covers a 48-point logo on a 3x display. The island thumbnail is derived in memory.
+    static let logoProcessor = DownsamplingImageProcessor(size: CGSize(width: 144, height: 144))
+    static let legacyLogoProcessor = DownsamplingImageProcessor(size: CGSize(width: 48, height: 48))
+
     static func cardProcessor(width: CGFloat, displayScale: CGFloat) -> DownsamplingImageProcessor {
         // Round up in physical pixels so similar layouts share a thumbnail at full display density.
         let step: CGFloat = 32

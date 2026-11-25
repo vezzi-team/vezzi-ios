@@ -24,7 +24,7 @@ final class CatalogImageTests: XCTestCase {
         downloader.sessionConfiguration = configuration
         let assets: [(String, KingfisherOptionsInfo)] = [
             ("photo.webp", [.cacheSerializer(CatalogImageCache.artworkSerializer)]),
-            ("store.png", [.processor(DownsamplingImageProcessor(size: CGSize(width: 48, height: 48)))])
+            ("store.png", [.processor(CatalogImageCache.logoProcessor), .scaleFactor(1)])
         ]
         for offline in [false, true] {
             let cache = try ImageCache(name: "media", cacheDirectoryURL: directory)
@@ -37,6 +37,75 @@ final class CatalogImageTests: XCTestCase {
             }
         }
         XCTAssertEqual(server.requests.count, 2)
+    }
+
+    func testIslandFirstLoadPreservesRetinaLogoForOfflineAppViews() async throws {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let bounds = CGRect(x: 0, y: 0, width: 240, height: 240)
+        let png = UIGraphicsImageRenderer(bounds: bounds, format: format).pngData { context in
+            UIColor.orange.setFill()
+            context.fill(bounds)
+        }
+        let server = AuthenticationHTTPStub { request, requests in
+            requests.filter { $0.url == request.url }.count == 1
+                ? HTTPStubReply(body: png, headers: ["Content-Type": "image/png"])
+                : .failure(.notConnectedToInternet)
+        }
+        defer { AuthenticationURLProtocol.unregister(server.host) }
+        let manager = try makeManager(for: server)
+        let cache = manager.cache
+        defer { try? FileManager.default.removeItem(at: cache.diskStorage.directoryURL) }
+        let fromIsland = try XCTUnwrap(URL(string: "https://\(server.host)/island.png"))
+        let fromApp = try XCTUnwrap(URL(string: "https://\(server.host)/app.png"))
+        let thumbnail = try await ShoppingLiveActivity.loadThumbnail(for: fromIsland, cache: cache, manager: manager)
+        let data = try XCTUnwrap(thumbnail)
+        XCTAssertLessThanOrEqual(data.count, 1800)
+        XCTAssertEqual(UIImage(data: data)?.cgImage?.width, 48)
+
+        let options: KingfisherOptionsInfo = [.processor(CatalogImageCache.logoProcessor)]
+        let path = cache.cachePath(forKey: fromIsland.cacheKey, processorIdentifier: CatalogImageCache.logoProcessor.identifier)
+        try await waitUntil { FileManager.default.fileExists(atPath: path) }
+        cache.clearMemoryCache()
+        let window = try show(VStack {
+            StoreLogo(url: fromIsland)
+            StoreLogo(url: fromApp)
+        }
+            .environment(\.displayScale, 3)
+            .environment(\.catalogImageCache, cache)
+            .environment(\.catalogImageDownloader, manager.downloader))
+        defer { window.isHidden = true }
+        for url in [fromIsland, fromApp] {
+            try await waitUntil { cache.retrieveImageInMemoryCache(forKey: url.cacheKey, options: options) != nil }
+            let image = cache.retrieveImageInMemoryCache(forKey: url.cacheKey, options: options)
+            XCTAssertEqual(image?.cgImage?.width, 144)
+        }
+        XCTAssertEqual(server.count("/island.png"), 1)
+        XCTAssertEqual(server.count("/app.png"), 1)
+    }
+
+    func testPreviouslyCachedStoreLogoRemainsAvailableOfflineAfterUpgrade() async throws {
+        let png = try Data(contentsOf: XCTUnwrap(PreviewCatalogRepository.artworkURL))
+        let server = AuthenticationHTTPStub { _, requests in
+            requests.count == 1 ? HTTPStubReply(body: png) : .failure(.notConnectedToInternet)
+        }
+        defer { AuthenticationURLProtocol.unregister(server.host) }
+        let manager = try makeManager(for: server)
+        let cache = manager.cache
+        defer { try? FileManager.default.removeItem(at: cache.diskStorage.directoryURL) }
+        let url = try XCTUnwrap(URL(string: "https://\(server.host)/legacy.png"))
+        let oldOptions: KingfisherOptionsInfo = [.processor(CatalogImageCache.legacyLogoProcessor), .scaleFactor(3)]
+        _ = try await manager.retrieveImage(with: url, options: oldOptions + [.waitForCache])
+        cache.clearMemoryCache()
+        let thumbnail = try await ShoppingLiveActivity.loadThumbnail(for: url, cache: cache, manager: manager)
+        XCTAssertNotNil(thumbnail)
+        cache.clearMemoryCache()
+        let window = try show(StoreLogo(url: url)
+            .environment(\.catalogImageCache, cache)
+            .environment(\.catalogImageDownloader, manager.downloader))
+        defer { window.isHidden = true }
+        try await waitUntil { cache.retrieveImageInMemoryCache(forKey: url.cacheKey, options: oldOptions) != nil }
+        XCTAssertFalse(cache.isCached(forKey: url.cacheKey, processorIdentifier: CatalogImageCache.logoProcessor.identifier))
     }
 
     func testCardThumbnailsReuseOneOriginalAcrossSizesAndCacheReopening() async throws {

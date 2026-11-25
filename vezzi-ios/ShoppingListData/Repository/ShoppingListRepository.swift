@@ -8,6 +8,8 @@ final class ShoppingListRepository: ObservableObject {
     @Published private(set) var hasResolvedCart = false
     @Published private(set) var planResult: ShoppingPlanResult?
     @Published private(set) var trip: ShoppingTrip?
+    /// A cached cart can be available before the server confirms which plan is active.
+    @Published private(set) var hasVerifiedPlanStatus = false
     @Published var showsDeletedCartNotice = false
     @Published private var isStartingTrip = false
     @Published private(set) var tripFailure: ShoppingListFailure?
@@ -82,6 +84,7 @@ final class ShoppingListRepository: ObservableObject {
         self.account = account
         showsDeletedCartNotice = false
         trip = nil
+        hasVerifiedPlanStatus = false
         isStartingTrip = false
         tripFailure = nil
         selection.isShopping = false
@@ -259,7 +262,9 @@ final class ShoppingListRepository: ObservableObject {
                     cart = loaded
                     if let loaded, let restoredPlan {
                         acceptActivePlan(restoredPlan, cartID: loaded.id)
-                    } else if progress != nil || trip?.cartID != loaded?.id {
+                    } else if progress != nil || loaded == nil {
+                        clearVerifiedTrip()
+                    } else if trip?.cartID != loaded?.id {
                         trip = nil
                         selection.isShopping = false
                     }
@@ -721,10 +726,7 @@ extension ShoppingListRepository {
                 try check(generation)
                 guard active?.id != current.plan.id else { throw error }
                 if let active { acceptActivePlan(active, cartID: current.cartID) }
-                else {
-                    trip = nil
-                    selection.isShopping = false
-                }
+                else { clearVerifiedTrip() }
                 tripFailure = .cartUnavailable
                 reconcileSelection()
                 saveCache()
@@ -751,7 +753,7 @@ extension ShoppingListRepository {
                         service: any ShoppingProgressService, generation: UUID) async throws {
         let kept = try await service.finishPlan(id: trip.plan.id, cartID: trip.cartID, list: choice, resuming: resuming)
         try check(generation)
-        self.trip = nil
+        clearVerifiedTrip()
         tripFailure = nil
         if kept == nil {
             // Discard only edits bound to the removed cart, never transfer them to its successor.
@@ -759,12 +761,17 @@ extension ShoppingListRepository {
             if choice == .keep { showsDeletedCartNotice = true }
         }
         cart = kept
-        selection.isShopping = false
         invalidatePlan()
         reconcileSelection()
         needsActiveCartResolution = kept == nil
         needsReload = true
         saveCache()
+    }
+
+    private func clearVerifiedTrip() {
+        trip = nil
+        selection.isShopping = false
+        if !hasVerifiedPlanStatus { hasVerifiedPlanStatus = true }
     }
 
     private func acceptActivePlan(_ plan: ShoppingPlan, cartID: UUID, startedHere: Bool = false) {
@@ -779,6 +786,7 @@ extension ShoppingListRepository {
                                 originAddress: start == origin ? originAddress : nil, page: .route(first.id))
         }
         selection.isShopping = true
+        if !hasVerifiedPlanStatus { hasVerifiedPlanStatus = true }
         if cachedPlan != nil || planResult != nil { invalidatePlan() }
     }
 }

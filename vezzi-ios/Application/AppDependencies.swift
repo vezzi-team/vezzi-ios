@@ -8,6 +8,7 @@ final class AppDependencies: ObservableObject {
     let shoppingList: ShoppingListRepository
     let location: any DeviceLocating = DeviceLocationService()
     private var networkMonitor: NetworkMonitor?
+    private var shoppingActivity: ShoppingLiveActivity?
     private var hasLoaded = false
     private var hasStarted = false
     private var accountSubscription: AnyCancellable?
@@ -20,6 +21,7 @@ final class AppDependencies: ObservableObject {
                   source: APICatalogSource(client: client), authenticationService: authentication, authenticationDefaults: .standard,
                   shoppingListService: APIShoppingListService(client: authentication), shoppingListCache: FileShoppingListCache(),
                   addressResolver: MapKitAddressResolver())
+        shoppingActivity = ShoppingLiveActivity(list: shoppingList, authentication: self.authentication, catalog: catalog)
         networkMonitor = NetworkMonitor { [weak self] connected in
             self?.catalog.updateConnectivity(isConnected: connected)
             self?.shoppingList.updateConnectivity(isConnected: connected)
@@ -64,6 +66,7 @@ final class AppDependencies: ObservableObject {
     }
 
     func becameActive() async {
+        shoppingActivity?.refresh()
         guard hasLoaded else { return }
         async let catalogRefresh: Void = refreshCatalog()
         await authentication.restore(force: true)

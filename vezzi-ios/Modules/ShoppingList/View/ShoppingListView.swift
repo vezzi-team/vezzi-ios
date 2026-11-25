@@ -3,6 +3,7 @@ import SwiftUI
 struct ShoppingListView: View {
     @StateObject private var viewModel: ShoppingListViewModel
     private let location: any DeviceLocating
+    private let isRestoringAccount: Bool
     @Environment(\.preferredShoppingMode) private var preferredMode
     @EnvironmentObject private var router: AppRouter
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -17,9 +18,11 @@ struct ShoppingListView: View {
     @State private var isPastSummaryTop = false
     @ScaledMetric(relativeTo: .subheadline) private var metricTextHeight = Const.metricTextHeight
 
-    init(catalog: any CatalogRepository, list: ShoppingListRepository, location: (any DeviceLocating)? = nil) {
+    init(catalog: any CatalogRepository, list: ShoppingListRepository, location: (any DeviceLocating)? = nil,
+         isRestoringAccount: Bool = false) {
         _viewModel = StateObject(wrappedValue: ShoppingListViewModel(catalog: catalog, list: list))
         self.location = location ?? DeviceLocationService()
+        self.isRestoringAccount = isRestoringAccount
     }
 
     var body: some View {
@@ -43,9 +46,18 @@ struct ShoppingListView: View {
         .toolbarTitleDisplayMode(.inlineLarge)
         .onReceive(router.willOpenShoppingList) {
             if viewModel.selectedProduct != nil { viewModel.dismissProduct() }
-            viewModel.routes = nil
+            if router.pendingShoppingPlanID == nil { viewModel.routes = nil }
             showsAddress = false
             showsStores = false
+        }
+        .onChange(of: viewModel.activityDestination(for: router.pendingShoppingPlanID, isRestoringAccount: isRestoringAccount),
+                  initial: true) { _, destination in
+            guard let destination else { return }
+            router.clearShoppingProgressRequest()
+            switch destination {
+            case .progress: viewModel.showRoutes(startsAtSummary: viewModel.list.trip?.pendingFinish != nil)
+            case .list: viewModel.routes = nil
+            }
         }
         .safeAreaBar(edge: .bottom) {
             if viewModel.contentState == .products || viewModel.contentState == .empty { bottomAction }

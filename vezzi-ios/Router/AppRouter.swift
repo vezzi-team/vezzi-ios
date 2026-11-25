@@ -8,6 +8,7 @@ final class AppRouter: ObservableObject {
     @Published private(set) var navigationPaths: [Tab: [Route]]
     @Published private(set) var presentedSheet: Sheet?
     @Published var presentedCover: Cover?
+    @Published private(set) var pendingShoppingPlanID: UUID?
     let willOpenShoppingList = PassthroughSubject<Void, Never>()
 
     init(selectedTab: Tab = .home) {
@@ -20,6 +21,7 @@ final class AppRouter: ObservableObject {
     nonisolated deinit {}
 
     func selectTab(_ tab: Tab) {
+        if tab != .shoppingList { clearShoppingProgressRequest() }
         if selectedTab == tab {
             popToRoot(in: tab)
         } else {
@@ -53,6 +55,20 @@ final class AppRouter: ObservableObject {
     }
 
     func openShoppingList() {
+        clearShoppingProgressRequest()
+        selectShoppingListRoot()
+    }
+
+    func openShoppingProgress(for planID: UUID) {
+        pendingShoppingPlanID = planID
+        selectShoppingListRoot()
+    }
+
+    func clearShoppingProgressRequest() {
+        if pendingShoppingPlanID != nil { pendingShoppingPlanID = nil }
+    }
+
+    private func selectShoppingListRoot() {
         willOpenShoppingList.send()
         presentedCover = nil
         dismissSheet()

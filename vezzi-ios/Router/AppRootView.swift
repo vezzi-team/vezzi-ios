@@ -73,6 +73,11 @@ struct AppRootView: View {
                                      list: shoppingList, location: location)
         }
         .fullScreenCover(item: $appRouter.presentedCover, content: cover)
+        .onOpenURL { url in
+            if let planID = ShoppingActivityAttributes.planID(from: url) {
+                appRouter.openShoppingProgress(for: planID)
+            }
+        }
         .onChange(of: authentication.user) { _, user in
             if user == nil {
                 appRouter.popToRoot(in: .home)
