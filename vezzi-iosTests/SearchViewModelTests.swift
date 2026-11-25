@@ -333,6 +333,53 @@ final class SearchViewModelTests: XCTestCase {
         XCTAssertTrue(model.sections.flatMap(\.products).allSatisfy { $0.offers.count == 2 })
     }
 
+    func testSearchSectionsFollowFirstServerMatchInBothModes() async throws {
+        let milk = CatalogProduct(id: "milk", name: "Молоко", category: "Молочные продукты", imageURL: CatalogFixtures.imageURL)
+        let porridge = CatalogProduct(id: "porridge", name: "Каша на молоке", category: "Бакалея", imageURL: CatalogFixtures.imageURL)
+        let kefir = CatalogProduct(id: "kefir", name: "Кефир", category: " МОЛОЧНЫЕ   продукты ", imageURL: CatalogFixtures.imageURL)
+        let source = SearchCatalogSource { _ in [milk, porridge, kefir] }
+        let repository = DefaultCatalogRepository(source: source)
+        try await repository.importCatalog(CatalogImport(products: [porridge, kefir, milk], stores: [
+            CatalogStore(id: "a", name: "A"), CatalogStore(id: "b", name: "B"), CatalogStore(id: "c", name: "C")
+        ], offers: [
+            CatalogOffer(id: "bm", productID: "milk", storeID: "b", price: 100, currency: "RUB"),
+            CatalogOffer(id: "cm", productID: "milk", storeID: "c", price: 110, currency: "RUB"),
+            CatalogOffer(id: "ap", productID: "porridge", storeID: "a", price: 20, currency: "RUB"),
+            CatalogOffer(id: "bk", productID: "kefir", storeID: "b", price: 60, currency: "RUB")
+        ]))
+        let model = SearchViewModel(repository: repository, stores: [
+            "a": SearchStoreInfo(walkingMinutes: 2, distance: .init(value: 150, unit: .meters)),
+            "c": SearchStoreInfo(walkingMinutes: 5, distance: .init(value: 350, unit: .meters))
+        ])
+        model.query = "молоко"
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.first?.id == "milk" })
+        XCTAssertEqual(model.sections.map(\.title), ["Молочные продукты", "Бакалея"])
+        XCTAssertEqual(model.sections.first?.products.map(\.id), ["kefir", "milk"])
+        model.mode = .faster
+        XCTAssertEqual(model.sections.map(\.id), ["c", "b", "a"])
+        model.query = ""
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.first?.id == "porridge" })
+        XCTAssertEqual(model.sections.map(\.id), ["a", "c", "b"])
+        model.mode = .cheaper
+        XCTAssertEqual(model.sections.map(\.id), ["бакалея", "молочные продукты"])
+    }
+
+    func testOfflineSectionsFollowFirstMatchingCachedProduct() async throws {
+        let cache = ControlledCatalogCache()
+        cache.snapshot = try CatalogFixtures.snapshot(CatalogImport(products: [
+            CatalogProduct(id: "milk", name: "Молоко", category: "Молочные продукты", imageURL: CatalogFixtures.imageURL),
+            CatalogProduct(id: "oat", name: "Овсяное молоко", category: "Бакалея", imageURL: CatalogFixtures.imageURL),
+            CatalogProduct(id: "tea", name: "Чай", category: "Напитки", imageURL: CatalogFixtures.imageURL)
+        ]))
+        let repository = DefaultCatalogRepository(cache: cache)
+        repository.updateConnectivity(isConnected: false)
+        await repository.prepareCache()
+        let model = SearchViewModel(repository: repository)
+        model.query = "молоко"
+        _ = await publishedItems(model.$items.eraseToAnyPublisher(), where: { $0.count == 2 })
+        XCTAssertEqual(model.sections.map(\.title), ["Молочные продукты", "Бакалея"])
+    }
+
     func testCheaperModeMergesCategoryTitlesAcrossProductTypesAndKeepsOtherCategoriesSeparate() async throws {
         let products = [
             CatalogProduct(id: "milk", name: "Молоко", category: "Молочные продукты", productType: "Молоко", imageURL: CatalogFixtures.imageURL),

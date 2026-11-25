@@ -143,21 +143,22 @@ final class SearchViewModel: ObservableObject {
     }
 
     private func cheaperSections() -> [SearchSection] {
-        var groups: [String: (title: String, products: [Product])] = [:]
-        for (item, product) in zip(items, products) {
+        var groups: [String: (title: String, firstMatch: Int, products: [Product])] = [:]
+        for (index, (item, product)) in zip(items, products).enumerated() {
             let title = Self.cleanedTitle(item.product.category)
                 ?? Self.cleanedTitle(item.product.productType)
                 ?? Self.cleanedTitle(product.displayName)
                 ?? Texts.Catalog.uncategorized
-            groups[title.lowercased(), default: (title, [])].products.append(product)
+            groups[title.lowercased(), default: (title, index, [])].products.append(product)
         }
-        return groups.map { id, group in
+        return groups.sorted { lhs, rhs in
+            if !displayedQuery.isEmpty { return lhs.value.firstMatch < rhs.value.firstMatch }
+            let lhsRank = groupRanks[lhs.key, default: Int.max]
+            let rhsRank = groupRanks[rhs.key, default: Int.max]
+            return lhsRank == rhsRank ? lhs.key < rhs.key : lhsRank < rhsRank
+        }.map { id, group in
             SearchSection(id: id, title: group.title, address: nil, storeID: nil, walkingMinutes: nil,
                           products: group.products.sorted(by: priceOrder))
-        }.sorted {
-            let lhsRank = groupRanks[$0.id, default: Int.max]
-            let rhsRank = groupRanks[$1.id, default: Int.max]
-            return lhsRank == rhsRank ? $0.id < $1.id : lhsRank < rhsRank
         }
     }
 
@@ -168,23 +169,26 @@ final class SearchViewModel: ObservableObject {
     }
 
     private func fasterSections() -> [SearchSection] {
-        var byStore: [String: [Product]] = [:]
-        for product in products {
+        var byStore: [String: (firstMatch: Int, products: [Product])] = [:]
+        for (index, product) in products.enumerated() {
             for offer in product.offers where offer.inStock != false {
                 var scoped = product
                 scoped.offers = [offer]
-                byStore[offer.storeID, default: []].append(scoped)
+                byStore[offer.storeID, default: (index, [])].products.append(scoped)
             }
         }
-        return byStore.map { id, products in
-            let offer = products.first?.offers.first
+        return byStore.sorted { lhs, rhs in
+            if !displayedQuery.isEmpty, lhs.value.firstMatch != rhs.value.firstMatch {
+                return lhs.value.firstMatch < rhs.value.firstMatch
+            }
+            let lhsTime = stores[lhs.key]?.walkingMinutes ?? Int.max
+            let rhsTime = stores[rhs.key]?.walkingMinutes ?? Int.max
+            return lhsTime == rhsTime ? lhs.key < rhs.key : lhsTime < rhsTime
+        }.map { id, group in
+            let offer = group.products.first?.offers.first
             return SearchSection(id: id, title: offer?.storeTitle ?? "", address: offer?.displayAddress, storeID: id,
                                  walkingMinutes: stores[id]?.walkingMinutes,
-                                 products: products.sorted(by: priceOrder))
-        }.sorted {
-            let lhsTime = $0.walkingMinutes ?? Int.max
-            let rhsTime = $1.walkingMinutes ?? Int.max
-            return lhsTime == rhsTime ? $0.id < $1.id : lhsTime < rhsTime
+                                 products: group.products.sorted(by: priceOrder))
         }
     }
 
